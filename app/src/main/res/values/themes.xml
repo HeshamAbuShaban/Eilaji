@@ -1,9 +1,66 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+
     <style name="Base.Theme.Eilaji" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="android:windowBackground">@color/white</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+        <item name="android:statusBarColor">@color/white</item>
     </style>
 
     <style name="Theme.Eilaji" parent="Base.Theme.Eilaji" />
+
+    <style name="Theme.App.MySplash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.Eilaji</item>
+    </style>
+
+
+    <style name="TextInputAccountInformationStyle" parent="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopEnd">@dimen/_4sdp</item>
+        <item name="boxCornerRadiusTopStart">@dimen/_4sdp</item>
+        <item name="boxCornerRadiusBottomStart">0dp</item>
+        <item name="boxCornerRadiusBottomEnd">0dp</item>
+        <item name="boxBackgroundColor">@color/gray_light</item>
+        <item name="boxStrokeColor">@drawable/selector_text_input_account_information</item>
+        <item name="boxStrokeWidth">0dp</item>
+        <item name="boxStrokeWidthFocused">@dimen/_1sdp</item>
+        <item name="android:textColorHint">@color/gray_dark</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="checkBoxStyle" parent="Base.Theme.AppCompat">
+        <item name="colorAccent">@color/primary_pink</item>
+        <item name="android:textColorSecondary">@color/primary_pink</item>
+    </style>
+
+    <style name="PinkButton" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/primary_pink</item>
+        <item name="android:paddingTop">@dimen/_12sdp</item>
+        <item name="android:paddingBottom">@dimen/_12sdp</item>
+        <item name="cornerRadius">@dimen/_4sdp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">@dimen/_16ssp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="elevation">@dimen/_15sdp</item>
+    </style>
+
+    <style name="TextButtonStyle">
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:paddingStart">@dimen/_5sdp</item>
+        <item name="android:paddingEnd">@dimen/_5sdp</item>
+        <item name="android:paddingTop">@dimen/_12sdp</item>
+        <item name="android:paddingBottom">@dimen/_12sdp</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="AppIconStyle">
+        <item name="android:scaleType">fitXY</item>
+        <item name="android:scaleX">1.7</item>
+        <item name="android:scaleY">1.7</item>
+        <item name="android:src">@drawable/ic_launcher_foreground</item>
+    </style>
+
 </resources>

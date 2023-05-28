@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".FragmentOnBoarding">
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/onBoardingPager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/customFloatButtonProgress"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <FrameLayout
+        android:id="@+id/customFloatButtonProgress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.9">
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/circularProgressIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:progress="33"
+            app:indicatorColor="@color/primary_pink"
+            app:indicatorSize="@dimen/_60sdp"
+            app:trackColor="@color/gray"
+            app:trackCornerRadius="@dimen/_7sdp"
+            app:trackThickness="@dimen/_3sdp" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/buNextArrow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:cardBackgroundColor="@color/primary_pink"
+            app:cardCornerRadius="@dimen/_50sdp"
+            app:cardElevation="@dimen/_3sdp"
+            app:cardUseCompatPadding="true">
+
+            <ImageView
+                android:layout_width="@dimen/_18sdp"
+                android:layout_height="@dimen/_18sdp"
+                android:layout_gravity="center"
+                android:layout_margin="@dimen/_14sdp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_arrow_forward"
+                app:tint="@color/white" />
+
+        </androidx.cardview.widget.CardView>
+
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

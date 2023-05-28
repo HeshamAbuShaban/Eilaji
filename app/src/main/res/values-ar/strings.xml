@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">علاجي</string>
+    <string name="username">اسم المستخدم</string>
+    <string name="password">كلمة المرور</string>
+    <string name="email">البريد الالكتروني</string>
+    <string name="login">تسجيل الدخول</string>
+    <string name="remember_me">تذكرني</string>
+    <string name="do_not_have_an_account">لا تمتلك حساب؟</string>
+    <string name="create_a_new_account">انشاء حساب جديد</string>
+    <string name="skip">تخطي</string>
+    <string name="forgot_your_password">نسيت كلمة المرور؟</string>
+    <string name="confirm_password">تأكيد كلمة المرور</string>
+    <string name="create_an_account">انشاء حساب</string>
+    <string name="have_an_account">تمتلك حساب؟</string>
+    <string name="send">إرسال</string>
+    <string name="enter_the_email_sender_pin">ادخل رمز المرسل PIN عبر البريد الالكتروني</string>
+    <string name="confirmation">تأكيد</string>
+    <string name="did_not_get_the_code">لم تحصل على رمز؟</string>
+    <string name="send_a_new_code">ارسال رمز جديد</string>
+    <string name="sign_in">تسجيل الدخول</string>
+</resources>

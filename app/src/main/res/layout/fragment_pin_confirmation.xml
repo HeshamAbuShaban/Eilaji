@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="@dimen/_20sdp"
+    android:scrollbars="none"
+    tools:context=".FragmentPinConfirmation">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/imageView"
+            style="@style/AppIconStyle"
+            android:layout_width="@dimen/_110sdp"
+            android:layout_height="@dimen/_110sdp"
+            android:layout_marginTop="@dimen/_82sdp"
+            android:contentDescription="@null"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvOnBoarding"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_45sdp"
+            android:text="@string/enter_the_email_sender_pin"
+            android:textAlignment="center"
+            android:textColor="@color/black"
+            android:textSize="@dimen/_13sdp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/imageView" />
+
+        <com.chaos.view.PinView
+            android:id="@+id/pinView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_24sdp"
+            android:cursorVisible="false"
+            android:focusableInTouchMode="true"
+            android:hint="****"
+            android:inputType="number"
+            android:itemBackground="@color/otp_item_color"
+            android:textColor="@color/primary_pink"
+            android:textColorHint="@color/white"
+            android:textSize="@dimen/_18ssp"
+            android:textStyle="bold"
+            app:hideLineWhenFilled="true"
+            app:itemCount="4"
+            app:itemHeight="@dimen/_52sdp"
+            app:itemRadius="@dimen/_13sdp"
+            app:itemSpacing="@dimen/_12sdp"
+            app:itemWidth="@dimen/_52sdp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvOnBoarding"
+            app:lineColor="@color/otb_border_colors"
+            app:lineWidth="@dimen/_1sdp" />
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buConfirmation"
+            style="@style/PinkButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_60sdp"
+            android:text="@string/confirmation"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/pinView" />
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/did_not_get_the_code"
+            android:textColor="@color/black"
+            android:textSize="@dimen/_12sdp"
+            app:layout_constraintBottom_toBottomOf="@+id/buSendANewCode"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/buSendANewCode"
+            tools:ignore="TextSizeCheck" />
+
+        <TextView
+            android:id="@+id/buSendANewCode"
+            style="@style/TextButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/_20sdp"
+            android:text="@string/send_a_new_code"
+            android:textSize="@dimen/_11sdp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toEndOf="@id/textView"
+            app:layout_constraintTop_toBottomOf="@+id/buConfirmation"
+            tools:ignore="TextSizeCheck" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</ScrollView>

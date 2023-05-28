@@ -1,0 +1,90 @@
+package dev.anonymous.eilaji;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.viewpager2.widget.ViewPager2;
+
+import dev.anonymous.eilaji.databinding.FragmentOnBoardingBinding;
+
+public class FragmentOnBoarding extends Fragment {
+    FragmentOnBoardingBinding binding;
+    int currentPage = 0;
+
+
+    private static final String ARG_PARAM1 = "param1";
+    private static final String ARG_PARAM2 = "param2";
+
+    private String mParam1;
+    private String mParam2;
+
+    public FragmentOnBoarding() {
+        // Required empty public constructor
+    }
+
+    public static FragmentOnBoarding newInstance(String param1, String param2) {
+        FragmentOnBoarding fragment = new FragmentOnBoarding();
+        Bundle args = new Bundle();
+        args.putString(ARG_PARAM1, param1);
+        args.putString(ARG_PARAM2, param2);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            mParam1 = getArguments().getString(ARG_PARAM1);
+            mParam2 = getArguments().getString(ARG_PARAM2);
+        }
+    }
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        binding = FragmentOnBoardingBinding.inflate(getLayoutInflater(), container, false);
+
+
+        int paddingHorizontal = (int) (UtilsScreen.getScreenWidth() * 0.08);
+        binding.onBoardingPager.setPadding(paddingHorizontal, 0, paddingHorizontal, 0);
+
+        binding.onBoardingPager.setClipToPadding(false);
+        binding.onBoardingPager.setClipChildren(false);
+        binding.onBoardingPager.setOffscreenPageLimit(3);
+
+        AdapterOnBoarding adapter = new AdapterOnBoarding(DummyData.getListModelOnBoarding());
+        binding.onBoardingPager.setAdapter(adapter);
+
+        binding.onBoardingPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                boolean isForward = position > currentPage;
+                currentPage = position;
+
+                UtilsAnimation.animationProgress(
+                        binding.circularProgressIndicator,
+                        DummyData.getListModelOnBoarding().size(),
+                        currentPage,
+                        isForward
+                );
+            }
+        });
+
+        binding.buNextArrow.setOnClickListener(v -> {
+            int currentItem = binding.onBoardingPager.getCurrentItem() + 1;
+            if (currentItem != DummyData.getListModelOnBoarding().size()) {
+                binding.onBoardingPager.setCurrentItem(currentItem);
+            } else {
+//                startActivity(new Intent(this, MainActivity2.class));
+//                finish();
+            }
+        });
+
+        return binding.getRoot();
+    }
+}
