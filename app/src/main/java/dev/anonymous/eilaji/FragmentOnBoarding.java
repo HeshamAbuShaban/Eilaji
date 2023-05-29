@@ -28,7 +28,7 @@ public class FragmentOnBoarding extends Fragment {
     public static FragmentOnBoarding newInstance(String param1, String param2) {
         FragmentOnBoarding fragment = new FragmentOnBoarding();
         Bundle args = new Bundle();
-
+//
         fragment.setArguments(args);
         return fragment;
     }
