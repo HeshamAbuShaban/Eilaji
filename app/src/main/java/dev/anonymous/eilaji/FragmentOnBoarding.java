@@ -29,7 +29,7 @@ public class FragmentOnBoarding extends Fragment {
         FragmentOnBoarding fragment = new FragmentOnBoarding();
         Bundle args = new Bundle();
 //
-        //
+        //\\
         fragment.setArguments(args);
         return fragment;
     }
