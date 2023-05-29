@@ -1,9 +1,8 @@
-package dev.anonymous.eilaji;
+package dev.anonymous.eilaji
 
-import android.content.res.Resources;
+import android.content.res.Resources
 
-public class UtilsScreen {
-    public static int getScreenWidth() {
-        return Resources.getSystem().getDisplayMetrics().widthPixels;
-    }
+object UtilsScreen {
+    val screenWidth: Int
+        get() = Resources.getSystem().displayMetrics.widthPixels
 }

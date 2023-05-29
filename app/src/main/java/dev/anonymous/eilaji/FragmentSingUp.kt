@@ -1,52 +1,42 @@
-package dev.anonymous.eilaji;
+package dev.anonymous.eilaji
 
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import dev.anonymous.eilaji.databinding.FragmentSingUpBinding
 
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-
-import dev.anonymous.eilaji.databinding.FragmentSingUpBinding;
-
-public class FragmentSingUp extends Fragment {
-    FragmentSingUpBinding binding;
-
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    private String mParam1;
-    private String mParam2;
-
-    public FragmentSingUp() {
-        // Required empty public constructor
-    }
-
-    public static FragmentSingUp newInstance(String param1, String param2) {
-        FragmentSingUp fragment = new FragmentSingUp();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+class FragmentSingUp : Fragment() {
+    var binding: FragmentSingUpBinding? = null
+    private var mParam1: String? = null
+    private var mParam2: String? = null
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (arguments != null) {
+            mParam1 = arguments!!.getString(ARG_PARAM1)
+            mParam2 = arguments!!.getString(ARG_PARAM2)
         }
     }
 
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        binding = FragmentSingUpBinding.inflate(getLayoutInflater(), container, false);
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        binding = FragmentSingUpBinding.inflate(layoutInflater, container, false)
+        return binding!!.root
+    }
 
-
-        return binding.getRoot();
+    companion object {
+        private const val ARG_PARAM1 = "param1"
+        private const val ARG_PARAM2 = "param2"
+        fun newInstance(param1: String?, param2: String?): FragmentSingUp {
+            val fragment = FragmentSingUp()
+            val args = Bundle()
+            args.putString(ARG_PARAM1, param1)
+            args.putString(ARG_PARAM2, param2)
+            fragment.arguments = args
+            return fragment
+        }
     }
 }

@@ -1,31 +1,24 @@
-package dev.anonymous.eilaji;
+package dev.anonymous.eilaji
 
-import android.os.Bundle;
+import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.splashscreen.SplashScreen
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import dev.anonymous.eilaji.databinding.ActivityMainBinding
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.splashscreen.SplashScreen;
-
-import dev.anonymous.eilaji.databinding.ActivityMainBinding;
-
-public class MainActivity extends AppCompatActivity {
-    ActivityMainBinding binding;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
-
-        super.onCreate(savedInstanceState);
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+class MainActivity : AppCompatActivity() {
+    var binding: ActivityMainBinding? = null
+    override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen: SplashScreen = installSplashScreen()
+        super.onCreate(savedInstanceState)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding!!.root)
 
 //        splashScreen.setKeepOnScreenCondition(() -> true);
 //        new Handler().postDelayed(() ->
 //                splashScreen.setKeepOnScreenCondition(() -> false), 5000);
-
-
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.mainActivityContainer, new FragmentOnBoarding())
-                .commit();
-
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.mainActivityContainer, FragmentOnBoarding())
+            .commit()
     }
 }

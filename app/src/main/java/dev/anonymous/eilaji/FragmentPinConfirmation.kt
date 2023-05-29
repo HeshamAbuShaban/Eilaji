@@ -1,71 +1,39 @@
-package dev.anonymous.eilaji;
+package dev.anonymous.eilaji
 
-import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import dev.anonymous.eilaji.databinding.FragmentPinConfirmationBinding
 
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
+class FragmentPinConfirmation : Fragment() {
+    var binding: FragmentPinConfirmationBinding? = null
 
-import dev.anonymous.eilaji.databinding.FragmentPinConfirmationBinding;
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-public class FragmentPinConfirmation extends Fragment {
-    FragmentPinConfirmationBinding binding;
-
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    private String mParam1;
-    private String mParam2;
-
-    public FragmentPinConfirmation() {
-        // Required empty public constructor
     }
 
-    public static FragmentPinConfirmation newInstance(String param1, String param2) {
-        FragmentPinConfirmation fragment = new FragmentPinConfirmation();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
-
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        binding = FragmentPinConfirmationBinding.inflate(getLayoutInflater(), container, false);
-
-        binding.pinView.setAnimationEnable(true);
-        binding.pinView.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        binding = FragmentPinConfirmationBinding.inflate(
+            layoutInflater, container, false
+        )
+        binding!!.pinView.setAnimationEnable(true)
+        binding!!.pinView.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                println("onTextChanged $s")
             }
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                System.out.println("onTextChanged " + s.toString());
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
-
-        return binding.getRoot();
+            override fun afterTextChanged(s: Editable) {}
+        })
+        return binding!!.root
     }
+
 }

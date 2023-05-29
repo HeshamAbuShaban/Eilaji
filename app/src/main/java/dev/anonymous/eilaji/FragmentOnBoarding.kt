@@ -1,91 +1,71 @@
-package dev.anonymous.eilaji;
+package dev.anonymous.eilaji
 
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.CompositePageTransformer
+import androidx.viewpager2.widget.MarginPageTransformer
+import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
+import dev.anonymous.eilaji.databinding.FragmentOnBoardingBinding
 
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager2.widget.CompositePageTransformer;
-import androidx.viewpager2.widget.MarginPageTransformer;
-import androidx.viewpager2.widget.ViewPager2;
-
-import dev.anonymous.eilaji.databinding.FragmentOnBoardingBinding;
-
-public class FragmentOnBoarding extends Fragment {
-    FragmentOnBoardingBinding binding;
-    int currentPage = 0;
-
-
-
-
-    public FragmentOnBoarding() {
-        // Required empty public constructor
+class FragmentOnBoarding : Fragment() {
+    var binding: FragmentOnBoardingBinding? = null
+    var currentPage = 0
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
     }
 
-    public static FragmentOnBoarding newInstance(String param1, String param2) {
-        FragmentOnBoarding fragment = new FragmentOnBoarding();
-        Bundle args = new Bundle();
-//
-        //\\
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-    }
-
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        binding = FragmentOnBoardingBinding.inflate(getLayoutInflater(), container, false);
-
-
-        int paddingHorizontal = (int) (UtilsScreen.getScreenWidth() * 0.08);
-        binding.onBoardingPager.setPadding(paddingHorizontal, 0, paddingHorizontal, 0);
-
-        binding.onBoardingPager.setClipToPadding(false);
-        binding.onBoardingPager.setClipChildren(false);
-        binding.onBoardingPager.setOffscreenPageLimit(3);
-        binding.onBoardingPager.getChildAt(0).setOverScrollMode(RecyclerView.OVER_SCROLL_NEVER);
-
-        AdapterOnBoarding adapter = new AdapterOnBoarding(DummyData.getListModelOnBoarding());
-        binding.onBoardingPager.setAdapter(adapter);
-
-        CompositePageTransformer transformer = new CompositePageTransformer();
-        transformer.addTransformer(new MarginPageTransformer(paddingHorizontal));
-        binding.onBoardingPager.setPageTransformer(transformer);
-
-        binding.onBoardingPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-            @Override
-            public void onPageSelected(int position) {
-                boolean isForward = position > currentPage;
-                currentPage = position;
-
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        binding = FragmentOnBoardingBinding.inflate(layoutInflater, container, false)
+        val paddingHorizontal = (UtilsScreen.screenWidth * 0.08).toInt()
+        binding!!.onBoardingPager.setPadding(paddingHorizontal, 0, paddingHorizontal, 0)
+        binding!!.onBoardingPager.clipToPadding = false
+        binding!!.onBoardingPager.clipChildren = false
+        binding!!.onBoardingPager.offscreenPageLimit = 3
+        binding!!.onBoardingPager.getChildAt(0).overScrollMode = RecyclerView.OVER_SCROLL_NEVER
+        val adapter = AdapterOnBoarding(DummyData.listModelOnBoarding)
+        binding!!.onBoardingPager.adapter = adapter
+        val transformer = CompositePageTransformer()
+        transformer.addTransformer(MarginPageTransformer(paddingHorizontal))
+        binding!!.onBoardingPager.setPageTransformer(transformer)
+        binding!!.onBoardingPager.registerOnPageChangeCallback(object : OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                val isForward = position > currentPage
+                currentPage = position
                 UtilsAnimation.animationProgress(
-                        binding.circularProgressIndicator,
-                        DummyData.getListModelOnBoarding().size(),
-                        currentPage,
-                        isForward
-                );
+                    binding!!.circularProgressIndicator,
+                    DummyData.listModelOnBoarding.size.toFloat(),
+                    currentPage,
+                    isForward
+                )
             }
-        });
-
-        binding.buNextArrow.setOnClickListener(v -> {
-            int currentItem = binding.onBoardingPager.getCurrentItem() + 1;
-            if (currentItem != DummyData.getListModelOnBoarding().size()) {
-                binding.onBoardingPager.setCurrentItem(currentItem);
+        })
+        binding!!.buNextArrow.setOnClickListener { v: View? ->
+            val currentItem = binding!!.onBoardingPager.currentItem + 1
+            if (currentItem != DummyData.listModelOnBoarding.size) {
+                binding!!.onBoardingPager.currentItem = currentItem
             } else {
 //                startActivity(new Intent(this, MainActivity2.class));
 //                finish();
             }
-        });
+        }
+        return binding!!.root
+    }
 
-        return binding.getRoot();
+    companion object {
+        fun newInstance(param1: String?, param2: String?): FragmentOnBoarding {
+            val fragment = FragmentOnBoarding()
+            val args = Bundle()
+            //
+            //\\
+            fragment.arguments = args
+            return fragment
+        }
     }
 }
