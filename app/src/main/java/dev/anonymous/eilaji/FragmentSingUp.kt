@@ -9,14 +9,10 @@ import dev.anonymous.eilaji.databinding.FragmentSingUpBinding
 
 class FragmentSingUp : Fragment() {
     var binding: FragmentSingUpBinding? = null
-    private var mParam1: String? = null
-    private var mParam2: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (arguments != null) {
-            mParam1 = arguments!!.getString(ARG_PARAM1)
-            mParam2 = arguments!!.getString(ARG_PARAM2)
-        }
+
     }
 
     override fun onCreateView(
@@ -24,19 +20,8 @@ class FragmentSingUp : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentSingUpBinding.inflate(layoutInflater, container, false)
+
         return binding!!.root
     }
 
-    companion object {
-        private const val ARG_PARAM1 = "param1"
-        private const val ARG_PARAM2 = "param2"
-        fun newInstance(param1: String?, param2: String?): FragmentSingUp {
-            val fragment = FragmentSingUp()
-            val args = Bundle()
-            args.putString(ARG_PARAM1, param1)
-            args.putString(ARG_PARAM2, param2)
-            fragment.arguments = args
-            return fragment
-        }
-    }
 }

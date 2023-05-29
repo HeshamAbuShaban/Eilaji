@@ -51,8 +51,11 @@ class FragmentOnBoarding : Fragment() {
             if (currentItem != DummyData.listModelOnBoarding.size) {
                 binding!!.onBoardingPager.currentItem = currentItem
             } else {
-//                startActivity(new Intent(this, MainActivity2.class));
-//                finish();
+                val loginFragment = FragmentLogin()
+                val fm = parentFragmentManager
+                val tr = fm.beginTransaction()
+                tr.replace(R.id.mainActivityContainer, loginFragment)
+                tr.commitAllowingStateLoss()
             }
         }
         return binding!!.root
@@ -62,8 +65,7 @@ class FragmentOnBoarding : Fragment() {
         fun newInstance(param1: String?, param2: String?): FragmentOnBoarding {
             val fragment = FragmentOnBoarding()
             val args = Bundle()
-            //
-            //\\
+
             fragment.arguments = args
             return fragment
         }
