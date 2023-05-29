@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "351807640330",
+    "project_id": "eilaji-9b01b",
+    "storage_bucket": "eilaji-9b01b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:351807640330:android:74840d211741c1a52060f3",
+        "android_client_info": {
+          "package_name": "dev.anonymous.eilaji"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBS3yAjvYZa7Xyfv-AuG0XtPinJCKAVoEg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
