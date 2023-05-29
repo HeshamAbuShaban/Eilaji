@@ -7,6 +7,9 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.CompositePageTransformer;
+import androidx.viewpager2.widget.MarginPageTransformer;
 import androidx.viewpager2.widget.ViewPager2;
 
 import dev.anonymous.eilaji.databinding.FragmentOnBoardingBinding;
@@ -56,9 +59,14 @@ public class FragmentOnBoarding extends Fragment {
         binding.onBoardingPager.setClipToPadding(false);
         binding.onBoardingPager.setClipChildren(false);
         binding.onBoardingPager.setOffscreenPageLimit(3);
+        binding.onBoardingPager.getChildAt(0).setOverScrollMode(RecyclerView.OVER_SCROLL_NEVER);
 
         AdapterOnBoarding adapter = new AdapterOnBoarding(DummyData.getListModelOnBoarding());
         binding.onBoardingPager.setAdapter(adapter);
+
+        CompositePageTransformer transformer = new CompositePageTransformer();
+        transformer.addTransformer(new MarginPageTransformer(paddingHorizontal));
+        binding.onBoardingPager.setPageTransformer(transformer);
 
         binding.onBoardingPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
