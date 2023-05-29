@@ -1,4 +1,4 @@
-package dev.anonymous.eilaji
+package dev.anonymous.eilaji.ui.onBoarding
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,7 +9,13 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.CompositePageTransformer
 import androidx.viewpager2.widget.MarginPageTransformer
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
+import dev.anonymous.eilaji.R
+import dev.anonymous.eilaji.adapters.AdapterOnBoarding
 import dev.anonymous.eilaji.databinding.FragmentOnBoardingBinding
+import dev.anonymous.eilaji.ui.login.FragmentLogin
+import dev.anonymous.eilaji.utils.DummyData
+import dev.anonymous.eilaji.utils.UtilsAnimation
+import dev.anonymous.eilaji.utils.UtilsScreen
 
 class FragmentOnBoarding : Fragment() {
     var binding: FragmentOnBoardingBinding? = null
@@ -21,7 +27,7 @@ class FragmentOnBoarding : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentOnBoardingBinding.inflate(layoutInflater, container, false)
         val paddingHorizontal = (UtilsScreen.screenWidth * 0.08).toInt()
         binding!!.onBoardingPager.setPadding(paddingHorizontal, 0, paddingHorizontal, 0)

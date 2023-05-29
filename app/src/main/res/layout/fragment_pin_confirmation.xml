@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:paddingHorizontal="@dimen/_20sdp"
     android:scrollbars="none"
-    tools:context=".FragmentPinConfirmation">
+    tools:context=".ui.pin.FragmentPinConfirmation">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -44,7 +44,7 @@
             android:layout_marginTop="@dimen/_24sdp"
             android:cursorVisible="false"
             android:focusableInTouchMode="true"
-            android:hint="****"
+            android:hint="@string/hint"
             android:inputType="number"
             android:itemBackground="@color/otp_item_color"
             android:textColor="@color/primary_pink"

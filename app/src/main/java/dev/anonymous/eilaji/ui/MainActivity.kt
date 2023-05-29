@@ -1,4 +1,4 @@
-package dev.anonymous.eilaji
+package dev.anonymous.eilaji.ui
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,10 +8,13 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import dev.anonymous.eilaji.ui.onBoarding.FragmentOnBoarding
+import dev.anonymous.eilaji.ui.home.HomeActivity
+import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
-    var binding: ActivityMainBinding? = null
+    private var binding: ActivityMainBinding? = null
     private lateinit var auth: FirebaseAuth
 
 
@@ -22,6 +25,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding!!.root)
 // Initialize Firebase Auth
         auth = Firebase.auth
+
 //        splashScreen.setKeepOnScreenCondition(() -> true);
 //        new Handler().postDelayed(() ->
 //                splashScreen.setKeepOnScreenCondition(() -> false), 5000);
@@ -34,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         // Check if user is signed in (non-null) and update UI accordingly.
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            startActivity(Intent(this@MainActivity,HomeActivity::class.java))
+            startActivity(Intent(this@MainActivity, HomeActivity::class.java))
             finish()
         }
     }

@@ -1,4 +1,7 @@
-package dev.anonymous.eilaji
+package dev.anonymous.eilaji.utils
+
+import dev.anonymous.eilaji.models.ModelOnBoarding
+import dev.anonymous.eilaji.R
 
 object DummyData {
     val listModelOnBoarding: ArrayList<ModelOnBoarding>

@@ -1,4 +1,4 @@
-package dev.anonymous.eilaji
+package dev.anonymous.eilaji.utils
 
 import android.content.res.Resources
 

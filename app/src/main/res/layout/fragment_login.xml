@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:paddingHorizontal="@dimen/_20sdp"
     android:scrollbars="none"
-    tools:context=".FragmentLogin">
+    tools:context=".ui.login.FragmentLogin">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"

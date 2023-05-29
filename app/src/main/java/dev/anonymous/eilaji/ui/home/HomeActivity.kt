@@ -1,7 +1,8 @@
-package dev.anonymous.eilaji
+package dev.anonymous.eilaji.ui.home
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import dev.anonymous.eilaji.R
 
 class HomeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -1,6 +1,5 @@
-package dev.anonymous.eilaji
+package dev.anonymous.eilaji.ui.login
 
-import android.content.ContentValues.TAG
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -12,6 +11,9 @@ import androidx.fragment.app.Fragment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import dev.anonymous.eilaji.ui.singup.FragmentSingUp
+import dev.anonymous.eilaji.ui.home.HomeActivity
+import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.FragmentLoginBinding
 
 class FragmentLogin : Fragment() {
@@ -26,7 +28,7 @@ class FragmentLogin : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentLoginBinding.inflate(layoutInflater, container, false)
         auth = Firebase.auth
         binding!!.buForgotYourPassword.setOnClickListener { v: View? -> }

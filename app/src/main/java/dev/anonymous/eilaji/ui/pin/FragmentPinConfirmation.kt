@@ -1,4 +1,4 @@
-package dev.anonymous.eilaji
+package dev.anonymous.eilaji.ui.pin
 
 import android.os.Bundle
 import android.text.Editable
@@ -10,7 +10,7 @@ import androidx.fragment.app.Fragment
 import dev.anonymous.eilaji.databinding.FragmentPinConfirmationBinding
 
 class FragmentPinConfirmation : Fragment() {
-    var binding: FragmentPinConfirmationBinding? = null
+    private var binding: FragmentPinConfirmationBinding? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,7 +20,7 @@ class FragmentPinConfirmation : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentPinConfirmationBinding.inflate(
             layoutInflater, container, false
         )

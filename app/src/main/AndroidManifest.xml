@@ -15,10 +15,10 @@
         android:theme="@style/Theme.Eilaji"
         tools:targetApi="31">
         <activity
-            android:name=".HomeActivity"
+            android:name=".ui.home.HomeActivity"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.App.MySplash">
             <intent-filter>

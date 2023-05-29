@@ -1,14 +1,14 @@
-package dev.anonymous.eilaji
+package dev.anonymous.eilaji.ui.pin
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import dev.anonymous.eilaji.databinding.FragmentSingUpBinding
+import dev.anonymous.eilaji.databinding.FragmentSentPinBinding
 
-class FragmentSingUp : Fragment() {
-    var binding: FragmentSingUpBinding? = null
+class FragmentSentPin : Fragment() {
+    private var binding: FragmentSentPinBinding? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -18,9 +18,9 @@ class FragmentSingUp : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        binding = FragmentSingUpBinding.inflate(layoutInflater, container, false)
-
+    ): View {
+        binding = FragmentSentPinBinding.inflate(layoutInflater, container, false)
+        binding!!.buSend.setOnClickListener { v: View? -> }
         return binding!!.root
     }
 
