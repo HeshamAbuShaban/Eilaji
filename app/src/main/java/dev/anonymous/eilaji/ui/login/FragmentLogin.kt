@@ -8,70 +8,85 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
-import dev.anonymous.eilaji.ui.singup.FragmentSingUp
-import dev.anonymous.eilaji.ui.home.HomeActivity
+import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuthException
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.FragmentLoginBinding
+import dev.anonymous.eilaji.firebase.FirebaseController
+import dev.anonymous.eilaji.ui.home.HomeActivity
+import dev.anonymous.eilaji.ui.singup.FragmentSingUp
 
 class FragmentLogin : Fragment() {
-    var binding: FragmentLoginBinding? = null
-    private lateinit var auth: FirebaseAuth
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-    }
-
+    private var binding: FragmentLoginBinding? = null
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentLoginBinding.inflate(layoutInflater, container, false)
-        auth = Firebase.auth
-        binding!!.buForgotYourPassword.setOnClickListener { v: View? -> }
-        binding!!.buSignUp.setOnClickListener {
-            val singUpFragment = FragmentSingUp()
-            val fm = parentFragmentManager
-            val tr = fm.beginTransaction()
-            tr.replace(R.id.mainActivityContainer, singUpFragment)
-            tr.commitAllowingStateLoss()
-        }
-        binding!!.buLogin.setOnClickListener {
-            val email = binding!!.edEmail.text.toString()
-            val password = binding!!.edPassword.text.toString()
-            if (email.isEmpty()) {
-                binding!!.edEmail.error = "Please Enter Your Email"
+        binding = FragmentLoginBinding.inflate(inflater, container, false)
+        binding?.apply {
+            buSignUp.setOnClickListener {
+                val singUpFragment = FragmentSingUp()
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.mainActivityContainer, singUpFragment)
+                    .commitAllowingStateLoss()
             }
-            if (password.isEmpty()) {
-                binding!!.edPassword.error = "Please Enter Your Password"
-            }
-            if (email.isNotEmpty() && password.isNotEmpty()) {
-                auth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(requireActivity()) { task ->
-                        if (task.isSuccessful) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d("fix", "createUserWithEmail:success")
 
-                            startActivity(Intent(requireContext(), HomeActivity::class.java))
-                            activity?.finish()
+            buLogin.setOnClickListener {
+                val email = edEmail.text.toString()
+                val password = edPassword.text.toString()
 
-
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w("fix", "createUserWithEmail:failure", task.exception)
-                            Toast.makeText(
-                                requireActivity(),
-                                "Authentication failed.",
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                        }
-                    }
+                if (checkData(email, password)) {
+                    login(email, password)
+                } else {
+                    showTextError(email, password)
+                }
             }
         }
         return binding!!.root
     }
 
+    private fun showTextError(email: String, password: String) {
+        binding?.apply {
+            edEmail.error = if (email.isEmpty()) "Please Enter Your Email" else null
+            edPassword.error = if (password.isEmpty()) "Please Enter Your Password" else null
+        }
+    }
+
+    private fun checkData(email: String, password: String): Boolean {
+        return email.isNotEmpty() && password.isNotEmpty()
+    }
+
+    private fun login(email: String, password: String) {
+        // This Method Handle different Firebase error codes and return appropriate error messages
+        fun getFirebaseErrorMessage(errorCode: String): String
+        {
+            return when (errorCode) {
+                // Add specific error codes and corresponding error messages here
+                "ERROR_INVALID_EMAIL" -> "Invalid email address."
+                "ERROR_WRONG_PASSWORD" -> "Incorrect password."
+                "ERROR_USER_NOT_FOUND" -> "User not found."
+                "ERROR_EMAIL_ALREADY_IN_USE" -> "Email already in use."
+                else -> "Authentication failed."
+            }
+        }
+
+        fun showSnackBar(view: View, message: String) =
+            Snackbar.make(view, message, Snackbar.LENGTH_LONG).show()
+
+        FirebaseController.getInstance().login(email, password, requireActivity(), {
+            startActivity(Intent(requireContext(), HomeActivity::class.java))
+            activity?.finish()
+        }) { task ->
+            val exception = task.exception
+            if (exception is FirebaseAuthException) {
+                val errorCode = exception.errorCode
+                val errorMessage = getFirebaseErrorMessage(errorCode)
+                showSnackBar(binding?.buLogin!!, errorMessage)
+            } else {
+                Log.e("FirebaseController.TAG", "Login error: ${exception?.message}")
+                Toast.makeText(activity, "Authentication failed.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 }

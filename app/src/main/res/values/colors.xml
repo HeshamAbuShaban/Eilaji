@@ -12,4 +12,7 @@
     <color name="otp_item_color">#EFEFEF</color>
     <color name="otp_text_focused">#E91E63</color>
     <color name="otp_text_default">#000000</color>
+
+    <!--  CustomPink as Temp-->
+    <color name="temp_color">#99646464</color>
 </resources>
