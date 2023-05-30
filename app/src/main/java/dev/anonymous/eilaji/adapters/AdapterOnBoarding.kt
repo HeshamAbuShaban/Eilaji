@@ -28,8 +28,10 @@ class AdapterOnBoarding(private var listModels: ArrayList<ModelOnBoarding>) :
         binding.root
     ) {
         fun bind(model: ModelOnBoarding?) {
-            binding.ivOnBoarding.setImageResource(model!!.image)
-            binding.tvOnBoarding.text = model.text
+            binding.apply {
+                ivOnBoarding.setImageResource(model!!.image)
+                tvOnBoarding.text = model.text
+            }
         }
     }
 }
