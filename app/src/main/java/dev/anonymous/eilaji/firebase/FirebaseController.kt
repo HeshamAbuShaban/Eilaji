@@ -5,10 +5,12 @@ import android.util.Log
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.UserProfileChangeRequest
 
 class FirebaseController private constructor() {
     private var auth: FirebaseAuth = FirebaseAuth.getInstance()
+
     companion object {
         @Volatile
         private var instance: FirebaseController? = null
@@ -37,25 +39,33 @@ class FirebaseController private constructor() {
             }
     }
 
-    fun registerUser(email: String, password: String, callback: RegistrationCallback) {
+    fun register(
+        username: String,
+        email: String,
+        password: String,
+        onTaskSuccessful: () -> Unit,
+        onTaskFailed: (String) -> Unit
+    ) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    // Registration successful
-                    val user: FirebaseUser? = auth.currentUser
-                    callback.onRegistrationSuccess(user)
+                    val user = auth.currentUser
+                    // Update user profile with username if desired
+                    user?.updateProfile(
+                        UserProfileChangeRequest.Builder().setDisplayName(username).build()
+                    )
+                    onTaskSuccessful()
                 } else {
-                    // Registration failed
-                    val exception = task.exception
-                    callback.onRegistrationFailure(exception)
+                    Log.d(TAG, "register: task isn't successfully proceed", task.exception)
+                    val exception = task.exception as? FirebaseAuthException
+                    val errorMessage = exception?.message ?: "Unknown error occurred"
+                    onTaskFailed(errorMessage)
                 }
-            }.addOnFailureListener {
-                Log.d(TAG, "registerUser() FailureListener called")
             }
     }
 
-    interface RegistrationCallback {
-        fun onRegistrationSuccess(user: FirebaseUser?)
-        fun onRegistrationFailure(exception: Exception?)
+    fun signOut() {
+        auth.signOut()
     }
+
 }

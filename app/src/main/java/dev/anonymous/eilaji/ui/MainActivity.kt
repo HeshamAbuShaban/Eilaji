@@ -11,7 +11,7 @@ import dev.anonymous.eilaji.ui.onBoarding.FragmentOnBoarding
 import dev.anonymous.eilaji.ui.home.HomeActivity
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.ActivityMainBinding
-
+//This ActivityMain are responsible for counting the Splash FragmentOnBoarding
 class MainActivity : AppCompatActivity() {
     private var binding: ActivityMainBinding? = null
     private lateinit var auth: FirebaseAuth
@@ -23,12 +23,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding!!.root)
-// Initialize Firebase Auth
+        // Initialize Firebase Auth
         auth = Firebase.auth
 
-//        splashScreen.setKeepOnScreenCondition(() -> true);
-//        new Handler().postDelayed(() ->
-//                splashScreen.setKeepOnScreenCondition(() -> false), 5000);
+        // splashScreen.setKeepOnScreenCondition(() -> true);
+        // new Handler().postDelayed(() ->
+        // splashScreen.setKeepOnScreenCondition(() -> false), 5000);
         supportFragmentManager.beginTransaction()
             .replace(R.id.mainActivityContainer, FragmentOnBoarding()).commit()
     }

@@ -11,7 +11,7 @@ import com.google.android.material.snackbar.Snackbar
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.FragmentLoginBinding
 import dev.anonymous.eilaji.ui.home.HomeActivity
-import dev.anonymous.eilaji.ui.singup.FragmentSingUp
+import dev.anonymous.eilaji.ui.signUp.FragmentSignUp
 
 class FragmentLogin : Fragment() {
     private var binding: FragmentLoginBinding? = null
@@ -39,7 +39,7 @@ class FragmentLogin : Fragment() {
     private fun setupListeners() {
         binding?.apply {
             buSignUp.setOnClickListener {
-                val singUpFragment = FragmentSingUp()
+                val singUpFragment = FragmentSignUp()
                 parentFragmentManager.beginTransaction()
                     .replace(R.id.mainActivityContainer, singUpFragment)
                     .commitAllowingStateLoss()
