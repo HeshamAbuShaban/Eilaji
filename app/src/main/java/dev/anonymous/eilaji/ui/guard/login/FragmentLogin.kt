@@ -1,4 +1,4 @@
-package dev.anonymous.eilaji.ui.login
+package dev.anonymous.eilaji.ui.guard.login
 
 import android.content.Intent
 import android.os.Bundle
@@ -10,8 +10,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.snackbar.Snackbar
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.FragmentLoginBinding
-import dev.anonymous.eilaji.ui.home.HomeActivity
-import dev.anonymous.eilaji.ui.signUp.FragmentSignUp
+import dev.anonymous.eilaji.ui.base.BaseActivity
+import dev.anonymous.eilaji.ui.guard.signUp.FragmentSignUp
 
 class FragmentLogin : Fragment() {
     private var binding: FragmentLoginBinding? = null
@@ -74,7 +74,8 @@ class FragmentLogin : Fragment() {
             when (loginResult) {
                 is LoginResult.Success -> {
                     // Handle successful login
-                    startActivity(Intent(requireContext(), HomeActivity::class.java))
+                    //TODO HomeActivity >> Base
+                    startActivity(Intent(requireContext(), BaseActivity::class.java))
                     requireActivity().finish()
                 }
 

@@ -1,4 +1,4 @@
-package dev.anonymous.eilaji.ui.signUp
+package dev.anonymous.eilaji.ui.guard.signUp
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

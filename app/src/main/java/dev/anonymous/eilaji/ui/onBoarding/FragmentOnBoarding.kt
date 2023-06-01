@@ -13,7 +13,7 @@ import androidx.viewpager2.widget.ViewPager2
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.adapters.AdapterOnBoarding
 import dev.anonymous.eilaji.databinding.FragmentOnBoardingBinding
-import dev.anonymous.eilaji.ui.login.FragmentLogin
+import dev.anonymous.eilaji.ui.guard.login.FragmentLogin
 import dev.anonymous.eilaji.utils.DummyData
 import dev.anonymous.eilaji.utils.UtilsAnimation
 import dev.anonymous.eilaji.utils.UtilsScreen

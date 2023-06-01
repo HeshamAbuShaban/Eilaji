@@ -1,4 +1,4 @@
-package dev.anonymous.eilaji.ui.signUp
+package dev.anonymous.eilaji.ui.guard.signUp
 
 import android.content.Intent
 import android.os.Bundle
@@ -11,22 +11,32 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.snackbar.Snackbar
 import dev.anonymous.eilaji.databinding.FragmentSignUpBinding
-import dev.anonymous.eilaji.ui.home.HomeActivity
+import dev.anonymous.eilaji.ui.base.BaseActivity
 
 class FragmentSignUp : Fragment() {
     private var binding: FragmentSignUpBinding? = null
     private lateinit var signUpViewModel: SignUpViewModel
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         binding = FragmentSignUpBinding.inflate(inflater, container, false)
-        signUpViewModel = ViewModelProvider(this)[SignUpViewModel::class.java]
-
-        performSignUp()
-
-        observeSignUpResult()
-
         return binding!!.root
     }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupViewModel()
+        performSignUp()
+        observeSignUpResult()
+    }
+
+    private fun setupViewModel() {
+        signUpViewModel = ViewModelProvider(this)[SignUpViewModel::class.java]
+    }
+
     //this method have a ClickListener that performSignUp using the ViewModel call for register method and the Result are being controlled in the @#observeSignUpResult()
     private fun performSignUp() {
         binding?.buCreateAnAccount?.setOnClickListener {
@@ -40,6 +50,7 @@ class FragmentSignUp : Fragment() {
             Log.i("FragmentSignUp", "performSingUp: data got collected")
         }
     }
+
     //this method is responsible for making action based on the result of the registration
     private fun observeSignUpResult() {
         signUpViewModel.signUpResult.observe(viewLifecycleOwner) { signUpResult ->
@@ -47,22 +58,29 @@ class FragmentSignUp : Fragment() {
                 is SignUpResult.Success -> {
                     // Handle successful sign up
                     // Show success message or navigate to the next screen
-                    Snackbar.make(binding!!.root, "Sign up successful", Snackbar.LENGTH_SHORT).show()
+                    showSnackBar("Sign up successful")
                     //now its fine to say lets get to home.
                     navigateToHomeActivity()
                 }
+
                 is SignUpResult.Error -> {
                     // Handle sign up error
-                    Snackbar.make(binding!!.root, signUpResult.errorMessage, Snackbar.LENGTH_SHORT).show()
+                    showSnackBar(signUpResult.errorMessage)
                     handleInputValidationErrors(signUpResult.errorMessage) // New line
                 }
             }
         }
     }
 
+    private fun showSnackBar(massage: String) {
+        Snackbar.make(binding!!.root, massage, Snackbar.LENGTH_SHORT)
+            .show()
+    }
+
     //TODO SET the proper direction after SingUp successfully here
+    //TODO HomeActivity <>Base
     private fun navigateToHomeActivity() {
-        val intent = Intent(requireContext(), HomeActivity::class.java)
+        val intent = Intent(requireContext(), BaseActivity::class.java)
         startActivity(intent)
         requireActivity().finish()
     }
@@ -110,7 +128,8 @@ class FragmentSignUp : Fragment() {
             binding!!.edPassword.error = "Password must be at least 8 characters long"
             isValid = false
         } else if (!password.matches(Regex("^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).*\$"))) {
-            binding!!.edPassword.error = "Password should contain at least one uppercase letter, one lowercase letter, and one digit"
+            binding!!.edPassword.error =
+                "Password should contain at least one uppercase letter, one lowercase letter, and one digit"
             isValid = false
         }
 

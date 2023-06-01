@@ -8,9 +8,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dev.anonymous.eilaji.ui.onBoarding.FragmentOnBoarding
-import dev.anonymous.eilaji.ui.home.HomeActivity
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.ActivityMainBinding
+import dev.anonymous.eilaji.ui.base.BaseActivity
+
 //This ActivityMain are responsible for counting the Splash FragmentOnBoarding
 class MainActivity : AppCompatActivity() {
     private var binding: ActivityMainBinding? = null
@@ -38,7 +39,8 @@ class MainActivity : AppCompatActivity() {
         // Check if user is signed in (non-null) and update UI accordingly.
         val currentUser = auth.currentUser
         if (currentUser != null) {
-            startActivity(Intent(this@MainActivity, HomeActivity::class.java))
+            //TODO HomeActivity >> Base
+            startActivity(Intent(this@MainActivity, BaseActivity::class.java))
             finish()
         }
     }
