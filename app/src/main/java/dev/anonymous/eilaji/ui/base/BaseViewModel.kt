@@ -27,6 +27,10 @@ class BaseViewModel : ViewModel() {
         navigateToDestination(R.id.navigation_notifications)
     }
 
+    fun onProfileNavigationSelected() {
+        navigateToDestination(R.id.navigation_profile)
+    }
+
     private fun navigateToDestination(destinationId: Int) {
         _navController.value?.navigate(destinationId)
     }

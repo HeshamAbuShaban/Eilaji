@@ -1,19 +1,16 @@
-package dev.anonymous.eilaji.prefs;
+package dev.anonymous.eilaji.storage;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import dev.anonymous.eilaji.prefs.enums.PrefKeys;
-
 
 public class AppSharedPreferences {
     private static AppSharedPreferences Instance;
-
-    SharedPreferences sharedPreferences;
+    private final SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
 
     private AppSharedPreferences(Context context) {
-       sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+        sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
     }
 
     public static AppSharedPreferences getInstance(Context context) {
@@ -23,6 +20,12 @@ public class AppSharedPreferences {
         return Instance;
     }
 
+    /*`public void save(Object o) {
+        editor = sharedPreferences.edit();
+        editor.putString("", o.toString());
+        editor.apply();
+    }*/
+
     /*`public void save(Student student) {
         editor = sharedPreferences.edit();
         editor.putBoolean(PrefKeys.logged_in.name(), true);
@@ -31,6 +34,10 @@ public class AppSharedPreferences {
         editor.putString(PrefKeys.email.name(), student.email);
         editor.putString(PrefKeys.token.name(), "Bearer " +student.token);
         editor.apply();
+    }*/
+
+    /*`public String getStringForKey(PrefKeys key) {
+        return sharedPreferences.getString(key.name(), "NotFound");
     }*/
 
     /*`public String  getToken(){

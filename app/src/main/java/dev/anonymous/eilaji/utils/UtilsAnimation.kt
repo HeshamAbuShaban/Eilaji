@@ -3,6 +3,7 @@ package dev.anonymous.eilaji.utils
 import android.animation.ValueAnimator
 import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
 import com.google.android.material.progressindicator.CircularProgressIndicator
+import kotlin.math.roundToInt
 
 object UtilsAnimation {
     fun animationProgress(
@@ -20,7 +21,7 @@ object UtilsAnimation {
         animator.duration = 300
         animator.addUpdateListener { valueAnimator: ValueAnimator ->
             val animValue = valueAnimator.animatedValue as Float
-            val progress = Math.round(startValue + if (isForward) animValue else -animValue)
+            val progress = (startValue + if (isForward) animValue else -animValue).roundToInt()
             indicator.progress = progress
         }
         animator.start()

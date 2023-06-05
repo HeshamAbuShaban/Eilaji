@@ -20,6 +20,7 @@
             android:name=".ui.base.BaseActivity"
             android:exported="false"
             android:label="@string/title_activity_base" />
+
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
@@ -30,6 +31,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>
