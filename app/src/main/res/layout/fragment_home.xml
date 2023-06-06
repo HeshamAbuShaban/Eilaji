@@ -9,11 +9,18 @@
 
     <!--This is a temporary btn to test the signOut    -->
 
-    <fragment
-        android:id="@+id/mapFragment"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+    <TextView
+        android:id="@+id/text_home"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="@string/title_home"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="35sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -32,6 +39,39 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <!--<include
+        layout="@layout/fragment_map"
+        android:layout_width="@dimen/_60sdp"
+        android:layout_height="60dp"
+        app:layout_constraintBottom_toTopOf="@string/temp_nav_to_map"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/temp_signOut" />-->
+
+    <!--    -->
+    <FrameLayout
+        android:id="@+id/home_frame_layout"
+        android:layout_width="@dimen/_150sdp"
+        android:layout_height="@dimen/_150sdp"
+        android:layout_marginBottom="@dimen/_15sdp"
+        app:layout_constraintBottom_toTopOf="@id/temp_navToMap"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_home" />
+
+    <Button
+        android:id="@+id/temp_navToMap"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/_15sdp"
+        android:backgroundTint="#AD1457"
+        android:elevation="@dimen/_150sdp"
+        android:text="@string/temp_nav_to_map"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

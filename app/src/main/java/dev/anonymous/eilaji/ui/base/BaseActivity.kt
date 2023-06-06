@@ -62,6 +62,9 @@ class BaseActivity : AppCompatActivity() {
         navigationActions[R.id.navigation_profile] = Runnable {
             viewModel.onProfileNavigationSelected()
         }
+        navigationActions[R.id.navigation_categories] = Runnable {
+            viewModel.onCategoriesNavigationSelected()
+        }
 
         bottomNavigationView.setOnItemSelectedListener { item ->
             val itemId = item.itemId

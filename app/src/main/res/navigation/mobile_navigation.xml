@@ -29,4 +29,10 @@
         android:label="@string/title_profile"
         tools:layout="@layout/fragment_profile" />
 
+    <fragment
+        android:id="@+id/navigation_categories"
+        android:name="dev.anonymous.eilaji.ui.user_interface.categories.CategoriesFragment"
+        android:label="Categories"
+        tools:layout="@layout/fragment_categories" />
+
 </navigation>

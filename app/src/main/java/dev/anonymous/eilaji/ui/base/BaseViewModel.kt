@@ -30,6 +30,9 @@ class BaseViewModel : ViewModel() {
     fun onProfileNavigationSelected() {
         navigateToDestination(R.id.navigation_profile)
     }
+    fun onCategoriesNavigationSelected() {
+        navigateToDestination(R.id.navigation_categories)
+    }
 
     private fun navigateToDestination(destinationId: Int) {
         _navController.value?.navigate(destinationId)
