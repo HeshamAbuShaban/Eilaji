@@ -39,7 +39,15 @@ class BaseActivity : AppCompatActivity() {
         val navController = findNavController(R.id.nav_host_fragment_activity_base)
         viewModel.setNavController(navController)
 
-        val appBarConfiguration = AppBarConfiguration(setOf(R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications, R.id.navigation_profile))
+        val appBarConfiguration = AppBarConfiguration(
+            setOf(
+                R.id.navigation_home,
+                R.id.navigation_dashboard,
+                R.id.navigation_notifications,
+                R.id.navigation_categories,
+                R.id.navigation_profile
+            )
+        )
         setupActionBarWithNavController(navController, appBarConfiguration)
     }
 
@@ -49,27 +57,27 @@ class BaseActivity : AppCompatActivity() {
         }
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.nav_view)
 
-        val navigationActions: MutableMap<Int, Runnable> = HashMap()
-        navigationActions[R.id.navigation_home] = Runnable {
+        val navigationActions: MutableMap<Int, () -> Unit> = HashMap()
+        navigationActions[R.id.navigation_home] = {
             viewModel.onHomeNavigationSelected()
         }
-        navigationActions[R.id.navigation_dashboard] = Runnable {
+        navigationActions[R.id.navigation_dashboard] = {
             viewModel.onDashboardNavigationSelected()
         }
-        navigationActions[R.id.navigation_notifications] = Runnable {
+        navigationActions[R.id.navigation_notifications] = {
             viewModel.onNotificationsNavigationSelected()
         }
-        navigationActions[R.id.navigation_profile] = Runnable {
+        navigationActions[R.id.navigation_profile] = {
             viewModel.onProfileNavigationSelected()
         }
-        navigationActions[R.id.navigation_categories] = Runnable {
+        navigationActions[R.id.navigation_categories] = {
             viewModel.onCategoriesNavigationSelected()
         }
 
         bottomNavigationView.setOnItemSelectedListener { item ->
             val itemId = item.itemId
             if (navigationActions.containsKey(itemId)) {
-                navigationActions[itemId]?.run()
+                navigationActions[itemId]
                 true
             } else {
                 false
