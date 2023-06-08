@@ -26,6 +26,16 @@ public class AppSharedPreferences {
         editor.apply();
     }*/
 
+    public void invokeDummyData(boolean didInvoke) {
+        editor = sharedPreferences.edit();
+        editor.putBoolean("did", didInvoke);
+        editor.apply();
+    }
+
+    public boolean isInvoked() {
+        return sharedPreferences.getBoolean("did", false);
+    }
+
     /*`public void save(Student student) {
         editor = sharedPreferences.edit();
         editor.putBoolean(PrefKeys.logged_in.name(), true);

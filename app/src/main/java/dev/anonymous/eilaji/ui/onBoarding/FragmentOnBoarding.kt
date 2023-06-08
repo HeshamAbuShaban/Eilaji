@@ -13,6 +13,9 @@ import androidx.viewpager2.widget.ViewPager2
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.adapters.AdapterOnBoarding
 import dev.anonymous.eilaji.databinding.FragmentOnBoardingBinding
+import dev.anonymous.eilaji.storage.AppSharedPreferences
+import dev.anonymous.eilaji.storage.database.EilajViewModel
+import dev.anonymous.eilaji.storage.database.tables.Eilaj
 import dev.anonymous.eilaji.ui.guard.login.FragmentLogin
 import dev.anonymous.eilaji.utils.DummyData
 import dev.anonymous.eilaji.utils.UtilsAnimation
@@ -21,6 +24,7 @@ import dev.anonymous.eilaji.utils.UtilsScreen
 class FragmentOnBoarding : Fragment() {
     private var binding: FragmentOnBoardingBinding? = null
     private lateinit var onBoardingViewModel: OnBoardingViewModel
+    private lateinit var viewModel: EilajViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -28,11 +32,27 @@ class FragmentOnBoarding : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentOnBoardingBinding.inflate(inflater, container, false)
+        viewModel = ViewModelProvider(this)[EilajViewModel::class.java]
+        val invoked: Boolean = AppSharedPreferences.getInstance(requireContext()).isInvoked
+        if (!invoked) {
+            invokeCategories()
+            AppSharedPreferences.getInstance(requireContext()).invokeDummyData(true)
+        }
 
         setupOnBoardingPager()
         setupNextArrowButton()
 
         return binding!!.root
+    }
+
+    private fun invokeCategories() {
+        viewModel.insertManyEilaj(
+            Eilaj(1, "fever-pills", "Pills"),
+            Eilaj(2, "stomach-pills", "Pills"),
+            Eilaj(3, "headache-pills", "Pills"),
+            Eilaj(4, "drugs-drinkable", "Liquids"),
+            Eilaj(5, "eye-drops", "Liquids")
+        )
     }
 
     private fun setupOnBoardingPager() {
