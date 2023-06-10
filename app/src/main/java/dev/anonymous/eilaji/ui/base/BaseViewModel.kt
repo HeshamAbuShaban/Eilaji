@@ -4,37 +4,23 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
-import dev.anonymous.eilaji.R
 
 class BaseViewModel : ViewModel() {
 
-    private val _navController = MutableLiveData<NavController>()
-    val navController: LiveData<NavController> = _navController
+    private val _navController = MutableLiveData<NavController?>()
+    val navController: LiveData<NavController?> = _navController
+
+    private val _isNavControllerAvailable = MutableLiveData<Boolean>()
+    val isNavControllerAvailable: LiveData<Boolean> = _isNavControllerAvailable
 
     fun setNavController(navController: NavController) {
         _navController.value = navController
+        _isNavControllerAvailable.value = true
     }
 
-    fun onHomeNavigationSelected() {
-        navigateToDestination(R.id.navigation_home)
+    fun clearNavController() {
+        _navController.value = null
+        _isNavControllerAvailable.value = false
     }
 
-    fun onDashboardNavigationSelected() {
-        navigateToDestination(R.id.navigation_dashboard)
-    }
-
-    fun onNotificationsNavigationSelected() {
-        navigateToDestination(R.id.navigation_notifications)
-    }
-
-    fun onProfileNavigationSelected() {
-        navigateToDestination(R.id.navigation_profile)
-    }
-    fun onCategoriesNavigationSelected() {
-        navigateToDestination(R.id.navigation_categories)
-    }
-
-    private fun navigateToDestination(destinationId: Int) {
-        _navController.value?.navigate(destinationId)
-    }
 }

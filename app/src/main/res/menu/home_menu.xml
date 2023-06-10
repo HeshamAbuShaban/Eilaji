@@ -6,13 +6,13 @@
     <item
         android:id="@+id/pharmacies_map_menu"
         android:icon="@drawable/ic_map"
-        android:title="Pharmacies map"
+        android:title="@string/pharmacies_map"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/notification_menu"
         android:icon="@drawable/ic_notifications"
-        android:title="notification"
+        android:title="@string/notifications"
         app:showAsAction="always"
         tools:ignore="AlwaysShowAction" />
 

@@ -1,4 +1,4 @@
-package dev.anonymous.eilaji.ui.onBoarding
+package dev.anonymous.eilaji.ui.on_boarding
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -13,9 +13,6 @@ import androidx.viewpager2.widget.ViewPager2
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.adapters.OnBoardingAdapter
 import dev.anonymous.eilaji.databinding.FragmentOnBoardingBinding
-import dev.anonymous.eilaji.storage.AppSharedPreferences
-import dev.anonymous.eilaji.storage.database.EilajViewModel
-import dev.anonymous.eilaji.storage.database.tables.Eilaj
 import dev.anonymous.eilaji.ui.guard.login.FragmentLogin
 import dev.anonymous.eilaji.utils.DummyData
 import dev.anonymous.eilaji.utils.UtilsAnimation
@@ -24,7 +21,7 @@ import dev.anonymous.eilaji.utils.UtilsScreen
 class FragmentOnBoarding : Fragment() {
     private var binding: FragmentOnBoardingBinding? = null
     private lateinit var onBoardingViewModel: OnBoardingViewModel
-    private lateinit var viewModel: EilajViewModel
+//    private late-init var viewModel: EilajViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,11 +32,7 @@ class FragmentOnBoarding : Fragment() {
 
 //        viewModel = ViewModelProvider(this)[EilajViewModel::class.java]
 
-        val invoked: Boolean = AppSharedPreferences.getInstance(requireContext()).isInvoked
-        if (!invoked) {
-            invokeCategories()
-            AppSharedPreferences.getInstance(requireContext()).invokeDummyData(true)
-        }
+
 
         setupOnBoardingPager()
         setupNextArrowButton()
@@ -47,15 +40,7 @@ class FragmentOnBoarding : Fragment() {
         return binding!!.root
     }
 
-    private fun invokeCategories() {
-//        viewModel.insertManyEilaj(
-//            Eilaj(1, "fever-pills", "Pills"),
-//            Eilaj(2, "stomach-pills", "Pills"),
-//            Eilaj(3, "headache-pills", "Pills"),
-//            Eilaj(4, "drugs-drinkable", "Liquids"),
-//            Eilaj(5, "eye-drops", "Liquids")
-//        )
-    }
+
 
     private fun setupOnBoardingPager() {
         val paddingHorizontal = (UtilsScreen.screenWidth * 0.08).toInt()

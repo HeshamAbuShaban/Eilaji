@@ -1,0 +1,29 @@
+    /*        val navigationActions: MutableMap<Int, () -> Unit> = HashMap()
+        navigationActions[R.id.navigation_home] = {
+            viewModel.onHomeNavigationSelected()
+        }
+        navigationActions[R.id.navigation_dashboard] = {
+            viewModel.onDashboardNavigationSelected()
+        }
+        navigationActions[R.id.navigation_notifications] = {
+            viewModel.onNotificationsNavigationSelected()
+        }
+        navigationActions[R.id.navigation_profile] = {
+            viewModel.onProfileNavigationSelected()
+        }
+        navigationActions[R.id.navigation_categories] = {
+            viewModel.onCategoriesNavigationSelected()
+        }
+
+        binding.navView.setOnItemSelectedListener { item ->
+            val itemId = item.itemId
+            if (navigationActions.containsKey(itemId)) {
+                navigationActions[itemId]
+                true
+            } else {
+                false
+            }
+        }
+
+        // Set the default selected item
+        binding.navView.selectedItemId = R.id.navigation_home*/

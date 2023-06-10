@@ -19,30 +19,29 @@ import dev.anonymous.eilaji.databinding.ActivityBaseBinding
 class BaseActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityBaseBinding
-    private lateinit var viewModel: BaseViewModel
+    private lateinit var baseViewModel: BaseViewModel
     private var menuRes: Int = R.menu.home_menu
 
-    private lateinit var controller: NavController
-    private val listener =
+    private val destinationChangedListener =
         NavController.OnDestinationChangedListener { _, destination, _ ->
             menuRes = when (destination.id) {
                 R.id.navigation_home -> {
-                    binding.fabSendPrescription.hide()
+                    hideSendPrescriptionFab()
                     R.menu.home_menu
                 }
 
                 R.id.navigation_categories -> {
-                    binding.fabSendPrescription.hide()
+                    hideSendPrescriptionFab()
                     R.menu.category_menu
                 }
 
                 R.id.navigation_notifications -> {
-                    binding.fabSendPrescription.show()
+                    showSendPrescriptionFab()
                     0
                 }
 
                 else -> {
-                    binding.fabSendPrescription.hide()
+                    hideSendPrescriptionFab()
                     0
                 }
             }
@@ -51,10 +50,8 @@ class BaseActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityBaseBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         setSupportActionBar(binding.toolbar)
 
         setupViewModel()
@@ -63,13 +60,12 @@ class BaseActivity : AppCompatActivity() {
     }
 
     private fun setupViewModel() {
-        viewModel = ViewModelProvider(this)[BaseViewModel::class.java]
-        viewModel.setNavController(findNavController(R.id.nav_host_fragment_activity_base))
+        baseViewModel = ViewModelProvider(this)[BaseViewModel::class.java]
+        baseViewModel.setNavController(findNavController(R.id.nav_host_fragment_activity_base))
     }
 
     private fun setupNavigation() {
         val navController = findNavController(R.id.nav_host_fragment_activity_base)
-        viewModel.setNavController(navController)
 
         val appBarConfiguration = AppBarConfiguration(
             setOf(
@@ -84,40 +80,19 @@ class BaseActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigationView() {
-        viewModel.navController.observe(this) { navController ->
-            binding.navView.setupWithNavController(navController)
-            controller = navController
+        baseViewModel.navController.observe(this) { navController ->
+            navController?.let { nonNullNavController ->
+                binding.navView.setupWithNavController(nonNullNavController)
+            }
         }
+    }
 
-//        val navigationActions: MutableMap<Int, () -> Unit> = HashMap()
-//        navigationActions[R.id.navigation_home] = {
-//            viewModel.onHomeNavigationSelected()
-//        }
-//        navigationActions[R.id.navigation_dashboard] = {
-//            viewModel.onDashboardNavigationSelected()
-//        }
-//        navigationActions[R.id.navigation_notifications] = {
-//            viewModel.onNotificationsNavigationSelected()
-//        }
-//        navigationActions[R.id.navigation_profile] = {
-//            viewModel.onProfileNavigationSelected()
-//        }
-//        navigationActions[R.id.navigation_categories] = {
-//            viewModel.onCategoriesNavigationSelected()
-//        }
-//
-//        binding.navView.setOnItemSelectedListener { item ->
-//            val itemId = item.itemId
-//            if (navigationActions.containsKey(itemId)) {
-//                navigationActions[itemId]
-//                true
-//            } else {
-//                false
-//            }
-//        }
-//
-//        // Set the default selected item
-//        binding.navView.selectedItemId = R.id.navigation_home
+    private fun hideSendPrescriptionFab() {
+        binding.fabSendPrescription.hide()
+    }
+
+    private fun showSendPrescriptionFab() {
+        binding.fabSendPrescription.show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -127,34 +102,43 @@ class BaseActivity : AppCompatActivity() {
         return super.onCreateOptionsMenu(menu)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.search_menu -> {
-                Toast.makeText(applicationContext, "search_menu", Toast.LENGTH_SHORT).show()
-                true
-            }
-
-            R.id.notification_menu -> {
-                Toast.makeText(applicationContext, "notification_menu", Toast.LENGTH_SHORT).show()
-                true
-            }
-
-            R.id.pharmacies_map_menu -> {
-                Toast.makeText(applicationContext, "pharmacies_map_menu", Toast.LENGTH_SHORT).show()
-                true
-            }
-
-            else -> super.onOptionsItemSelected(item)
+    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
+        R.id.search_menu -> {
+            showToast("search_menu")
+            true
         }
+
+        R.id.notification_menu -> {
+            showToast("notification_menu")
+            true
+        }
+
+        R.id.pharmacies_map_menu -> {
+            showToast("pharmacies_map_menu")
+            true
+        }
+
+        else -> super.onOptionsItemSelected(item)
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
     }
 
     override fun onResume() {
         super.onResume()
-        controller.addOnDestinationChangedListener(listener)
+//        controller.addOnDestinationChangedListener(destinationChangedListener)
+        baseViewModel.isNavControllerAvailable.observe(this) { isAvailable ->
+            if (isAvailable) {
+                baseViewModel.navController.value?.addOnDestinationChangedListener(destinationChangedListener)
+            }
+        }
     }
 
     override fun onPause() {
-        controller.removeOnDestinationChangedListener(listener)
+//        controller.removeOnDestinationChangedListener(destinationChangedListener)
+        baseViewModel.clearNavController()
         super.onPause()
     }
 }
+

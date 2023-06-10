@@ -1,4 +1,4 @@
-package dev.anonymous.eilaji.ui.onBoarding
+package dev.anonymous.eilaji.ui.on_boarding
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
