@@ -2,18 +2,29 @@
 
     <style name="Base.Theme.Eilaji" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowBackground">@color/white</item>
-        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
-        <item name="android:statusBarColor">@color/white</item>
     </style>
 
-    <style name="Theme.Eilaji" parent="Base.Theme.Eilaji" />
+    <style name="Theme.Eilaji.PinkStatusBar" parent="Base.Theme.Eilaji">
+        <item name="android:windowLightStatusBar" tools:targetApi="23">false</item>
+        <item name="android:statusBarColor">@color/primary_pink</item>
+    </style>
+
+    <style name="Theme.Eilaji.WhiteStatusBar" parent="Base.Theme.Eilaji">
+        <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
+        <item name="android:statusBarColor">@color/white</item>
+    </style>
 
     <style name="Theme.App.MySplash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/white</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
-        <item name="postSplashScreenTheme">@style/Theme.Eilaji</item>
+        <item name="postSplashScreenTheme">@style/Theme.Eilaji.WhiteStatusBar</item>
     </style>
 
+    <style name="ToolBarTitleAppearance" parent="@android:style/TextAppearance.Medium">
+        <item name="android:textSize">@dimen/_16sdp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textStyle">bold</item>
+    </style>
 
     <style name="TextInputAccountInformationStyle" parent="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
         <item name="boxCornerRadiusTopEnd">@dimen/_4sdp</item>
@@ -54,6 +65,18 @@
         <item name="android:paddingTop">@dimen/_12sdp</item>
         <item name="android:paddingBottom">@dimen/_12sdp</item>
         <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="SelectableItemBackgroundStyle">
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="SelectableItemBackgroundBorderlessStyle">
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
     </style>
 
     <style name="AppIconStyle">

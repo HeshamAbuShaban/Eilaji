@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         // Check if user is signed in (non-null) and update UI accordingly.
         val currentUser = auth.currentUser
-        if (currentUser != null) {
+        if (currentUser == null) {
             //TODO HomeActivity >> Base
             startActivity(Intent(this@MainActivity, BaseActivity::class.java))
             finish()

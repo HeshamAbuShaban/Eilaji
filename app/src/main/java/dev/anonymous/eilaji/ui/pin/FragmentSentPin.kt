@@ -20,7 +20,7 @@ class FragmentSentPin : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentSentPinBinding.inflate(layoutInflater, container, false)
-        binding!!.buSend.setOnClickListener { _: View? -> }
+        binding!!.buSend.setOnClickListener { }
         return binding!!.root
     }
 

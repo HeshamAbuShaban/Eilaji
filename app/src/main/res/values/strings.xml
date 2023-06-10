@@ -34,5 +34,20 @@
     <string name="title_profile">Profile</string>
     <string name="title_categories">Categories</string>
 
+    <string name="what_are_you_looking_for">What are you looking for?</string>
+
+
     <string name="example_text_for_on_boarding" translatable="false">هذا النص هو مثال لنص يمكن أن يستبدل في نفس المساحة، لقد تم توليد هذا النص من مولد النص</string>
+    <string name="show_all">show all</string>
+    <string name="categories_pharmaceuticals">Categories pharmaceuticals</string>
+    <string name="best_seller">Best seller</string>
+    <string name="connect_with_us">Connect with us</string>
+    <string name="rate_the_app">Rate the app</string>
+    <string name="log_out">Log out</string>
+    <string name="favorites">Favorites</string>
+    <string name="change_password">Change password</string>
+    <string name="delivery_to_your_location">Delivery to your location</string>
+    <string name="chats">Chats</string>
+    <string name="categories">Categories</string>
+
 </resources>

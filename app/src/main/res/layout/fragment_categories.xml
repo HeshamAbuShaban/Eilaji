@@ -4,36 +4,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#CCC73823"
     tools:context=".ui.user_interface.categories.CategoriesFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:id="@+id/text_categories"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="@string/title_categories"
-        android:textColor="@color/white"
-        android:textSize="@dimen/_25ssp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@id/eilaj_recV"
-        app:layout_constraintEnd_toEndOf="@id/eilaj_recV"
-        app:layout_constraintStart_toStartOf="@id/eilaj_recV"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/eilaj_recV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:textAlignment="center"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        android:id="@+id/recyclerPharmacyDepartments"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginHorizontal="@dimen/_12sdp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/text_categories"
-        app:layout_constraintStart_toStartOf="@+id/text_categories"
-        app:layout_constraintTop_toBottomOf="@+id/text_categories"
-        tools:itemCount="4"
-        tools:listitem="@layout/item_eilaj_category" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

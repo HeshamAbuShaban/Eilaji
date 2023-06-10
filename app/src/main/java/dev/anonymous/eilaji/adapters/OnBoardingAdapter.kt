@@ -4,18 +4,18 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import dev.anonymous.eilaji.models.ModelOnBoarding
-import dev.anonymous.eilaji.adapters.AdapterOnBoarding.MyViewHolder
+import dev.anonymous.eilaji.adapters.OnBoardingAdapter.OnBoardingViewHolder
 import dev.anonymous.eilaji.databinding.ItemOnBoardingBinding
 
-class AdapterOnBoarding(private var listModels: ArrayList<ModelOnBoarding>) :
-    RecyclerView.Adapter<MyViewHolder>() {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
+class OnBoardingAdapter(private var listModels: ArrayList<ModelOnBoarding>) :
+    RecyclerView.Adapter<OnBoardingViewHolder>() {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OnBoardingViewHolder {
         val binding =
             ItemOnBoardingBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return MyViewHolder(binding)
+        return OnBoardingViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: OnBoardingViewHolder, position: Int) {
         val listModels = listModels[position]
         holder.bind(listModels)
     }
@@ -24,7 +24,7 @@ class AdapterOnBoarding(private var listModels: ArrayList<ModelOnBoarding>) :
         return listModels.size
     }
 
-    class MyViewHolder(private var binding: ItemOnBoardingBinding) : RecyclerView.ViewHolder(
+    class OnBoardingViewHolder(private var binding: ItemOnBoardingBinding) : RecyclerView.ViewHolder(
         binding.root
     ) {
         fun bind(model: ModelOnBoarding?) {

@@ -23,13 +23,17 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     val currentLocation: LiveData<LatLng> = _currentLocation
 
     fun updateMarkerOptions() {
-        if (ContextCompat.checkSelfPermission(getApplication(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        if (ContextCompat.checkSelfPermission(getApplication(), Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED
         ) {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                println("fusedLocationClient $location")
                 location?.let {
                     val currentLatLng = LatLng(it.latitude, it.longitude)
                     _currentLocation.value = currentLatLng
                 }
+            }.addOnFailureListener {
+                println("addOnFailureListener " + it.message)
             }
         } else {
             // Handle the case when location permission is not granted
@@ -58,13 +62,11 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel)
         map.animateCamera(cameraUpdate)
     }
+
     fun checkLocationPermission(): Boolean {
         val permission = Manifest.permission.ACCESS_FINE_LOCATION
         val result = ContextCompat.checkSelfPermission(getApplication(), permission)
         return result == PackageManager.PERMISSION_GRANTED
     }
-
-
 }
-
 

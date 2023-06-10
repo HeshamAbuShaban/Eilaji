@@ -40,6 +40,8 @@ class PermissionHandler(private val fragment: Fragment) {
         }
     }
 
+
+
     companion object {
         private const val REQUEST_PERMISSION_CODE = 1001
     }

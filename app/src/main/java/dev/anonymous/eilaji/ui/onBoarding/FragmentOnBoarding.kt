@@ -11,7 +11,7 @@ import androidx.viewpager2.widget.CompositePageTransformer
 import androidx.viewpager2.widget.MarginPageTransformer
 import androidx.viewpager2.widget.ViewPager2
 import dev.anonymous.eilaji.R
-import dev.anonymous.eilaji.adapters.AdapterOnBoarding
+import dev.anonymous.eilaji.adapters.OnBoardingAdapter
 import dev.anonymous.eilaji.databinding.FragmentOnBoardingBinding
 import dev.anonymous.eilaji.storage.AppSharedPreferences
 import dev.anonymous.eilaji.storage.database.EilajViewModel
@@ -32,7 +32,9 @@ class FragmentOnBoarding : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentOnBoardingBinding.inflate(inflater, container, false)
-        viewModel = ViewModelProvider(this)[EilajViewModel::class.java]
+
+//        viewModel = ViewModelProvider(this)[EilajViewModel::class.java]
+
         val invoked: Boolean = AppSharedPreferences.getInstance(requireContext()).isInvoked
         if (!invoked) {
             invokeCategories()
@@ -46,13 +48,13 @@ class FragmentOnBoarding : Fragment() {
     }
 
     private fun invokeCategories() {
-        viewModel.insertManyEilaj(
-            Eilaj(1, "fever-pills", "Pills"),
-            Eilaj(2, "stomach-pills", "Pills"),
-            Eilaj(3, "headache-pills", "Pills"),
-            Eilaj(4, "drugs-drinkable", "Liquids"),
-            Eilaj(5, "eye-drops", "Liquids")
-        )
+//        viewModel.insertManyEilaj(
+//            Eilaj(1, "fever-pills", "Pills"),
+//            Eilaj(2, "stomach-pills", "Pills"),
+//            Eilaj(3, "headache-pills", "Pills"),
+//            Eilaj(4, "drugs-drinkable", "Liquids"),
+//            Eilaj(5, "eye-drops", "Liquids")
+//        )
     }
 
     private fun setupOnBoardingPager() {
@@ -63,7 +65,7 @@ class FragmentOnBoarding : Fragment() {
             clipChildren = false
             offscreenPageLimit = 3
             getChildAt(0).overScrollMode = RecyclerView.OVER_SCROLL_NEVER
-            adapter = AdapterOnBoarding(DummyData.listModelOnBoarding)
+            adapter = OnBoardingAdapter(DummyData.listModelOnBoarding)
             setPageTransformer(CompositePageTransformer().apply {
                 addTransformer(MarginPageTransformer(paddingHorizontal))
             })

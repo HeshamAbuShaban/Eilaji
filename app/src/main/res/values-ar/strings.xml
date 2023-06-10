@@ -19,4 +19,17 @@
     <string name="did_not_get_the_code">لم تحصل على رمز؟</string>
     <string name="send_a_new_code">ارسال رمز جديد</string>
     <string name="sign_in">تسجيل الدخول</string>
+    <string name="what_are_you_looking_for">عن ماذا تبحث؟</string>
+    <string name="show_all">عرض الكل</string>
+    <string name="categories_pharmaceuticals">اقسام الادوية</string>
+    <string name="best_seller">الأكثر مبيعاً</string>
+    <string name="connect_with_us">تواصل معنا</string>
+    <string name="rate_the_app">قيم التطبيق</string>
+    <string name="log_out">تسجيل الخروج</string>
+    <string name="favorites">المفضلة</string>
+    <string name="change_password">تغيير كلمة المرور</string>
+    <string name="delivery_to_your_location">التوصيل الى موقعك</string>
+    <string name="chats">المحادثات</string>
+    <string name="categories">الأقسام</string>
+    <string name="title_profile">الملف الشخصي</string>
 </resources>

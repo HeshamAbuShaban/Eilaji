@@ -41,13 +41,13 @@ class PermissionBard(private val activity: AppCompatActivity) {
         builder.setMessage("This app needs access to $permission")
 
         // Set the positive button of the dialog
-        builder.setPositiveButton("OK") { dialog, which ->
+        builder.setPositiveButton("OK") { _, _ ->
             // Request the permission
             requestPermission(permission, {}, {})
         }
 
         // Set the negative button of the dialog
-        builder.setNegativeButton("Cancel") { dialog, which ->
+        builder.setNegativeButton("Cancel") { _, _ ->
             // Do nothing
         }
 
