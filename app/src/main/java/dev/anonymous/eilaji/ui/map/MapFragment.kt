@@ -23,16 +23,15 @@ import com.google.android.gms.maps.model.MarkerOptions
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.adapters.PharmaciesLocationsAdapter
 import dev.anonymous.eilaji.databinding.FragmentMapBinding
-import dev.anonymous.eilaji.temp.permission.PermissionHandler
 import dev.anonymous.eilaji.utils.DummyData
 
 
 class MapFragment : Fragment(), OnMapReadyCallback {
-    private var _binding: FragmentMapBinding? = null
-    private val binding get() = _binding!!
+    private lateinit var _binding: FragmentMapBinding
+    private val binding get() = _binding
 
-    private lateinit var viewModel: MapViewModel
-    private lateinit var permissionHandler: PermissionHandler
+    private lateinit var mapViewModel: MapViewModel
+    // private late-init var permissionHandler: PermissionHandler
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,37 +48,42 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         _binding = FragmentMapBinding.inflate(inflater, container, false)
 
-        //Initialize the permission handler in your fragment or activity:
-        permissionHandler = PermissionHandler(this)
-        permissionHandler.registerPermissionLauncher()
-
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
         // Initialize the view model
-        viewModel = ViewModelProvider(this)[MapViewModel::class.java]
+        mapViewModel = ViewModelProvider(this)[MapViewModel::class.java]
 
-        // create google Map Instance && getting the current location
-        viewModel.checkLocationPermission().let { granted ->
+        // #This Block of code is not good to be relayed on .. do the permission handling
+        /*// create google Map Instance && getting the current location
+        mapViewModel.checkLocationPermission().let { granted ->
             if (granted) {
                 // Permission granted, proceed with map-related functionality
                 obtainGoogleMapInstance()
                 observeCurrentLocation()
             } else {
                 // Permission denied, handle accordingly (e.g., show a message or disable map-related functionality)
+                Toast.makeText(context, "The Map Permissions are required !!", Toast.LENGTH_LONG)
+                    .show()
+                Log.d("MapFragment", "onCreateView() called with: granted = false")
             }
-        }
+        }*/
 
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        // `Temporary` call of this line
+        obtainGoogleMapInstance()
+        observeCurrentLocation()
         setupAdsPager()
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
         // Set the GoogleMap instance in the view model
-        viewModel.setMap(googleMap)
+        mapViewModel.setMap(googleMap)
+        setupAdsPager() // this method needs the map: GoogleMap to be initialized
 
+
+        // Hesham:?> Provide Some Context of what dose this block of code do ?
         googleMap.setOnMarkerClickListener { marker ->
             val indexPharmacies = DummyData.listPharmaciesModels.indexOfFirst {
                 marker.position.latitude == it.lat && marker.position.longitude == it.lng
@@ -87,7 +91,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
             if (indexPharmacies != -1) {
                 binding.pharmaciesLocationsPager.currentItem = indexPharmacies
-                viewModel.animateCameraToPosition(
+                mapViewModel.animateCameraToPosition(
                     LatLng(
                         DummyData.listPharmaciesModels[indexPharmacies].lat,
                         DummyData.listPharmaciesModels[indexPharmacies].lng
@@ -99,16 +103,19 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             true
         }
 
-        viewModel.updateMarkerOptions()
+        //This What Fat-ooh Started with ! need to be changed do suite our case
+//        mapViewModel.updateMarkerOptions()
 
-        // Call the methods from the view model
-        viewModel.moveCameraToPosition(
+
+        /*// This Is Just a test
+        mapViewModel.moveCameraToPosition(
             LatLng(31.449624242321853, 34.39510808345772),
             17f
-        )
+        )*/
 
+        // Nice Trying to show a Marker for a List of data
         DummyData.listPharmaciesModels.forEach {
-            viewModel.addMarkerToMap(
+            mapViewModel.addMarkerToMap(
                 markerOptions(
                     latLng = LatLng(it.lat, it.lng),
                     title = it.name,
@@ -116,11 +123,34 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 )
             )
         }
+
     }
 
+
+    // +++++++++Initializes Method
+    private fun obtainGoogleMapInstance() {
+        // Obtain the GoogleMap instance from SupportMapFragment
+        val mapFragment =
+            childFragmentManager.findFragmentById(R.id.mapFragment) as SupportMapFragment
+        mapFragment.getMapAsync(this)
+    }
+
+    /*locate the user location*/
+    private fun observeCurrentLocation() {
+        mapViewModel.currentLocation.observe(viewLifecycleOwner) { currentLatLng ->
+            // Move the camera to the current location
+            mapViewModel.animateCameraToPosition(currentLatLng, 17f)
+
+            // Add a marker to the current location
+            mapViewModel.addMarkerToMap(
+                markerOptions(latLng = currentLatLng, title = "Home Location")
+            )
+        }
+    }
+
+    // +++++++++Setup Method
     private fun setupAdsPager() {
         var scrollIsDragging = false
-
         with(binding.pharmaciesLocationsPager) {
             adapter = PharmaciesLocationsAdapter(DummyData.listPharmaciesModels)
             registerOnPageChangeCallback(object : OnPageChangeCallback() {
@@ -140,7 +170,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     // يتم استدعاء onPageSelected
                     // فقط عند الانتقال الى عنصر اخر وقبل ان تصبح حالة التمرير SCROLL_STATE_IDLE
                     if (scrollIsDragging) {
-                        viewModel.animateCameraToPosition(
+                        mapViewModel.animateCameraToPosition(
                             LatLng(
                                 DummyData.listPharmaciesModels[position].lat,
                                 DummyData.listPharmaciesModels[position].lng
@@ -153,6 +183,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    // +++++++++Utilities Method
     private fun markerOptions(
         latLng: LatLng,
         title: String,
@@ -186,45 +217,5 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
 
-    private fun obtainGoogleMapInstance() {
-        // Obtain the GoogleMap instance from SupportMapFragment
-        val mapFragment =
-            childFragmentManager.findFragmentById(R.id.mapFragment) as SupportMapFragment
-        mapFragment.getMapAsync(this)
-    }
-
-    private fun observeCurrentLocation() {
-        viewModel.currentLocation.observe(viewLifecycleOwner) { currentLatLng ->
-            // Move the camera to the current location
-            viewModel.animateCameraToPosition(currentLatLng, 17f)
-
-            // Add a marker to the current location
-            viewModel.addMarkerToMap(
-                markerOptions(latLng = currentLatLng, title = "Home Location")
-            )
-        }
-    }
-
-    /*private fun requestTheRequiredPermissions() {
-        val requiredPermissions = arrayOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        )
-
-        if (permissionHandler.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
-            // Permission is already granted. Proceed with using Google Maps.
-        } else {
-            permissionHandler.requestPermission(
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) { isGranted ->
-                if (isGranted) {
-                    // Permission is granted. Proceed with using Google Maps.
-                } else {
-                    // Permission is denied. Handle this case accordingly.
-                }
-            }
-        }
-
-    }*/
 
 }

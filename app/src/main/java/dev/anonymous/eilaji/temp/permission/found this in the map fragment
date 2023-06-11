@@ -1,0 +1,21 @@
+ /*private fun requestTheRequiredPermissions() {
+        val requiredPermissions = arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+
+        if (permissionHandler.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
+            // Permission is already granted. Proceed with using Google Maps.
+        } else {
+            permissionHandler.requestPermission(
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) { isGranted ->
+                if (isGranted) {
+                    // Permission is granted. Proceed with using Google Maps.
+                } else {
+                    // Permission is denied. Handle this case accordingly.
+                }
+            }
+        }
+
+    }*/

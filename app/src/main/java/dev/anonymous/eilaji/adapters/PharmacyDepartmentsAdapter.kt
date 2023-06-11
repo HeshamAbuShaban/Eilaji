@@ -44,8 +44,10 @@ class PharmacyDepartmentsAdapter(private var listAds: ArrayList<PharmacyDepartme
                     parentPharDep.setPadding(0, 0, 0, 222)
                 }
 
-                ivPharmacyDepartment.setImageResource(model!!.image)
-                tvPharmacyDepartment.text = model.name
+                model?.let {
+                    ivPharmacyDepartment.setImageResource(it.image)
+                    tvPharmacyDepartment.text = it.name
+                }
             }
         }
     }

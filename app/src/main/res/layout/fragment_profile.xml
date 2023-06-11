@@ -34,7 +34,8 @@
                     android:layout_height="@dimen/_20sdp"
                     android:contentDescription="@null"
                     android:scaleType="fitXY"
-                    android:src="@drawable/ic_favorite_pink" />
+                    android:src="@drawable/ic_favorite_pink"
+                    tools:ignore="ImageContrastCheck" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -78,7 +79,8 @@
                     android:layout_height="@dimen/_20sdp"
                     android:contentDescription="@null"
                     android:scaleType="fitXY"
-                    android:src="@drawable/ic_lock" />
+                    android:src="@drawable/ic_lock"
+                    tools:ignore="ImageContrastCheck" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -122,7 +124,8 @@
                     android:layout_height="@dimen/_20sdp"
                     android:contentDescription="@null"
                     android:scaleType="fitXY"
-                    android:src="@drawable/ic_headset_mic" />
+                    android:src="@drawable/ic_headset_mic"
+                    tools:ignore="ImageContrastCheck" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -166,7 +169,8 @@
                     android:layout_height="@dimen/_20sdp"
                     android:contentDescription="@null"
                     android:scaleType="fitXY"
-                    android:src="@drawable/ic_star" />
+                    android:src="@drawable/ic_star"
+                    tools:ignore="ImageContrastCheck" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -210,7 +214,8 @@
                     android:layout_height="@dimen/_20sdp"
                     android:contentDescription="@null"
                     android:scaleType="fitXY"
-                    android:src="@drawable/ic_logout" />
+                    android:src="@drawable/ic_logout"
+                    tools:ignore="ImageContrastCheck" />
 
                 <TextView
                     android:layout_width="wrap_content"

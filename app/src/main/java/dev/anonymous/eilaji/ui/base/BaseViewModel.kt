@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
+import dev.anonymous.eilaji.R
 
 class BaseViewModel : ViewModel() {
 
@@ -22,5 +23,10 @@ class BaseViewModel : ViewModel() {
         _navController.value = null
         _isNavControllerAvailable.value = false
     }
-
+    fun navigateToMap(){
+        navigateToDestination(R.id.navigation_map)
+    }
+    private fun navigateToDestination(destinationId: Int) {
+        _navController.value?.navigate(destinationId)
+    }
 }

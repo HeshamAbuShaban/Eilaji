@@ -115,6 +115,7 @@ class BaseActivity : AppCompatActivity() {
 
         R.id.pharmacies_map_menu -> {
             showToast("pharmacies_map_menu")
+            baseViewModel.navigateToMap()
             true
         }
 

@@ -31,6 +31,7 @@ class ProfileFragment : Fragment() {
         // SignOut
         binding.buLogout.setOnClickListener {
             firebaseController.signOut()
+            requireActivity().finish()
         }
         // change-password
         // check-for-favorite items

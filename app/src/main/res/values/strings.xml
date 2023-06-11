@@ -22,9 +22,6 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="hint">****</string>
 
-    <!--Temp    -->
-    <string name="temp_sign_out">Sign Out</string>
-    <string name="temp_nav_to_map">Nav to Map</string>
 
     <string name="title_activity_base">BaseActivity</string>
     <string name="title_home">Home</string>
@@ -49,7 +46,8 @@
     <string name="delivery_to_your_location">Delivery to your location</string>
     <string name="chats">Chats</string>
     <string name="categories">Categories</string>
-    <string name="notifications">Notifications</string>
     <string name="pharmacies_map">Pharmacies map</string>
+    <string name="send_prescription">Send Prescription</string>
+    <string name="search">Search</string>
 
 </resources>

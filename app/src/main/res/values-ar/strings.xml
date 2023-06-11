@@ -32,4 +32,14 @@
     <string name="chats">المحادثات</string>
     <string name="categories">الأقسام</string>
     <string name="title_profile">الملف الشخصي</string>
+    <string name="hello_blank_fragment">شاشة فارغة</string>
+    <string name="hint">****</string>
+    <string name="title_activity_base">الشاشة الأساسية</string>
+    <string name="title_home">الصفحة الاساسية</string>
+    <string name="title_dashboard">صفحة التحكم</string>
+    <string name="title_notifications">الاشعارات</string>
+    <string name="title_categories">التصنيفات</string>
+    <string name="pharmacies_map">الصيدليات على الخريطة</string>
+    <string name="send_prescription">ارسال الروشتة</string>
+    <string name="search">أبحث</string>
 </resources>
