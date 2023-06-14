@@ -1,4 +1,4 @@
-package dev.anonymous.eilaji.ui.pin
+package dev.anonymous.eilaji.ui.other.pin
 
 import android.os.Bundle
 import android.text.Editable

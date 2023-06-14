@@ -22,6 +22,8 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="hint">****</string>
 
+    <string name="search_fragment_temp">This is a screen that shows when user clicks on Search bar in home!</string>
+
 
     <string name="title_activity_base">BaseActivity</string>
     <string name="title_home">Home</string>

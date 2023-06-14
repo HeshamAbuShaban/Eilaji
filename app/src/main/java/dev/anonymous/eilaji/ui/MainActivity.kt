@@ -11,7 +11,7 @@ import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.ActivityMainBinding
 import dev.anonymous.eilaji.firebase.FirebaseController
 import dev.anonymous.eilaji.ui.base.BaseActivity
-import dev.anonymous.eilaji.ui.on_boarding.FragmentOnBoarding
+import dev.anonymous.eilaji.ui.other.on_boarding.FragmentOnBoarding
 
 //This ActivityMain are responsible for counting the Splash FragmentOnBoarding
 class MainActivity : AppCompatActivity() {

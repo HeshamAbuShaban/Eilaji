@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:paddingHorizontal="@dimen/_20sdp"
     android:scrollbars="none"
-    tools:context=".ui.pin.FragmentPinConfirmation">
+    tools:context=".ui.other.pin.FragmentPinConfirmation">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"

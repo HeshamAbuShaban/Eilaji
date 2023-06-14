@@ -42,4 +42,5 @@
     <string name="pharmacies_map">الصيدليات على الخريطة</string>
     <string name="send_prescription">ارسال الروشتة</string>
     <string name="search">أبحث</string>
+    <string name="search_fragment_temp">This is a screen that shows when user clicks on Search bar in home!</string>
 </resources>

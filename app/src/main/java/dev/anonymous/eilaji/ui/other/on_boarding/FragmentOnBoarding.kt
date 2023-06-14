@@ -1,4 +1,4 @@
-package dev.anonymous.eilaji.ui.on_boarding
+package dev.anonymous.eilaji.ui.other.on_boarding
 
 import android.os.Bundle
 import android.view.LayoutInflater

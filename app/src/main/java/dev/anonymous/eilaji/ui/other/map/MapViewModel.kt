@@ -1,4 +1,4 @@
-package dev.anonymous.eilaji.ui.map
+package dev.anonymous.eilaji.ui.other.map
 
 import android.Manifest
 import android.app.Application

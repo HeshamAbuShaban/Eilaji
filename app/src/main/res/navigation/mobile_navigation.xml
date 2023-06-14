@@ -5,11 +5,11 @@
     android:id="@+id/mobile_navigation"
     app:startDestination="@+id/navigation_home">
 
-    <fragment
-        android:id="@+id/navigation_map"
-        android:name="dev.anonymous.eilaji.ui.map.MapFragment"
-        android:label="@string/pharmacies_map"
-        tools:layout="@layout/fragment_map" />
+<!--    <fragment-->
+<!--        android:id="@+id/navigation_map"-->
+<!--        android:name="dev.anonymous.eilaji.ui.other.map.MapFragment"-->
+<!--        android:label="@string/pharmacies_map"-->
+<!--        tools:layout="@layout/fragment_map" />-->
 
 
     <fragment
@@ -17,6 +17,17 @@
         android:name="dev.anonymous.eilaji.ui.user_interface.home.HomeFragment"
         android:label="@string/delivery_to_your_location"
         tools:layout="@layout/fragment_home" />
+
+    <!--TODO If you have multiple navigation graph XML files, you can specify the correct graph file and destination in the navigation action. Here's how you can do it    -->
+    <!--TODO Omar you can add a Animation in the highlighted comment    -->
+   <!-- <action
+        android:id="@+id/action_homeFragment_to_searchFragment"
+        app:destination="@id/navigation_search"/>
+    <include app:graph="@navigation/additional_screens_navigation" />-->
+    <!--app:enterAnim="@anim/slide_in_right"
+    app:exitAnim="@anim/slide_out_left" -->
+
+
 
     <fragment
         android:id="@+id/navigation_dashboard"

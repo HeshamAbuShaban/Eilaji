@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/alternatives_navigation"
+    app:startDestination="@id/navigation_search">
+
+    <fragment
+        android:id="@+id/navigation_search"
+        android:name="dev.anonymous.eilaji.ui.other.search.SearchFragment"
+        android:label="fragment_search"
+        tools:layout="@layout/fragment_search" />
+
+    <fragment
+        android:id="@+id/navigation_map"
+        android:name="dev.anonymous.eilaji.ui.other.map.MapFragment"
+        android:label="@string/pharmacies_map"
+        tools:layout="@layout/fragment_map" />
+
+</navigation>

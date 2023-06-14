@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
-import dev.anonymous.eilaji.R
 
 class BaseViewModel : ViewModel() {
 
@@ -23,10 +22,19 @@ class BaseViewModel : ViewModel() {
         _navController.value = null
         _isNavControllerAvailable.value = false
     }
-    fun navigateToMap(){
-        navigateToDestination(R.id.navigation_map)
-    }
-    private fun navigateToDestination(destinationId: Int) {
-        _navController.value?.navigate(destinationId)
-    }
+////    fun navigateToMap(){
+////        navigateToDestination(R.id.navigation_map)
+////    }
+//    private fun navigateToDestination(destinationId: Int) {
+//        _navController.value?.navigate(destinationId)
+//    }
+
+//    fun navigateToSearchFragment() {
+//        navigateToDestination(R.id.action_homeFragment_to_searchFragment)
+//    }
+//    fun navigateToSearchFragment() {
+//        _navController.value?.navigate(R.id.new_graph)
+//    }
+
+
 }
