@@ -7,6 +7,7 @@ import dev.anonymous.eilaji.models.MedicineModel
 import dev.anonymous.eilaji.models.ModelOnBoarding
 import dev.anonymous.eilaji.models.PharmacyDepartmentModel
 import dev.anonymous.eilaji.models.PharmacyModel
+import dev.anonymous.eilaji.models.RatingsModel
 
 object DummyData {
     val listModelOnBoarding: ArrayList<ModelOnBoarding>
@@ -116,42 +117,62 @@ object DummyData {
             val list = ArrayList<MedicineModel>()
             list.add(
                 MedicineModel(
+                    "DAG57DAG58AD4SG4S",
                     R.drawable.temp_medicine_1,
                     "قطرة مسكنة للآلام",
                     20.0,
+                    "الاستخدام: يُدعى أن فيكتروفين يستخدم لعلاج عدة حالات صحية مختلفة. يُزعم أنه يعمل كمسكن للألم، ومضاد للالتهاب، ومضاد للحساسية، ومضاد للقلق.\n" +
+                            "التركيبة الكيميائية: طريقة صنع فيكتروفين تحتوي على مزيج من المواد الكيميائية الوهمية، ولا يوجد لها أساس علمي أو أدلة على فاعليتها العلاجية.",
+                    RatingsModel(4.5f, 4f, 5f, 4f),
+                    arrayListOf(
+                        "HSF3G4H5SF7GH9HSF",
+                        "NTS4NT56NT7SYN44T",
+                        "ERY56STR7ST56TU1F",
+                        "JRY45RY9UJ005YUR6"
+                    ),
                     true
                 )
             )
             list.add(
                 MedicineModel(
+                    "HSF3G4H5SF7GH9HSF",
                     R.drawable.temp_medicine_2,
                     "مثبط هرمونات",
-                    7.0,
+                    13.0,
+                    "الاستخدام: يُدعى أن فيكتروفين يستخدم لعلاج عدة حالات صحية مختلفة. يُزعم أنه يعمل كمسكن للألم، ومضاد للالتهاب، ومضاد للحساسية، ومضاد للقلق.\n" +
+                            "\n" +
+                            "التركيبة الكيميائية: طريقة صنع فيكتروفين تحتوي على مزيج من المواد الكيميائية الوهمية، ولا يوجد لها أساس علمي أو أدلة على فاعليتها العلاجية.",
+                    RatingsModel(4f, 4f, 4f, 4f),
+                    arrayListOf(),
                     false
                 )
             )
             list.add(
                 MedicineModel(
+                    "NTS4NT56NT7SYN44T",
                     R.drawable.temp_medicine_3,
                     "قطرة مسكنة للآلام",
-                    53.0,
+                    6.0,
+                    "الاستخدام: يُدعى أن فيكتروفين يستخدم لعلاج عدة حالات صحية مختلفة. يُزعم أنه يعمل كمسكن للألم، ومضاد للالتهاب، ومضاد للحساسية، ومضاد للقلق.\n" +
+                            "\n" +
+                            "التركيبة الكيميائية: طريقة صنع فيكتروفين تحتوي على مزيج من المواد الكيميائية الوهمية، ولا يوجد لها أساس علمي أو أدلة على فاعليتها العلاجية.",
+                    RatingsModel(4f, 4f, 4f, 4f),
+                    arrayListOf(),
                     false
                 )
             )
             list.add(
                 MedicineModel(
-                    R.drawable.temp_medicine_1,
+                    "ERY56STR7ST56TU1F",
+                    R.drawable.temp_medicine_4,
                     "قطرة مسكنة للآلام",
-                    20.0,
+                    50.0,
+                    "الاستخدام: يُدعى أن فيكتروفين يستخدم لعلاج عدة حالات صحية مختلفة. يُزعم أنه يعمل كمسكن للألم، ومضاد للالتهاب، ومضاد للحساسية، ومضاد للقلق.\n" +
+                            "\n" +
+                            "التركيبة الكيميائية: طريقة صنع فيكتروفين تحتوي على مزيج من المواد الكيميائية الوهمية، ولا يوجد لها أساس علمي أو أدلة على فاعليتها العلاجية.",
+                    RatingsModel(4f, 4f, 4f, 4f),
+                    arrayListOf(),
                     true
-                )
-            )
-            list.add(
-                MedicineModel(
-                    R.drawable.temp_medicine_2,
-                    "مثبط هرمونات",
-                    7.0,
-                    false
                 )
             )
             return list

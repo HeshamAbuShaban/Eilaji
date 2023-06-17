@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
     public override fun onStart() {
         super.onStart()
         // Check if user is signed in (non-null) and update UI accordingly.
-        if (FirebaseController.getInstance().getCurrentUser() != null) {
+        if (FirebaseController.getInstance().getCurrentUser() == null) {
             //TODO HomeActivity >> Base
             startActivity(Intent(this@MainActivity, BaseActivity::class.java))
             finish()

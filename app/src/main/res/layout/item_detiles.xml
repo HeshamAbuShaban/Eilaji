@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="@dimen/_15sdp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/tvDetailsMedicines"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="الاستخدام: يُدعى أن فيكتروفين يستخدم لعلاج عدة حالات صحية مختلفة. يُزعم أنه يعمل كمسكن للألم، ومضاد للالتهاب، ومضاد للحساسية، ومضاد للقلق. التركيبة الكيميائية: طريقة صنع فيكتروفين تحتوي على مزيج من المواد الكيميائية الوهمية، ولا يوجد لها أساس علمي أو أدلة على فاعليتها العلاجية."
+            android:textColor="@color/black"
+            android:textSize="@dimen/_14sdp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="HardcodedText" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.core.widget.NestedScrollView>

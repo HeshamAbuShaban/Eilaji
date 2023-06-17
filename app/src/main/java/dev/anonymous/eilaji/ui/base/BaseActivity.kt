@@ -118,6 +118,10 @@ class BaseActivity : AppCompatActivity() {
 
         R.id.notification_menu -> {
             showToast("notification_menu")
+            val intent = Intent(this, AlternativesActivity::class.java)
+            intent.putExtra("fragmentType", "medicine")
+            startActivity(intent)
+            viewModelStore
             true
         }
 

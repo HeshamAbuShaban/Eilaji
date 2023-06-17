@@ -4,6 +4,10 @@
         <item name="android:windowBackground">@color/white</item>
     </style>
 
+    <style name="Theme.Eilaji.TranslucentStatus" parent="Base.Theme.Eilaji">
+        <item name="android:windowTranslucentStatus">true</item>
+    </style>
+
     <style name="Theme.Eilaji.PinkStatusBar" parent="Base.Theme.Eilaji">
         <item name="android:windowLightStatusBar" tools:targetApi="23">false</item>
         <item name="android:statusBarColor">@color/primary_pink</item>
@@ -18,6 +22,10 @@
         <item name="windowSplashScreenBackground">@color/white</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
         <item name="postSplashScreenTheme">@style/Theme.Eilaji.WhiteStatusBar</item>
+    </style>
+
+    <style name="TextAppearance.expandedTitle" parent="">
+        <item name="android:textStyle">bold</item>
     </style>
 
     <style name="ToolBarTitleAppearance" parent="@android:style/TextAppearance.Medium">

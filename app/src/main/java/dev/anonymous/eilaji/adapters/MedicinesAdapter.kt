@@ -1,5 +1,6 @@
 package dev.anonymous.eilaji.adapters
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -7,8 +8,15 @@ import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.ItemMedicineBinding
 import dev.anonymous.eilaji.models.MedicineModel
 
-class MedicinesAdapter(private val listAds: ArrayList<MedicineModel>) :
+class MedicinesAdapter(private var medicineModels: ArrayList<MedicineModel>) :
     RecyclerView.Adapter<MedicinesAdapter.MedicinesViewHolder>() {
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun setListMedicines(medicineModels: ArrayList<MedicineModel>) {
+        this.medicineModels = medicineModels
+        notifyDataSetChanged()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MedicinesViewHolder {
         val binding =
             ItemMedicineBinding.inflate(
@@ -20,13 +28,14 @@ class MedicinesAdapter(private val listAds: ArrayList<MedicineModel>) :
     }
 
     override fun onBindViewHolder(holder: MedicinesViewHolder, position: Int) {
-        val listModels = listAds[position]
+        val listModels = medicineModels[position]
         holder.bind(listModels)
     }
 
     override fun getItemCount(): Int {
-        return listAds.size
+        return medicineModels.size
     }
+
 
     class MedicinesViewHolder(private var binding: ItemMedicineBinding) :
         RecyclerView.ViewHolder(
@@ -37,7 +46,7 @@ class MedicinesAdapter(private val listAds: ArrayList<MedicineModel>) :
             binding.apply {
                 ivMedicine.setImageResource(model.image)
                 tvMedicineName.text = model.name
-                tvMedicineSalary.text = "${model.salary}$"
+                tvMedicineSalary.text = "${model.price}$"
 
                 setUpFavoriteIcon(model)
 

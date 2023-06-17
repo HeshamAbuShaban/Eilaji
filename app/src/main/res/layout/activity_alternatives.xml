@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context=".ui.other.base.AlternativesActivity">
 
     <fragment
@@ -11,6 +12,7 @@
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:fitsSystemWindows="true"
         app:defaultNavHost="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -18,7 +20,5 @@
         app:layout_constraintTop_toTopOf="parent"
         app:navGraph="@navigation/alternatives_navigation"
         tools:ignore="FragmentTagUsage" />
-    <!--    app:layout_behavior="@string/appbar_scrolling_view_behavior"-->
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

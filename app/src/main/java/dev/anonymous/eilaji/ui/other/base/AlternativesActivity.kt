@@ -7,11 +7,14 @@ import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import dev.anonymous.eilaji.R
 
+
 class AlternativesActivity : AppCompatActivity() {
     private lateinit var alternativesViewModel: AlternativesViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_alternatives)
+
         setupViewModel()
         decideWhichScreen()
     }
@@ -20,6 +23,7 @@ class AlternativesActivity : AppCompatActivity() {
         alternativesViewModel.navController.observe(this) {
             it?.let { nonNullNavController ->
                 when (intent.getStringExtra("fragmentType")) {
+                    "medicine" -> nonNullNavController.navigate(R.id.navigation_medicine)
                     "search" -> nonNullNavController.navigate(R.id.navigation_search)
                     "map" -> nonNullNavController.navigate(R.id.navigation_map)
                 }

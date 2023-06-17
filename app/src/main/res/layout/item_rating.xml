@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="20dp">
+
+    <TextView
+        android:id="@+id/tvRatingBar4"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/_30sdp"
+        android:gravity="center_vertical"
+        android:text="السعر"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_13sdp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/ratingBarPrice" />
+
+    <androidx.appcompat.widget.AppCompatRatingBar
+        android:id="@+id/ratingBarPrice"
+        style="?android:attr/ratingBarStyleIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/_30sdp"
+        android:progressTint="#FFC107"
+        android:rating="4.5"
+        android:scaleX=".6"
+        android:scaleY=".6"
+        app:layout_constraintStart_toEndOf="@+id/tvRatingBar"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvRatingBar"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/_30sdp"
+        android:gravity="center_vertical"
+        android:text="سرعة الشفاء"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_13sdp"
+        app:layout_constraintStart_toStartOf="@+id/tvRatingBar4"
+        app:layout_constraintTop_toBottomOf="@+id/tvRatingBar4" />
+
+    <androidx.appcompat.widget.AppCompatRatingBar
+        android:id="@+id/ratingBarSpeedOfRecovery"
+        style="?android:attr/ratingBarStyleIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/_30sdp"
+        android:padding="0dp"
+        android:progressTint="#FFC107"
+        android:rating="4"
+        android:scaleX=".6"
+        android:scaleY=".6"
+        app:layout_constraintEnd_toEndOf="@+id/ratingBarPrice"
+        app:layout_constraintStart_toStartOf="@+id/ratingBarPrice"
+        app:layout_constraintTop_toBottomOf="@+id/ratingBarPrice" />
+
+    <TextView
+        android:id="@+id/tvRatingBar2"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/_30sdp"
+        android:gravity="center_vertical"
+        android:text="فعالية الدواء"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_13sdp"
+        app:layout_constraintStart_toStartOf="@+id/tvRatingBar"
+        app:layout_constraintTop_toBottomOf="@+id/tvRatingBar" />
+
+    <androidx.appcompat.widget.AppCompatRatingBar
+        android:id="@+id/ratingBarMedicineEfficacy"
+        style="?android:attr/ratingBarStyleIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/_30sdp"
+        android:progressTint="#FFC107"
+        android:rating="5"
+        android:scaleX=".6"
+        android:scaleY=".6"
+        app:layout_constraintEnd_toEndOf="@+id/ratingBarSpeedOfRecovery"
+        app:layout_constraintStart_toStartOf="@+id/ratingBarSpeedOfRecovery"
+        app:layout_constraintTop_toBottomOf="@+id/ratingBarSpeedOfRecovery" />
+
+    <TextView
+        android:id="@+id/tvRatingBar3"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/_30sdp"
+        android:gravity="center_vertical"
+        android:text="طعم الدواء"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_13sdp"
+        app:layout_constraintStart_toStartOf="@+id/tvRatingBar2"
+        app:layout_constraintTop_toBottomOf="@+id/tvRatingBar2" />
+
+    <androidx.appcompat.widget.AppCompatRatingBar
+        android:id="@+id/ratingBarTasteOfMedicine"
+        style="?android:attr/ratingBarStyleIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/_30sdp"
+        android:progressTint="#FFC107"
+        android:rating="4"
+        android:scaleX=".6"
+        android:scaleY=".6"
+        app:layout_constraintEnd_toEndOf="@+id/ratingBarMedicineEfficacy"
+        app:layout_constraintStart_toStartOf="@+id/ratingBarMedicineEfficacy"
+        app:layout_constraintTop_toBottomOf="@+id/ratingBarMedicineEfficacy" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
