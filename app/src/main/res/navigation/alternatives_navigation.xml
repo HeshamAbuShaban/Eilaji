@@ -21,5 +21,15 @@
         android:name="dev.anonymous.eilaji.ui.other.medicin.MedicineFragment"
         android:label="fragment_medicine"
         tools:layout="@layout/fragment_medicine" />
+    <fragment
+        android:id="@+id/navigation_favorites"
+        android:name="dev.anonymous.eilaji.ui.other.favorite.FavoritesFragment"
+        android:label="fragment_favorite"
+        tools:layout="@layout/fragment_favorites" />
+    <fragment
+        android:id="@+id/navigation_add_address"
+        android:name="dev.anonymous.eilaji.ui.other.add_address.AddAddressFragment"
+        android:label="fragment_add_address"
+        tools:layout="@layout/fragment_add_address" />
 
 </navigation>

@@ -45,4 +45,8 @@
     <string name="search_fragment_temp">This is a screen that shows when user clicks on Search bar in home!</string>
 
     <string name="total_price">اجمالي السعر : 60$</string>
+    <string name="favorite">المفضلة</string>
+    <string name="add_address">اضافة عنوان</string>
+    <string name="add">إضافة</string>
+    <string name="additional_address_details">تفاصيل اضافية عن العنوان</string>
 </resources>

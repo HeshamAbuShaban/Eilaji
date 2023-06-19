@@ -7,6 +7,8 @@
     android:layout_height="match_parent"
     tools:context=".ui.base.BaseActivity">
 
+    <!--  marginTop -12dp = shape_toolbar  corners 12dp -->
+
     <fragment
         android:id="@+id/nav_host_fragment_activity_base"
         android:name="androidx.navigation.fragment.NavHostFragment"
@@ -18,35 +20,22 @@
         app:navGraph="@navigation/mobile_navigation"
         tools:ignore="FragmentTagUsage" />
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:background="@android:color/transparent"
-        android:layout_height="wrap_content">
-
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top"
-            android:background="@drawable/shape_toolbar"
-            app:titleTextAppearance="@style/ToolBarTitleAppearance" />
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <!--  marginTop -12dp = shape_toolbar  corners 12dp -->
+    <include
+        android:id="@+id/includeAppBarLayoutBase"
+        layout="@layout/app_bar_layout" />
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabSendPrescription"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
         android:layout_margin="@dimen/_13sdp"
         android:contentDescription="@null"
         android:text="@string/send"
         android:textColor="@color/white"
         app:backgroundTint="@color/primary_pink"
         app:icon="@drawable/ic_send"
-        app:iconTint="@color/white"
-        android:layout_gravity="bottom|start"/>
+        app:iconTint="@color/white" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/navView"
@@ -54,10 +43,10 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:background="?android:windowBackground"
-        app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
         app:itemHorizontalTranslationEnabled="true"
         app:itemIconTint="@color/primary_pink"
         app:itemTextColor="@color/black"
+        app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
         app:layout_insetEdge="bottom"
         app:menu="@menu/bottom_nav_menu"
         tools:ignore="VisualLintBottomNav" />

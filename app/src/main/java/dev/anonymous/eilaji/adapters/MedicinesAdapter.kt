@@ -8,7 +8,11 @@ import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.ItemMedicineBinding
 import dev.anonymous.eilaji.models.MedicineModel
 
-class MedicinesAdapter(private var medicineModels: ArrayList<MedicineModel>) :
+class MedicinesAdapter(
+    private var medicineModels: ArrayList<MedicineModel>,
+    private val isGridLayout: Boolean = false,
+    private val halfScreenWidth: Int = 0
+) :
     RecyclerView.Adapter<MedicinesAdapter.MedicinesViewHolder>() {
 
     @SuppressLint("NotifyDataSetChanged")
@@ -29,7 +33,7 @@ class MedicinesAdapter(private var medicineModels: ArrayList<MedicineModel>) :
 
     override fun onBindViewHolder(holder: MedicinesViewHolder, position: Int) {
         val listModels = medicineModels[position]
-        holder.bind(listModels)
+        holder.bind(listModels, isGridLayout, halfScreenWidth, position)
     }
 
     override fun getItemCount(): Int {
@@ -42,7 +46,16 @@ class MedicinesAdapter(private var medicineModels: ArrayList<MedicineModel>) :
             binding.root
         ) {
 
-        fun bind(model: MedicineModel) {
+        fun bind(model: MedicineModel, isGridLayout: Boolean, halfScreenWidth: Int, position: Int) {
+            if (isGridLayout) {
+                binding.root.layoutParams.width = halfScreenWidth
+
+                if (position == 0 || position == 1) {
+                    // margin top first tow item
+                    binding.root.setPadding(0, 60, 0, 0)
+                }
+            }
+
             binding.apply {
                 ivMedicine.setImageResource(model.image)
                 tvMedicineName.text = model.name

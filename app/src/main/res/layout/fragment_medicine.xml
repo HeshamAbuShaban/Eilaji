@@ -51,7 +51,7 @@
                 android:fitsSystemWindows="true" />
 
             <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
+                android:id="@+id/toolbarMedicine"
                 android:layout_width="match_parent"
                 android:layout_height="?android:attr/actionBarSize"
                 app:layout_collapseMode="pin"
@@ -202,7 +202,8 @@
                 android:text="1"
                 android:textColor="@color/white"
                 android:textSize="@dimen/_15ssp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:ignore="HardcodedText" />
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/buDecrease"

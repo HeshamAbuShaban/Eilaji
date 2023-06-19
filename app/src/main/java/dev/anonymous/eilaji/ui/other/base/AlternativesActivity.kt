@@ -23,6 +23,8 @@ class AlternativesActivity : AppCompatActivity() {
         alternativesViewModel.navController.observe(this) {
             it?.let { nonNullNavController ->
                 when (intent.getStringExtra("fragmentType")) {
+                    "add_address" -> nonNullNavController.navigate(R.id.navigation_add_address)
+                    "favorites" -> nonNullNavController.navigate(R.id.navigation_favorites)
                     "medicine" -> nonNullNavController.navigate(R.id.navigation_medicine)
                     "search" -> nonNullNavController.navigate(R.id.navigation_search)
                     "map" -> nonNullNavController.navigate(R.id.navigation_map)

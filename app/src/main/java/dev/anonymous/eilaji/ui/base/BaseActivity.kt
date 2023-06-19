@@ -25,7 +25,8 @@ class BaseActivity : AppCompatActivity() {
     private var menuRes: Int = R.menu.home_menu
 
     // To be Removed
-    private val destinationChangedListener = NavController.OnDestinationChangedListener { _, destination, _ ->
+    private val destinationChangedListener =
+        NavController.OnDestinationChangedListener { _, destination, _ ->
             menuRes = when (destination.id) {
                 R.id.navigation_home -> {
                     hideSendPrescriptionFab()
@@ -54,13 +55,13 @@ class BaseActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityBaseBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setSupportActionBar(binding.toolbar)
+
+        setSupportActionBar(binding.includeAppBarLayoutBase.toolbarApp)
+
         //these are some of the main method with high needed functionality
         setupVMWNavController()
         setupActionBarWithNavController()
         setupBottomNavigationView()
-        //===================
-
     }
 
     // ************ ~These are some of the primary methods with the most utility.~ ************
@@ -72,17 +73,17 @@ class BaseActivity : AppCompatActivity() {
     }
 
     private fun setupActionBarWithNavController() {
-        val appBarConfiguration = AppBarConfiguration(setOf(
+        val appBarConfiguration = AppBarConfiguration(
+            setOf(
                 R.id.navigation_home,
                 R.id.navigation_dashboard,
                 R.id.navigation_notifications,
                 R.id.navigation_categories,
                 R.id.navigation_profile,
-                R.id.navigation_map,
-                R.id.navigation_search // Include the destination ID of SearchFragment
-            ))
-        baseViewModel.navController.observe(this){
-            it?.let {nonNullNavController ->
+            )
+        )
+        baseViewModel.navController.observe(this) {
+            it?.let { nonNullNavController ->
                 setupActionBarWithNavController(nonNullNavController, appBarConfiguration)
             }
         }
@@ -119,7 +120,7 @@ class BaseActivity : AppCompatActivity() {
         R.id.notification_menu -> {
             showToast("notification_menu")
             val intent = Intent(this, AlternativesActivity::class.java)
-            intent.putExtra("fragmentType", "medicine")
+            intent.putExtra("fragmentType", "favorites")
             startActivity(intent)
             viewModelStore
             true
@@ -129,7 +130,7 @@ class BaseActivity : AppCompatActivity() {
             showToast("pharmacies_map_menu")
 //            baseViewModel.navigateToMap()
             val intent = Intent(this, AlternativesActivity::class.java)
-            intent.putExtra("fragmentType", "map") // Set the fragment type as "search" or "map"
+            intent.putExtra("fragmentType", "add_address") // Set the fragment type as "search" or "map"
             startActivity(intent)
             true
         }
@@ -145,7 +146,9 @@ class BaseActivity : AppCompatActivity() {
 //        controller.addOnDestinationChangedListener(destinationChangedListener)
         baseViewModel.isNavControllerAvailable.observe(this) { isAvailable ->
             if (isAvailable) {
-                baseViewModel.navController.value?.addOnDestinationChangedListener(destinationChangedListener)
+                baseViewModel.navController.value?.addOnDestinationChangedListener(
+                    destinationChangedListener
+                )
             }
         }
     }
@@ -161,9 +164,11 @@ class BaseActivity : AppCompatActivity() {
     private fun hideSendPrescriptionFab() {
         binding.fabSendPrescription.hide()
     }
+
     private fun showSendPrescriptionFab() {
         binding.fabSendPrescription.show()
     }
+
     private fun showToast(message: String) {
         Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
     }

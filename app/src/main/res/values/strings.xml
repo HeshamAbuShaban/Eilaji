@@ -53,4 +53,8 @@
     <string name="search">Search</string>
 
     <string name="total_price">Total price : 60$</string>
+    <string name="favorite">Favorite</string>
+    <string name="add_address">Add Address</string>
+    <string name="add">Add</string>
+    <string name="additional_address_details">Additional address details</string>
 </resources>

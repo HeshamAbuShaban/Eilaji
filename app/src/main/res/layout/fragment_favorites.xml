@@ -1,25 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".ui.other.favorite.FavoritesFragment">
+
+    <!--  marginTop -12dp = shape_toolbar  corners 12dp -->
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerAlternativeMedicines"
+        android:id="@+id/recyclerFavorites"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="-12dp"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/includeAppBarLayoutAlternatives"
+        app:spanCount="2"
+        tools:itemCount="4"
+        tools:listitem="@layout/item_medicine" />
+
+    <include
+        android:id="@+id/includeAppBarLayoutAlternatives"
+        layout="@layout/app_bar_layout"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+
     <com.google.android.material.progressindicator.CircularProgressIndicator
-        android:id="@+id/progressAlternativeMedicines"
-        android:layout_width="wrap_content"
+        android:id="@+id/progressFavorites"
         style="@style/CircularProgressStyle"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_50sdp"
         android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

@@ -15,6 +15,7 @@ import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.adapters.AboutMedicationAdapter
 import dev.anonymous.eilaji.databinding.FragmentMedicineBinding
@@ -33,7 +34,8 @@ import kotlin.math.abs
 class MedicineFragment : Fragment() {
     private var _binding: FragmentMedicineBinding? = null
     private val binding get() = _binding!!
-//    private lateinit var viewModel: MedicineViewModel
+
+    private lateinit var viewModel: MedicineViewModel
 
     private var menuIcon: Drawable? = null
     private var isFavorite = false
@@ -45,8 +47,7 @@ class MedicineFragment : Fragment() {
     ): View {
         _binding = FragmentMedicineBinding.inflate(inflater, container, false)
 
-
-
+        viewModel = ViewModelProvider(this)[MedicineViewModel::class.java]
 
         setUpToolbar()
 
@@ -89,13 +90,13 @@ class MedicineFragment : Fragment() {
     }
 
     private fun setUpToolbar() {
-        (activity as AppCompatActivity).setSupportActionBar(binding.toolbar)
+        (activity as AppCompatActivity).setSupportActionBar(binding.toolbarMedicine)
         setHasOptionsMenu(true);
         val actionBar: ActionBar? = (activity as AppCompatActivity).supportActionBar
 
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true)
-            val drawable: Drawable? = binding.toolbar.navigationIcon
+            val drawable: Drawable? = binding.toolbarMedicine.navigationIcon
             if (drawable != null) {
                 binding.appBar.addOnOffsetChangedListener { appBarLayout, verticalOffset ->
                     if (abs(verticalOffset) == appBarLayout.totalScrollRange) {

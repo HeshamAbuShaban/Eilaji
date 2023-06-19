@@ -24,6 +24,13 @@
         <item name="postSplashScreenTheme">@style/Theme.Eilaji.WhiteStatusBar</item>
     </style>
 
+    <style name="CircularProgressStyle" parent="Widget.Material3.CircularProgressIndicator">
+        <item name="android:indeterminate">true</item>
+        <item name="indicatorColor">@color/black</item>
+        <item name="trackCornerRadius">@dimen/_5sdp</item>
+        <item name="trackThickness">@dimen/_2sdp</item>
+    </style>
+
     <style name="TextAppearance.expandedTitle" parent="">
         <item name="android:textStyle">bold</item>
     </style>
