@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import dev.anonymous.eilaji.R
+import dev.anonymous.eilaji.utils.FragmentsKeys
 
 
 class AlternativesActivity : AppCompatActivity() {
@@ -23,11 +24,12 @@ class AlternativesActivity : AppCompatActivity() {
         alternativesViewModel.navController.observe(this) {
             it?.let { nonNullNavController ->
                 when (intent.getStringExtra("fragmentType")) {
-                    "add_address" -> nonNullNavController.navigate(R.id.navigation_add_address)
-                    "favorites" -> nonNullNavController.navigate(R.id.navigation_favorites)
-                    "medicine" -> nonNullNavController.navigate(R.id.navigation_medicine)
-                    "search" -> nonNullNavController.navigate(R.id.navigation_search)
-                    "map" -> nonNullNavController.navigate(R.id.navigation_map)
+                    FragmentsKeys.add_address.name -> nonNullNavController.navigate(R.id.navigation_add_address)
+                    FragmentsKeys.favorites.name -> nonNullNavController.navigate(R.id.navigation_favorites)
+                    FragmentsKeys.medicine.name -> nonNullNavController.navigate(R.id.navigation_medicine)
+                    FragmentsKeys.reminder.name -> nonNullNavController.navigate(R.id.navigation_add_reminder)
+                    FragmentsKeys.search.name -> nonNullNavController.navigate(R.id.navigation_search)
+                    FragmentsKeys.map.name -> nonNullNavController.navigate(R.id.navigation_map)
                 }
             }
         }

@@ -1,17 +1,3 @@
-package dev.anonymous.eilaji.ui
-
-import android.content.Intent
-import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
-import dev.anonymous.eilaji.R
-import dev.anonymous.eilaji.databinding.ActivityMainBinding
-import dev.anonymous.eilaji.firebase.FirebaseController
-import dev.anonymous.eilaji.ui.base.BaseActivity
-import dev.anonymous.eilaji.ui.other.on_boarding.FragmentOnBoarding
 
 //This ActivityMain are responsible for counting the Splash FragmentOnBoarding
 class MainActivity : AppCompatActivity() {
@@ -22,7 +8,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         // Show SplashScreen by it androidx library
         installSplashScreen()
-        initBinding()
+        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         // Initialize Firebase Auth
@@ -37,21 +23,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun beginOnBoardingScene() {
         supportFragmentManager.beginTransaction()
-            .replace(R.id.mainActivityContainer, FragmentOnBoarding()).commit()
+            .replace(R.id.mainActivityContainer, OnBoardingFragment()).commit()
     }
 
     private fun initFireAuth() {
         auth = Firebase.auth
     }
 
-    private fun initBinding() {
-        binding = ActivityMainBinding.inflate(layoutInflater)
-    }
 
     public override fun onStart() {
         super.onStart()
         // Check if user is signed in (non-null) and update UI accordingly.
-        if (FirebaseController.getInstance().getCurrentUser() == null) {
+        if (FirebaseController.getInstance().getCurrentUser() != null) {
             //TODO HomeActivity >> Base
             startActivity(Intent(this@MainActivity, BaseActivity::class.java))
             finish()
@@ -59,3 +42,16 @@ class MainActivity : AppCompatActivity() {
     }
 
 }
+
+
+@Design>>
+
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainActivityContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.MainActivity" />
+

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/gateway_navigation"
+    app:startDestination="@id/navigation_onBoarding">
+
+    <fragment
+        android:id="@+id/navigation_onBoarding"
+        android:name="dev.anonymous.eilaji.ui.other.on_boarding.OnBoardingFragment"
+        android:label="fragment_on_boarding"
+        tools:layout="@layout/fragment_on_boarding"/>
+
+    <fragment
+        android:id="@+id/navigation_Login"
+        android:name="dev.anonymous.eilaji.ui.guard.login.FragmentLogin"
+        android:label="fragment_login"
+        tools:layout="@layout/fragment_login" />
+
+    <fragment
+        android:id="@+id/navigation_SignUp"
+        android:name="dev.anonymous.eilaji.ui.guard.signUp.FragmentSignUp"
+        android:label="fragment_sign_up"
+        tools:layout="@layout/fragment_sign_up" />
+
+
+</navigation>

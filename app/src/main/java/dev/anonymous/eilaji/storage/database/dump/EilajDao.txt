@@ -1,4 +1,4 @@
-package dev.anonymous.eilaji.storage.database.daos
+package dev.anonymous.eilaji.storage.database.daos.dump
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao

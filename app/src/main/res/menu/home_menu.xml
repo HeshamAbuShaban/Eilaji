@@ -4,13 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <item
-        android:id="@+id/pharmacies_map_menu"
+        android:id="@+id/pharmacies_map_menu_item"
         android:icon="@drawable/ic_map"
         android:title="@string/pharmacies_map"
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/notification_menu"
+        android:id="@+id/notification_menu_item"
         android:icon="@drawable/ic_notifications"
         android:title="@string/title_notifications"
         app:showAsAction="always"

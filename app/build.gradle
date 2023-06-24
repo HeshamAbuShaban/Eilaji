@@ -96,10 +96,14 @@ dependencies {
     implementation 'com.makeramen:roundedimageview:2.3.0'
 
     // room database
-    var room_version = "2.5.1"
+    var room_version = "2.5.2"
     implementation("androidx.room:room-runtime:$room_version")
     annotationProcessor("androidx.room:room-compiler:$room_version")
 
     // Magic Indicator
     implementation 'com.github.hackware1993:MagicIndicator:1.7.0'
+
+//    // Worker Service aka The Reminder
+//    implementation 'androidx.work:work-runtime-ktx:2.8.1'
+
 }

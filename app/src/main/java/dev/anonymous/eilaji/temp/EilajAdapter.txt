@@ -1,4 +1,4 @@
-package dev.anonymous.eilaji.adapters;
+package dev.anonymous.eilaji.temp;
 
 import android.view.LayoutInflater;
 import android.view.View;

@@ -5,6 +5,9 @@ import android.content.SharedPreferences;
 
 
 public class AppSharedPreferences {
+    private enum SharedPreferencesKeys {
+        invoked,onBoardingDone
+    }
     private static AppSharedPreferences Instance;
     private final SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
@@ -26,14 +29,24 @@ public class AppSharedPreferences {
         editor.apply();
     }*/
 
-    public void invokeDummyData(boolean didInvoke) {
+    public void invokeDummyData() {
         editor = sharedPreferences.edit();
-        editor.putBoolean("did", didInvoke);
+        editor.putBoolean(SharedPreferencesKeys.invoked.name(), true);
         editor.apply();
     }
 
     public boolean isInvoked() {
-        return sharedPreferences.getBoolean("did", false);
+        return sharedPreferences.getBoolean(SharedPreferencesKeys.invoked.name(), false);
+    }
+
+    public void doneWithOnBoarding() {
+        editor = sharedPreferences.edit();
+        editor.putBoolean(SharedPreferencesKeys.onBoardingDone.name(), true);
+        editor.apply();
+    }
+
+    public boolean isDoneWithOnBoarding() {
+        return sharedPreferences.getBoolean(SharedPreferencesKeys.onBoardingDone.name(), false);
     }
 
     /*`public void save(Student student) {

@@ -1,0 +1,25 @@
+        /* splashScreen.setKeepOnScreenCondition(() -> true);
+         new Handler().postDelayed(() ->
+         splashScreen.setKeepOnScreenCondition(() -> false), 5000);*/
+
+=/=/=/
+
+ private fun beginOnBoardingScene() {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.mainActivityContainer, OnBoardingFragment()).commit()
+    }
+
+
+        /*@Deprecated
+                    val loginFragment = FragmentLogin()
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.mainActivityContainer, loginFragment)
+                        .commitAllowingStateLoss()*/
+
+
+                            <!--TestThisOne-->
+                            <fragment
+                                android:id="@+id/override_navigation_home"
+                                android:name="dev.anonymous.eilaji.ui.user_interface.home.HomeFragment"
+                                android:label="fragment_home"
+                                tools:layout="@layout/fragment_home" />

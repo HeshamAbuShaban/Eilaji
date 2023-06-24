@@ -49,4 +49,10 @@
     <string name="add_address">اضافة عنوان</string>
     <string name="add">إضافة</string>
     <string name="additional_address_details">تفاصيل اضافية عن العنوان</string>
+    <string name="attach_a_picture_of_a_prescription">ارفاق صورة روشتة</string>
+    <string name="or">أو</string>
+    <string name="description_of_the_prescription">وصف الروشتة</string>
+    <string name="write_your_application_here">أكتب طلبك هنا</string>
+    <string name="title_send_prescription">ارسال الروشتة</string>
+    <string name="share">شارك</string>
 </resources>

@@ -1,4 +1,4 @@
-package dev.anonymous.eilaji.ui.other.medicin
+package dev.anonymous.eilaji.ui.other.medicine
 
 import android.app.Activity
 import android.content.Context
@@ -86,7 +86,7 @@ class MedicineFragment : Fragment() {
         super.onCreateOptionsMenu(menu, inflater)
 
         inflater.inflate(R.menu.medicine_menu, menu)
-        menuIcon = menu.findItem(R.id.share_menu).icon
+        menuIcon = menu.findItem(R.id.share_menu_item).icon
     }
 
     private fun setUpToolbar() {

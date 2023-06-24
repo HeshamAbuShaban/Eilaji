@@ -1,4 +1,4 @@
-package dev.anonymous.eilaji.storage.database;
+package dev.anonymous.eilaji.storage.database.daos.dump;
 
 import android.app.Application;
 
@@ -6,8 +6,9 @@ import androidx.lifecycle.LiveData;
 
 import java.util.List;
 
+import dev.anonymous.eilaji.storage.database.EilajiDatabase;
 import dev.anonymous.eilaji.storage.database.daos.CategoryDao;
-import dev.anonymous.eilaji.storage.database.daos.EilajDao;
+import dev.anonymous.eilaji.storage.database.daos.dump.EilajDao;
 import dev.anonymous.eilaji.storage.database.tables.Category;
 import dev.anonymous.eilaji.storage.database.tables.Eilaj;
 

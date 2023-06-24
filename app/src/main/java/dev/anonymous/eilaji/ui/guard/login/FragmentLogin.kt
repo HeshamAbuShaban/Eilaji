@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.FragmentLoginBinding
@@ -39,10 +40,14 @@ class FragmentLogin : Fragment() {
     private fun setupListeners() {
         binding?.apply {
             buSignUp.setOnClickListener {
+                //Get the NavController  inside a fragment that is hosted within an activity with a NavHostFragment
+                val navController = findNavController()
+                navController.navigate(R.id.navigation_SignUp)
+                /*@Deprecated
                 val singUpFragment = FragmentSignUp()
                 parentFragmentManager.beginTransaction()
                     .replace(R.id.mainActivityContainer, singUpFragment)
-                    .commitAllowingStateLoss()
+                    .commitAllowingStateLoss()*/
             }
 
             buLogin.setOnClickListener {

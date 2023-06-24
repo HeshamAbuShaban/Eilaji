@@ -18,4 +18,5 @@
 
     <!--  CustomPink as Temp-->
     <color name="temp_color">#99646464</color>
+    <color name="light_pink">#73BE6464</color>
 </resources>

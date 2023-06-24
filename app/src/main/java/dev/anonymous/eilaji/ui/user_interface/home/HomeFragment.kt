@@ -15,6 +15,7 @@ import dev.anonymous.eilaji.databinding.FragmentHomeBinding
 import dev.anonymous.eilaji.ui.other.base.AlternativesActivity
 import dev.anonymous.eilaji.utils.DepthPageTransformer
 import dev.anonymous.eilaji.utils.DummyData
+import dev.anonymous.eilaji.utils.FragmentsKeys
 
 class HomeFragment : Fragment() {
     private lateinit var _binding: FragmentHomeBinding
@@ -54,16 +55,16 @@ class HomeFragment : Fragment() {
                 // @package dev.anonymous.eilaji.ui.other.search
         binding.editText.setOnClickListener {
             val intent = Intent(requireContext(), AlternativesActivity::class.java)
-            intent.putExtra("fragmentType", "search") // Set the fragment type as "search" or "map"
+            intent.putExtra("fragmentType", FragmentsKeys.search.name) // Set the fragment type as "search" or "map"
             startActivity(intent)
-
-//            val navController = findNavController()
-//            navController.navigate(R.id.navigation_search)
-
-//            baseViewModel.navigateToSearchFragment()
-//            alternativesViewModel.navigateToSearchFragment()
         }
 
+        // testing for the medicine fragment
+        binding.buShowAllBestSeller.setOnClickListener {
+            val intent = Intent(requireContext(), AlternativesActivity::class.java)
+            intent.putExtra("fragmentType", FragmentsKeys.medicine.name) // Set the fragment type as "search" or "map"
+            startActivity(intent)
+        }
 
     }
     private fun setupAdsPager() {

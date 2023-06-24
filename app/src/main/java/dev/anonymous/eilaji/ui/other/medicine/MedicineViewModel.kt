@@ -1,4 +1,4 @@
-package dev.anonymous.eilaji.ui.other.medicin
+package dev.anonymous.eilaji.ui.other.medicine
 
 import androidx.lifecycle.ViewModel
 

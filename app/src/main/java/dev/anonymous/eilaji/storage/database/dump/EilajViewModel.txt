@@ -1,4 +1,4 @@
-package dev.anonymous.eilaji.storage.database;
+package dev.anonymous.eilaji.storage.database.daos.dump;
 
 import android.app.Application;
 
@@ -8,11 +8,13 @@ import androidx.lifecycle.LiveData;
 
 import java.util.List;
 
+import dev.anonymous.eilaji.storage.database.Repository;
+import dev.anonymous.eilaji.storage.database.daos.dump.Repository;
 import dev.anonymous.eilaji.storage.database.tables.Category;
 import dev.anonymous.eilaji.storage.database.tables.Eilaj;
 
 public class EilajViewModel extends AndroidViewModel {
-    private final Repository repository;
+    private final dev.anonymous.eilaji.storage.database.daos.dump.Repository repository;
 
     public EilajViewModel(@NonNull Application application) {
         super(application);

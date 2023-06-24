@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.user_interface.notifications.NotificationsFragment">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".ui.user_interface.send_prescription.SendPrescriptionFragment">
+
 
     <ScrollView
         android:layout_width="match_parent"
@@ -41,7 +42,7 @@
                         android:layout_weight="0.9"
                         android:gravity="center"
                         android:paddingHorizontal="@dimen/_18sdp"
-                        android:text="ارفاق صورة روشة"
+                        android:text="@string/attach_a_picture_of_a_prescription"
                         android:textColor="@color/black"
                         android:textSize="@dimen/_16ssp"
                         android:textStyle="bold" />
@@ -80,7 +81,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="@dimen/_15sdp"
                     android:gravity="center"
-                    android:text="أو"
+                    android:text="@string/or"
                     android:textColor="@color/black"
                     android:textSize="@dimen/_16ssp"
                     android:textStyle="bold" />
@@ -101,7 +102,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/_20sdp"
                 android:layout_marginTop="@dimen/_24sdp"
-                android:hint="نص الطلب"
+                android:hint="@string/description_of_the_prescription"
                 app:boxStrokeColor="@color/black"
                 app:boxStrokeWidth="@dimen/_1sdp"
                 app:boxStrokeWidthFocused="@dimen/_1sdp"
@@ -114,10 +115,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="top|start"
-                    android:hint="اكتب طلبك هنا"
+                    android:hint="@string/write_your_application_here"
                     android:inputType="textMultiLine"
                     android:maxLines="8"
-                    android:minLines="5" />
+                    android:minLines="5"
+                    android:textColorHint="#757575"
+                    tools:ignore="TextContrastCheck" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -132,5 +135,22 @@
         </LinearLayout>
 
     </ScrollView>
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fabSendPrescription"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="@dimen/_25sdp"
+        android:layout_marginBottom="@dimen/_75sdp"
+        android:contentDescription="@null"
+        android:text="@string/send"
+        android:textColor="@color/white"
+        app:backgroundTint="@color/primary_pink"
+        app:icon="@drawable/ic_send"
+        app:iconTint="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:ignore="TextContrastCheck" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

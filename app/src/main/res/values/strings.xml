@@ -29,6 +29,7 @@
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
+    <string name="title_send_prescription">Send Prescription</string>
 
     <string name="title_profile">Profile</string>
     <string name="title_categories">Categories</string>
@@ -57,4 +58,9 @@
     <string name="add_address">Add Address</string>
     <string name="add">Add</string>
     <string name="additional_address_details">Additional address details</string>
+    <string name="attach_a_picture_of_a_prescription">Attach a picture of a prescription</string>
+    <string name="or">Or</string>
+    <string name="description_of_the_prescription">Description of the prescription</string>
+    <string name="write_your_application_here">Write your application here</string>
+    <string name="share">Share</string>
 </resources>
