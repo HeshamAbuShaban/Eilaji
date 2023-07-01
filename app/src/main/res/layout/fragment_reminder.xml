@@ -1,69 +1,132 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="#80F546C8"
+    android:background="@drawable/bg_day"
     tools:context=".ui.other.reminder.ReminderFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:id="@+id/reminder_title"
-        android:layout_width="match_parent"
+
+    <!--Guidelines-->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guide_top"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_25sdp"
-        android:text="@string/remember_me"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="20dp" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guide_begin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="20dp" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guide_end"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_end="20dp" />
+
+    <!--***************************************************-->
+    <!--TextClock-->
+    <TextClock
+        android:id="@+id/remainingTimeTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_15sdp"
         android:textAlignment="center"
         android:textColor="@color/white"
         android:textSize="@dimen/_35sdp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="TextContrastCheck" />
+        app:layout_constraintEnd_toEndOf="@id/guide_end"
+        app:layout_constraintStart_toStartOf="@id/guide_begin"
+        app:layout_constraintTop_toTopOf="@id/guide_top"
+        tools:ignore="TextContrastCheck"
+        tools:text="@string/_00_00_00" />
 
-    <EditText
-        android:id="@+id/medicine_NameET"
-        android:layout_width="match_parent"
+    <!--Title-->
+    <TextView
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:autofillHints="name"
-        android:hint="@string/remember_me"
-        android:inputType="text"
-        android:minHeight="48dp"
-        app:layout_constraintTop_toBottomOf="@id/reminder_title"
-        tools:ignore="DuplicateSpeakableTextCheck,VisualLintTextFieldSize" />
+        android:layout_marginTop="@dimen/_5sdp"
+        android:gravity="center"
+        android:text="@string/enter_a_reminder_text_e_g_medicine_name"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_13sdp"
+        app:layout_constraintBottom_toTopOf="@id/reminderNameEditText"
+        app:layout_constraintEnd_toEndOf="@id/guide_end"
+        app:layout_constraintStart_toStartOf="@id/guide_begin"
+        app:layout_constraintTop_toBottomOf="@id/remainingTimeTextView"
+        tools:ignore="TextSizeCheck,TextContrastCheck" />
 
-    <EditText
-        android:id="@+id/dosage_ET"
-        android:layout_width="match_parent"
+    <!--TextField-->
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/reminderNameEditText"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_25sdp"
+        android:layout_marginTop="@dimen/_15sdp"
         android:autofillHints="name"
-        android:hint="@string/add"
+        android:gravity="center"
+        android:hint="@string/remind_me_something"
         android:inputType="text"
-        android:minHeight="48dp"
-        app:layout_constraintTop_toBottomOf="@id/medicine_NameET"
-        tools:ignore="VisualLintTextFieldSize,DuplicateSpeakableTextCheck" />
+        android:minHeight="@dimen/_50sdp"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textColorHint="@color/white"
+        android:textSize="@dimen/_18ssp"
+        app:layout_constraintEnd_toEndOf="@id/guide_end"
+        app:layout_constraintStart_toStartOf="@id/guide_begin"
+        app:layout_constraintTop_toBottomOf="@id/remainingTimeTextView"
+        tools:ignore="TextContrastCheck,VisualLintTextFieldSize,DuplicateSpeakableTextCheck" />
 
+    <!--TimePicker-->
     <TimePicker
         android:id="@+id/reminder_timePicker"
-        app:layout_constraintTop_toBottomOf="@id/dosage_ET"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_width="@dimen/_260sdp"
+        android:layout_height="@dimen/_300sdp"
+        android:layout_marginTop="@dimen/_5sdp"
+        app:layout_constraintEnd_toEndOf="@id/guide_end"
+        app:layout_constraintStart_toStartOf="@id/guide_begin"
+        app:layout_constraintTop_toBottomOf="@id/reminderNameEditText"
+        tools:ignore="VisualLintBounds" />
+
+    <!--Button OneTime-->
+    <Button
+        android:id="@+id/remindOneTimeButton"
+        style="@style/PinkButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_15sdp"
+        android:layout_marginEnd="@dimen/_15sdp"
+        android:elevation="@dimen/_15sdp"
+        android:minHeight="@dimen/_20sdp"
+        android:text="@string/remind_me_one_time"
+        android:textColor="@color/otp_item_color"
+        app:layout_constraintBottom_toTopOf="@id/remindRepeatedlyButton"
+        app:layout_constraintEnd_toEndOf="@id/guide_end"
+        app:layout_constraintStart_toStartOf="@id/guide_begin"
+        app:layout_constraintTop_toBottomOf="@id/reminder_timePicker"
+        tools:ignore="VisualLintBounds,TextContrastCheck,VisualLintButtonSize,VisualLintOverlap" />
 
     <Button
-        android:id="@+id/reminder_submitButton"
+        android:id="@+id/remindRepeatedlyButton"
+        style="@style/PinkButton"
         android:layout_width="0dp"
-        android:layout_height="50dp"
-        android:text="@string/add"
-        android:textSize="@dimen/_15sdp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/reminder_timePicker"
-        tools:ignore="VisualLintButtonSize,TextSizeCheck,VisualLintLocaleText" />
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_15sdp"
+        android:layout_marginTop="@dimen/_5sdp"
+        android:layout_marginEnd="@dimen/_15sdp"
+        android:elevation="@dimen/_15sdp"
+        android:minHeight="@dimen/_20sdp"
+        android:text="@string/remind_me_repeatedly"
+        android:textColor="@color/otp_item_color"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/guide_end"
+        app:layout_constraintStart_toStartOf="@id/guide_begin"
+        app:layout_constraintTop_toBottomOf="@id/remindOneTimeButton"
+        tools:ignore="VisualLintBounds,TextContrastCheck,VisualLintButtonSize" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

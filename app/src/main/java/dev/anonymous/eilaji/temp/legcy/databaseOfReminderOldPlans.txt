@@ -1,0 +1,2 @@
+ // TODO: Build an Object of the model and save it to the database and send it data to the worker
+                //  { pill_id, pill_name ,pill dosage, repeated_time , every-which-time }

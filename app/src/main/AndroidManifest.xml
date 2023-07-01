@@ -2,9 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:name=".utils.AppController"
@@ -17,6 +24,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Eilaji.WhiteStatusBar"
         tools:targetApi="31">
+        <!-- This One is now responsible for the other additional screens -->
         <activity
             android:name=".ui.other.base.AlternativesActivity"
             android:exported="false"
@@ -27,6 +35,7 @@
             android:exported="false"
             android:label="@string/title_activity_base"
             android:theme="@style/Theme.Eilaji.PinkStatusBar" />
+        <!-- This One is now responsible for the gateway screens -->
         <activity
             android:name=".ui.main.MainActivity"
             android:exported="true"

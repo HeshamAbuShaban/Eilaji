@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light_pink"
-    tools:context=".ui.user_interface.categories.CategoriesFragment">
+    tools:context=".ui.base.user_interface.categories.CategoriesFragment">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerPharmacyDepartments"

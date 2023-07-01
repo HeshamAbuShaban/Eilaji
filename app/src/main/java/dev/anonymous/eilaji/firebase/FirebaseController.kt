@@ -8,6 +8,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
+import kotlin.Exception
+
 
 class FirebaseController private constructor() {
     private var auth: FirebaseAuth = FirebaseAuth.getInstance()
@@ -28,7 +30,7 @@ class FirebaseController private constructor() {
         password: String,
         activity: Activity,
         onTaskSuccessful: () -> Unit,
-        showSnackBar: (task: Task<AuthResult>) -> Unit
+        showSnackBar: (task: Task<AuthResult>) -> Unit,
     ) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(activity) { task ->
@@ -45,7 +47,7 @@ class FirebaseController private constructor() {
         email: String,
         password: String,
         onTaskSuccessful: () -> Unit,
-        onTaskFailed: (String) -> Unit
+        onTaskFailed: (String) -> Unit,
     ) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
@@ -73,4 +75,25 @@ class FirebaseController private constructor() {
         return auth.currentUser
     }
 
+    fun forgotPassword(email:String, onTaskSuccessful: () -> Unit, onTaskFailed: (Exception) -> Unit) {
+        auth.sendPasswordResetEmail(email)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    onTaskSuccessful()
+                } else {
+                    val exception: Exception? = task.exception
+                    if (exception != null) {
+                        val error = exception.message
+                        Log.e(TAG, "forgotPassword:error:$error , ex :", exception)
+                    }
+                }
+            }
+            .addOnFailureListener {
+                onTaskFailed(it)
+            }
+    }
+
+    /*fun changePassword() {
+        // auth.
+    }*/
 }

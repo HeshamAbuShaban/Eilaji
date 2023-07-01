@@ -29,6 +29,9 @@
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
+
+    <string name="title_reminder_notification">Reminder Take Your Pill</string>
+
     <string name="title_send_prescription">Send Prescription</string>
 
     <string name="title_profile">Profile</string>
@@ -63,4 +66,17 @@
     <string name="description_of_the_prescription">Description of the prescription</string>
     <string name="write_your_application_here">Write your application here</string>
     <string name="share">Share</string>
+    <string name="_00_00_00" translatable="false">00:00:00</string>
+    <string name="enter_a_reminder_text_e_g_medicine_name">Enter a (reminder text,e.g. medicine name)</string>
+    <string name="remind_me_repeatedly">Remind me Repeatedly</string>
+    <string name="remind_me_one_time">Remind me One Time</string>
+    <string name="remind_me_something">Remind me of Something..</string>
+    <string name="time_unit">Time Unit e.g.(hours, minutes ,etc..)</string>
+    <string name="repeat_interval">Repeat Interval e.g.(1,2,4..)</string>
+    <string name="enter_a_valid_repeat_interval_amp_the_time_unit"><![CDATA[Enter a valid Repeat Interval & The Time Unit :]]></string>
+    <string name="choose_the_image_s_location">Choose the image location</string>
+    <string name="gallery">Gallery</string>
+    <string name="camera">Camera</string>
+    <string name="save">Save</string>
+
 </resources>

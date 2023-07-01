@@ -29,11 +29,8 @@ class MainActivity : AppCompatActivity() {
         // check if the onBoarding has shown or not
         shouldShowOnBoarding()
 
-        //checks if the user came from the active position to the gateway again
+        // checks if the user came from the active position to the gateway again
         isUserFromLogout()// auto checks the intent values
-
-//        @Deprecated
-//        beginOnBoardingScene()
     }
 
     // Initializer Methods
@@ -45,6 +42,19 @@ class MainActivity : AppCompatActivity() {
         //this gives a value for the view model instance type NavController
         mainViewModel.setNavController(navController)
     }
+
+    // Temporary Notice that  the @ checkUserStatus will always shadow this case of the onStart
+    /*private fun isChangePassword() {
+        mainViewModel.navController.observe(this) {
+            it?.let { nonNullNavController ->
+                when (intent.getStringExtra("fragmentType")) {
+                    FragmentsKeys.changePassword.name -> {
+                        nonNullNavController.navigate(R.id.navigation_forgotPassword)
+                    }
+                }
+            }
+        }
+    }*/
 
     private fun isUserFromLogout() {
         mainViewModel.navController.observe(this) {
@@ -98,7 +108,8 @@ class MainActivity : AppCompatActivity() {
              *
              * */
             val intent = Intent(this@MainActivity, BaseActivity::class.java)
-            startActivity(intent);finish()
+            startActivity(intent)
+            finish()
         }
     }
 

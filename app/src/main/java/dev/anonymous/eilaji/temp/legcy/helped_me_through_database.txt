@@ -1,0 +1,16 @@
+/* private fun insert(reminder: Reminder){
+        ViewModelProvider(this)[ReminderDatabaseViewModel::class.java]
+            .insertReminder(reminder)
+    }*/
+    /*private fun databaseWork(reminder: Reminder) {
+        val db: ReminderDatabase = ReminderDatabase.getDatabase(activity?.applicationContext)
+        val dao: ReminderDao = db.reminderDao()
+        ReminderDatabase.databaseWriteExecutor.execute {
+            dao.insertReminder(reminder)
+        }
+    }*/
+
+
+    The Problem was that in kotlin
+    there is different way to use
+    the room dependency

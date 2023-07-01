@@ -29,6 +29,19 @@ public class AppSharedPreferences {
         editor.apply();
     }*/
 
+
+    // FOR DATABASE NOTIFICATION ID CREATION
+    public int getLastNotificationId() {
+        return sharedPreferences.getInt("LAST_NOTIFICATION_ID", 0);
+    }
+    public void putNewNotificationId(int id) {
+        editor = sharedPreferences.edit();
+        editor.putInt("LAST_NOTIFICATION_ID", id);
+        editor.apply();
+    }
+
+    //------------------------------------
+
     public void invokeDummyData() {
         editor = sharedPreferences.edit();
         editor.putBoolean(SharedPreferencesKeys.invoked.name(), true);

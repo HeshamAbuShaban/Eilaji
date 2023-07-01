@@ -13,15 +13,21 @@
 
     <fragment
         android:id="@+id/navigation_Login"
-        android:name="dev.anonymous.eilaji.ui.guard.login.FragmentLogin"
+        android:name="dev.anonymous.eilaji.ui.main.guard.login.LoginFragment"
         android:label="fragment_login"
         tools:layout="@layout/fragment_login" />
 
     <fragment
         android:id="@+id/navigation_SignUp"
-        android:name="dev.anonymous.eilaji.ui.guard.signUp.FragmentSignUp"
+        android:name="dev.anonymous.eilaji.ui.main.guard.signUp.SignUpFragment"
         android:label="fragment_sign_up"
         tools:layout="@layout/fragment_sign_up" />
+
+    <fragment
+        android:id="@+id/navigation_forgotPassword"
+        android:name="dev.anonymous.eilaji.ui.main.guard.password.ForgotPasswordFragment"
+        android:label="fragment_forgot_password"
+        tools:layout="@layout/fragment_forgot_password" />
 
 
 </navigation>
