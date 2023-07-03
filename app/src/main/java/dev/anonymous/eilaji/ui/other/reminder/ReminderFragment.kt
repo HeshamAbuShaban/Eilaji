@@ -5,12 +5,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
+import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.FragmentReminderBinding
 import dev.anonymous.eilaji.reminder_system.database.entity.Reminder
 import dev.anonymous.eilaji.reminder_system.database.viewModel.ReminderDatabaseViewModel
 import dev.anonymous.eilaji.reminder_system.worker.ReminderScheduler
+import dev.anonymous.eilaji.storage.enums.ReminderType
 import dev.anonymous.eilaji.ui.other.dialogs.PeriodicReminderDialogFragment
 import dev.anonymous.eilaji.ui.other.dialogs.PeriodicReminderDialogFragment.PeriodicReminderListener
 import java.util.concurrent.TimeUnit
@@ -50,6 +54,16 @@ class ReminderFragment : Fragment() ,PeriodicReminderListener  {
         reminderViewModel.setDatabaseViewModel(reminderDatabaseViewModel)
     }
 
+    // TODO(Under Testing)
+    override fun onResume() {
+        super.onResume()
+        requireActivity().onBackPressedDispatcher.addCallback(this) {
+            val nav = findNavController()
+
+            nav.popBackStack()
+            nav.navigate(R.id.navigation_reminders_list)
+        }
+    }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupListeners()
@@ -72,7 +86,7 @@ class ReminderFragment : Fragment() ,PeriodicReminderListener  {
                 // guard the null
                 if (reminderText.isEmpty()) reminderText = "set_to_null"
                 val generatedId = "eilaji_reminder_${reminderViewModel.randomUUIDString()}"
-                val reminder = Reminder(generatedId,reminderText,delayMinutes.toString())
+                val reminder = Reminder(generatedId,reminderText,delayMinutes.toString(),ReminderType.OneTime.reminderType)
 
                 // Set The Scheduler for the user reminder fromViewModel
                 reminderViewModel.reminderScheduler.value?.setReminderObject(reminder = reminder)
@@ -117,16 +131,14 @@ class ReminderFragment : Fragment() ,PeriodicReminderListener  {
         // guard the null
         if (reminderText.isEmpty()) reminderText = "set_to_null"
         val generatedId = "eilaji_reminder_${reminderViewModel.randomUUIDString()}"
-        val reminder = Reminder(generatedId,reminderText,delayMinutes.toString())
+        val reminder = Reminder(generatedId,reminderText,delayMinutes.toString(),ReminderType.Periodic.reminderType)
 
         // Set The Scheduler for the user reminder fromViewModel
         reminderViewModel.reminderScheduler.value?.setReminderObject(reminder = reminder)
 
-        val isNull:Boolean = reminderViewModel.reminderScheduler.value?.isReminderObjNull() == true
-        if (!isNull){
-            // Sets it for a repeated time
-            reminderViewModel.reminderScheduler.value?.scheduleReminderPeriodicWorkRequest(repeatInterval!!,timeUnit!!)
-        }
+        // Sets it for a repeated time
+        reminderViewModel.reminderScheduler.value?.scheduleReminderPeriodicWorkRequest(repeatInterval!!,timeUnit!!) // don't worry for the force-null cuz i got some init values in the main obj
+
         reminderViewModel.storeReminderIntoDatabase(reminder)
         // Show Remaining Time in TextClock
         reminderViewModel.showRemainingTime(binding)

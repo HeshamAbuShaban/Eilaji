@@ -19,4 +19,13 @@
     <!--  CustomPink as Temp-->
     <color name="temp_color">#99646464</color>
     <color name="light_pink">#73BE6464</color>
+    <color name="dark_red">#d62828</color>
+    <color name="dark_blue">#003049</color>
+    <!--  Material as Temp-->
+    <color name="shrine_pink_100">#FEDBD0</color>
+    <color name="shrine_pink_900">#442C2E</color>
+    <color name="c1_reminder_item">#ffc4d6</color>
+    <color name="c1_reminder_item_">#fca3a7</color>
+    <color name="c2_reminder_item">#ff87ab</color>
+
 </resources>

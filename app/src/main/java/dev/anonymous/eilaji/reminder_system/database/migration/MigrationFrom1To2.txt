@@ -1,0 +1,19 @@
+/*`package dev.anonymous.eilaji.reminder_system.database.migration;
+
+import androidx.annotation.NonNull;
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
+
+public class MigrationFrom1To2 extends Migration {
+
+    public MigrationFrom1To2() {
+        super(1, 2);
+    }
+
+    @Override
+    public void migrate(@NonNull SupportSQLiteDatabase database) {
+        // Perform the necessary database migration here
+        database.execSQL("ALTER TABLE reminders ADD COLUMN CreationTimestamp INTEGER DEFAULT 0");
+    }
+}*/
+

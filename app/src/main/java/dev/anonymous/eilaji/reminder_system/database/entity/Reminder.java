@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+
 import dev.anonymous.eilaji.storage.AppSharedPreferences;
 import dev.anonymous.eilaji.utils.AppController;
 
@@ -16,15 +17,23 @@ public class Reminder {
     @ColumnInfo(name = "ReminderText")
     private String text;
     @ColumnInfo(name = "RemainingTime")
-    private final String time;
+    private String delayedTime;
     @ColumnInfo(name = "NotificationId")
-    private int notificationId = generateNotificationId();
+    private int notificationId;
+    @ColumnInfo(name = "CreationTimestamp")
+    private long creationTimestamp; // Store the creation timestamp here
+
+    @ColumnInfo(name = "ReminderType")
+    private int reminderType;
 
 
-    public Reminder(@NonNull String id, String text, String time) {
+    public Reminder(@NonNull String id, String text, String delayedTime, int reminderType) {
         this.id = id;
         this.text = text;
-        this.time = time;
+        this.delayedTime = delayedTime;
+        this.reminderType = reminderType;
+        this.notificationId = generateNotificationId();
+        this.creationTimestamp = System.currentTimeMillis(); // Set the current timestamp during object creation
     }
 
     @NonNull
@@ -44,14 +53,30 @@ public class Reminder {
         this.text = text;
     }
 
-    public String getTime() {
-        return time;
+
+    public String getDelayedTime() {
+        return delayedTime;
     }
 
-//`    public void setTime(String time) {
-//        this.time = time;
-//    }
+    public void setDelayedTime(String delayedTime) {
+        this.delayedTime = delayedTime;
+    }
 
+    public long getCreationTimestamp() {
+        return creationTimestamp;
+    }
+
+    public void setCreationTimestamp(long creationTimestamp) {
+        this.creationTimestamp = creationTimestamp;
+    }
+
+    public int getReminderType() {
+        return reminderType;
+    }
+
+    public void setReminderType(int reminderType) {
+        this.reminderType = reminderType;
+    }
 
     // Additional Column for the notification Id
     public int getNotificationId() {

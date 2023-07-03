@@ -21,7 +21,7 @@ public class ReminderDatabaseViewModel extends AndroidViewModel {
         repository = new ReminderRepository(application);
     }
 
-    LiveData<List<Reminder>> getAllReminders(){
+    public LiveData<List<Reminder>> getAllReminders(){
         return repository.getAllReminders();
     }
 

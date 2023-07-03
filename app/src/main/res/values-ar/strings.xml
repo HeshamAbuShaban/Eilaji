@@ -67,4 +67,10 @@
     <string name="gallery">" المعرض"</string>
     <string name="camera">"الكاميرا "</string>
     <string name="save">"حفظ "</string>
+    <string name="delete"> حذف </string>
+    <string name="days"> أيام </string>
+    <string name="minutes"> دقائق </string>
+    <string name="hours"> الساعات </string>
+    <string name="delay_time">وقت التأخير: s%</string>
+    <string name="empty_reminders">فارغة  تذكيرات!</string>
 </resources>

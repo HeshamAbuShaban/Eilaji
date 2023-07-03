@@ -21,7 +21,6 @@ class ReminderScheduler(private val context: Context) {
         this.reminder = reminder
     }
 
-    fun isReminderObjNull():Boolean = reminder == null
 
     // TODO: Send the Medicine Reminder Id from the database here to set it as the Notification id.
 
@@ -39,7 +38,7 @@ class ReminderScheduler(private val context: Context) {
 
         val reminderRequest = OneTimeWorkRequestBuilder<ReminderWorker>()
             .addTag(reminder.id) //.. this is important in order to cancel the reminder
-            .setInitialDelay(reminder.time.toLong(), timeUnit)
+            .setInitialDelay(reminder.delayedTime.toLong(), timeUnit)
             .setConstraints(constraints)
             .setInputData(inputData)
             .build()
@@ -62,6 +61,7 @@ class ReminderScheduler(private val context: Context) {
 
         val reminderRequest = PeriodicWorkRequestBuilder<ReminderWorker>(repeatInterval, timeUnit)
             .addTag(reminder.id) //.. this is important in order to cancel the reminder
+            .setInitialDelay(reminder.delayedTime.toLong(), timeUnit)// at first i forgot to put this line that make a delay
             .setConstraints(constraints)
             .setInputData(inputData)
             .build()

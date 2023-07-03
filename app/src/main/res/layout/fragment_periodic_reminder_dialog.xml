@@ -25,23 +25,49 @@
         android:hint="@string/repeat_interval"
         android:importantForAutofill="no"
         android:inputType="number"
-        android:maxEms="3"
+        android:maxLength="3"
         android:minHeight="@dimen/_50sdp"
+        android:textAlignment="center"
         android:textColorHint="#757575"
         tools:ignore="VisualLintTextFieldSize" />
+
     <!--Second Field-->
-    <EditText
-        android:id="@+id/timeUnitET"
+    <RadioGroup
+        android:id="@+id/timeUnitRadioGroup"
+        style="@style/Widget.App.RadioButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/time_unit"
-        android:importantForAutofill="no"
-        android:inputType="text"
-        android:maxEms="3"
-        android:minHeight="@dimen/_50sdp"
-        android:textColorHint="#757575"
-        tools:ignore="TouchTargetSizeCheck,VisualLintTextFieldSize" />
+        android:orientation="horizontal"
+        android:padding="@dimen/_5sdp">
 
+        <RadioButton
+            android:id="@+id/minutesRadioButton"
+            style="@style/Widget.App.RadioButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/minutes"
+            tools:ignore="VisualLintButtonSize" />
+
+        <RadioButton
+            android:id="@+id/hoursRadioButton"
+            style="@style/Widget.App.RadioButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/hours"
+            tools:ignore="VisualLintButtonSize" />
+
+        <RadioButton
+            android:id="@+id/daysRadioButton"
+            style="@style/Widget.App.RadioButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/days"
+            tools:ignore="VisualLintButtonSize" />
+
+    </RadioGroup>
     <!--Button-->
     <Button
         android:id="@+id/saveUserSettingsBtn"
@@ -50,4 +76,5 @@
         android:layout_height="wrap_content"
         android:text="@string/save"
         tools:ignore="TextContrastCheck,VisualLintButtonSize" />
+
 </LinearLayout>

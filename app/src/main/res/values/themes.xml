@@ -1,7 +1,17 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
     <style name="Base.Theme.Eilaji" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowBackground">@color/white</item>
+        <item name="radioButtonStyle">@style/Widget.App.RadioButton</item>
+    </style>
+
+    <style name="Widget.App.RadioButton" parent="Widget.Material3.CompoundButton.RadioButton">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.App.RadioButton</item>
+    </style>
+
+    <style name="ThemeOverlay.App.RadioButton" parent="">
+        <item name="colorOnSurface">@color/shrine_pink_900</item>
+        <item name="colorPrimary">@color/shrine_pink_100</item>
     </style>
 
     <style name="Theme.Eilaji.TranslucentStatus" parent="Base.Theme.Eilaji">
@@ -9,12 +19,12 @@
     </style>
 
     <style name="Theme.Eilaji.PinkStatusBar" parent="Base.Theme.Eilaji">
-        <item name="android:windowLightStatusBar" tools:targetApi="23">false</item>
+        <item name="android:windowLightStatusBar">false</item><!--tools:targetApi="23"-->
         <item name="android:statusBarColor">@color/primary_pink</item>
     </style>
 
     <style name="Theme.Eilaji.WhiteStatusBar" parent="Base.Theme.Eilaji">
-        <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
+        <item name="android:windowLightStatusBar">true</item><!--tools:targetApi="23"-->
         <item name="android:statusBarColor">@color/white</item>
     </style>
 

@@ -5,7 +5,6 @@ import android.widget.TimePicker
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.work.WorkInfo
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.FragmentReminderBinding
 import dev.anonymous.eilaji.reminder_system.database.entity.Reminder
@@ -129,7 +128,8 @@ class ReminderViewModel:ViewModel() {
         databaseViewModel.value?.insertReminder(reminder)
     }
 
-    // when you want to cancel a reminder by de activate it from the UI Buttons
+    // These Are Moved to the RemindersListFragment.kt
+   /* // when you want to cancel a reminder by de activate it from the UI Buttons
     fun cancelReminderById(reminder: Reminder){
         reminderScheduler.value?.cancelReminderById(reminder)
     }
@@ -137,5 +137,5 @@ class ReminderViewModel:ViewModel() {
     // use it if you want to check the workInfo before deletion
     fun fetchWorkInfoByTag(reminder: Reminder) : LiveData<List<WorkInfo>> {
         return reminderScheduler.value?.fetchWorkInfoByTag(reminder)!!
-    }
+    }*/
 }

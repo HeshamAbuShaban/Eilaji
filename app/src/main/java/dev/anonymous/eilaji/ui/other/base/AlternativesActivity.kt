@@ -27,7 +27,7 @@ class AlternativesActivity : AppCompatActivity() {
                     FragmentsKeys.add_address.name -> nonNullNavController.navigate(R.id.navigation_add_address)
                     FragmentsKeys.favorites.name -> nonNullNavController.navigate(R.id.navigation_favorites)
                     FragmentsKeys.medicine.name -> nonNullNavController.navigate(R.id.navigation_medicine)
-                    FragmentsKeys.reminder.name -> nonNullNavController.navigate(R.id.navigation_add_reminder)
+                    FragmentsKeys.reminder.name -> nonNullNavController.navigate(R.id.navigation_reminders_list)
                     FragmentsKeys.search.name -> nonNullNavController.navigate(R.id.navigation_search)
                     FragmentsKeys.map.name -> nonNullNavController.navigate(R.id.navigation_map)
                 }

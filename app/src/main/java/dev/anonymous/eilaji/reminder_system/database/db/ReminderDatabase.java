@@ -34,7 +34,7 @@ public abstract class ReminderDatabase extends RoomDatabase {
 
     private static ReminderDatabase buildDatabase(Context context) {
         return Room.databaseBuilder(context, ReminderDatabase.class, "reminder.db")
-                //.fallbackToDestructiveMigration()
+                /*.addMigrations(new MigrationFrom1To2())*/
                 .build();
     }
 }
