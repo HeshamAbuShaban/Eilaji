@@ -85,4 +85,11 @@
     <string name="delay_time">Delay time: %s</string>
     <string name="empty_reminders">Empty \n Reminders!\n</string>
 
+    <string name="reminder_notification">Take Your Pills That You Added!</string>
+    <string name="pick_a_favorite_sound">Pick a favorite sound</string>
+    <string name="sound_name_long">Long</string>
+    <string name="sound_name_cool">Cool</string>
+    <string name="sound_name_talking">Talking</string>
+    <string name="sound_name_bell">Bell</string>
+
 </resources>

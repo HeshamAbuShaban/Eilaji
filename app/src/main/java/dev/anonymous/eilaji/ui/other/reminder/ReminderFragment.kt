@@ -15,11 +15,13 @@ import dev.anonymous.eilaji.reminder_system.database.entity.Reminder
 import dev.anonymous.eilaji.reminder_system.database.viewModel.ReminderDatabaseViewModel
 import dev.anonymous.eilaji.reminder_system.worker.ReminderScheduler
 import dev.anonymous.eilaji.storage.enums.ReminderType
+import dev.anonymous.eilaji.ui.other.dialogs.ChangeSoundDialogFragment
+import dev.anonymous.eilaji.ui.other.dialogs.ChangeSoundDialogFragment.ChangeSoundListener
 import dev.anonymous.eilaji.ui.other.dialogs.PeriodicReminderDialogFragment
 import dev.anonymous.eilaji.ui.other.dialogs.PeriodicReminderDialogFragment.PeriodicReminderListener
 import java.util.concurrent.TimeUnit
 
-class ReminderFragment : Fragment() ,PeriodicReminderListener  {
+class ReminderFragment : Fragment() ,PeriodicReminderListener,ChangeSoundListener  {
 
     private lateinit var reminderViewModel: ReminderViewModel
     private lateinit var binding: FragmentReminderBinding
@@ -116,6 +118,11 @@ class ReminderFragment : Fragment() ,PeriodicReminderListener  {
 
             }
 
+            fabChangeSound.setOnClickListener {
+
+                ChangeSoundDialogFragment().show(childFragmentManager,"ChangeReminderSound")
+
+            }
         }
     }
 
@@ -148,6 +155,10 @@ class ReminderFragment : Fragment() ,PeriodicReminderListener  {
 
         // helps to clear the inputs
         reminderViewModel.clearInputs(binding)
+    }
+
+    override fun collectUserReminderSoundListenerInputs(soundId: Int) {
+        reminderViewModel.reminderScheduler.value?.setReminderSound(soundId)
     }
 
 }

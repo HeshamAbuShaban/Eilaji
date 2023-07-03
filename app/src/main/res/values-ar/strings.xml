@@ -73,4 +73,11 @@
     <string name="hours"> الساعات </string>
     <string name="delay_time">وقت التأخير: s%</string>
     <string name="empty_reminders">فارغة  تذكيرات!</string>
+    <string name="reminder_notification">خذ حبوبك التي أضفتها!</string>
+
+    <string name="pick_a_favorite_sound">اختر الصوت المفضل</string>
+    <string name="sound_name_long">طويل</string>
+    <string name="sound_name_cool">عصري</string>
+    <string name="sound_name_talking">متحدث</string>
+    <string name="sound_name_bell">جرس</string>
 </resources>

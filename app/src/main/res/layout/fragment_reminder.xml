@@ -31,6 +31,17 @@
         app:layout_constraintGuide_end="20dp" />
 
     <!--***************************************************-->
+    <!--fabChangeSound-->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fabChangeSound"
+        style="@style/PinkButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:importantForAccessibility="no"
+        app:icon="@drawable/ic_library_music"
+        app:layout_constraintStart_toStartOf="@id/guide_begin"
+        app:layout_constraintTop_toTopOf="@id/guide_top"
+        tools:ignore="ImageContrastCheck,VisualLintLocaleText,VisualLintOverlap" />
     <!--TextClock-->
     <TextClock
         android:id="@+id/remainingTimeTextView"

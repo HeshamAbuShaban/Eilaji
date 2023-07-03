@@ -22,7 +22,6 @@ import android.media.RingtoneManager.getDefaultUri
 import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.O
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.NotificationCompat
@@ -32,6 +31,7 @@ import androidx.work.Worker
 import androidx.work.WorkerParameters
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.ui.main.MainActivity
+import dev.anonymous.eilaji.utils.SoundNumbers
 
 class ReminderWorker(private val context: Context, workerParams: WorkerParameters) :
     Worker(context, workerParams) {
@@ -42,56 +42,38 @@ class ReminderWorker(private val context: Context, workerParams: WorkerParameter
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun doWork(): Result {
         val notificationId = inputData.getString(ReminderScheduler.KEY_REMINDER_NotificationId)
-//        val reminderId = inputData.getString(ReminderScheduler.KEY_REMINDER_ID)
         val reminderText = inputData.getString(ReminderScheduler.KEY_REMINDER_TEXT)
 
-        /**
-      * TODO: val databaseID_forNotificationToKillItWhenDelete
-      * = inputData.getInt(ReminderScheduler.KEY_REMINDER_TEXT)
-      */
+        val reminderSound = inputData.getInt(ReminderScheduler.KEY_REMINDER_SOUND,SoundNumbers.SoundLong.soundNumber)
 
-        if (!reminderText.isNullOrEmpty() || !notificationId.isNullOrEmpty()) {
-            // Show Notification with the user text
-            sendNotification(reminderText!!,notificationId!!)
 
-            Log.d("ReminderWorker", "doWork() called In If Statement @Before")
-
-            // Create a MediaPlayer object
-            _mediaPlayer = MediaPlayer.create(context, R.raw.long_reminder)
-            // set looping
-            //mediaPlayer.isLooping = true
-            // Play the sound
-            mediaPlayer.start()
-
-            // MediaPlayer.create(context, R.raw.notify).start()
-            Log.d("ReminderWorker", "doWork() called In If Statement @After $reminderText")
-        } else {
-            // if the User didn't
-            sendNotification("Take Your Pills That You Added!","1")
-            /**
-             * // Create a MediaPlayer object
-             * _mediaPlayer = MediaPlayer.create(context, R.raw.talking_reminder)
-             * // set looping
-             * mediaPlayer.isLooping = true
-             * // OnCompletion Listener ..
-             *  /*mediaPlayer.setOnCompletionListener {}*/
-             * // Play the sound
-             * mediaPlayer.start()
-             *
-             */
-
-             // Create a MediaPlayer object
-             _mediaPlayer = MediaPlayer.create(context, R.raw.talking_reminder)
-             // set looping
-             //mediaPlayer.isLooping = true
-             // OnCompletion Listener ..
-              /*mediaPlayer.setOnCompletionListener {}*/
-             // Play the sound
-             mediaPlayer.start()
-
+        // Define a map to map radio button IDs to time unit strings
+        val reminderSoundMap: Map<Int, Int> = object : HashMap<Int, Int>() {
+            init {
+                put(SoundNumbers.SoundLong.soundNumber, R.raw.long_reminder)
+                put(SoundNumbers.SoundBell.soundNumber, R.raw.bell_reminder)
+                put(SoundNumbers.SoundTalking.soundNumber, R.raw.talking_reminder)
+                put(SoundNumbers.SoundNice.soundNumber, R.raw.cool_reminder)
+                put(SoundNumbers.SoundNotify.soundNumber, R.raw.notify_reminder)
+            }
         }
 
-        /*Log.d("ReminderWorker", "doWork() called")*/
+        val actualSound = reminderSoundMap[reminderSound]
+
+        if (actualSound != null) {
+            // Play the sound using MediaPlayer or any other audio player library
+            _mediaPlayer = MediaPlayer.create(context, actualSound)
+            mediaPlayer.start()
+        }
+
+        if (!reminderText.isNullOrEmpty() && !notificationId.isNullOrEmpty()) {
+            // Show Notification with the user text
+            sendNotification(reminderText, notificationId)
+
+        } else {
+            // Show default notification
+            sendDefaultNotification()
+        }
 
         return Result.success()
     }
@@ -102,6 +84,12 @@ class ReminderWorker(private val context: Context, workerParams: WorkerParameter
         mediaPlayer.stop()
         mediaPlayer.release()
         _mediaPlayer = null
+    }
+
+    private fun sendDefaultNotification() {
+        val defaultReminderText = context.getString(R.string.reminder_notification)
+        val defaultNotificationId = "1"
+        sendNotification(defaultReminderText, defaultNotificationId)
     }
 
     // A Template of Notification to be Built and shown
