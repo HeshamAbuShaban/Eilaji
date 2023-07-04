@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/c1_reminder_item" />
+            <corners android:radius="@dimen/_24sdp" />
+            <stroke android:color="@color/c2_reminder_item" android:width="@dimen/_2sdp"/>
+        </shape>
+    </item>
+</selector>

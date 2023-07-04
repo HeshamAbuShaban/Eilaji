@@ -17,7 +17,8 @@ android {
 
     defaultConfig {
         applicationId "dev.anonymous.eilaji"
-        minSdk 21
+        // this was 21 and now in order to use the calender i upgraded it
+        minSdk 23
         targetSdk 33
         versionCode 1
         versionName "1.0"
@@ -47,6 +48,7 @@ android {
 
 
 dependencies {
+    // The Main SDK Library's To build any app
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
@@ -98,11 +100,13 @@ dependencies {
     // room database
     var room_version = "2.5.2"
     implementation("androidx.room:room-runtime:$room_version")
-    annotationProcessor("androidx.room:room-compiler:$room_version")
+    kapt ("androidx.room:room-compiler:$room_version")
 
     // Magic Indicator
     implementation 'com.github.hackware1993:MagicIndicator:1.7.0'
 
-//    // Worker Service aka The Reminder
-//    implementation 'androidx.work:work-runtime-ktx:2.8.1'
+    // Worker Service aka The Reminder
+    def work_version = "2.8.1"
+    implementation "androidx.work:work-runtime-ktx:$work_version"
+
 }

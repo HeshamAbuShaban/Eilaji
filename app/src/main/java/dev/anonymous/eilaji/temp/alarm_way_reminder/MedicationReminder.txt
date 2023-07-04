@@ -1,0 +1,8 @@
+package dev.anonymous.eilaji.temp.alarm_step_reminder
+
+import java.util.Date
+
+data class `MedicationReminder.txt`(val id: Long,
+                                    val medicationName: String,
+                                    val dosage: String,
+                                    val reminderDate: Date)

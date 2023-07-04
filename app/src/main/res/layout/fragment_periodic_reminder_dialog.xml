@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/shape_change_reminder_sound_dialog"
+    android:orientation="vertical"
+    android:padding="@dimen/_15sdp"
+    android:textAlignment="center"
+    tools:context=".ui.other.dialogs.PeriodicReminderDialogFragment">
+
+    <!--Title -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="@dimen/_2sdp"
+        android:text="@string/enter_a_valid_repeat_interval_amp_the_time_unit"
+        android:textAlignment="center"
+        android:textColor="@color/c_text_over_pink"
+        android:textSize="@dimen/_17ssp"
+        android:textStyle="bold" />
+
+    <!--First Field-->
+    <EditText
+        android:id="@+id/repeatIntervalET"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/repeat_interval"
+        android:importantForAutofill="no"
+        android:inputType="number"
+        android:maxLength="3"
+        android:minHeight="@dimen/_50sdp"
+        android:textAlignment="center"
+        android:textColorHint="@color/c_text_over_pink"
+        tools:ignore="VisualLintTextFieldSize" />
+
+    <!--Second Field-->
+    <RadioGroup
+        android:id="@+id/timeUnitRadioGroup"
+        style="@style/Widget.App.RadioButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="@dimen/_5sdp"
+        android:weightSum="3">
+
+        <RadioButton
+            android:id="@+id/minutesRadioButton"
+            style="@style/Widget.App.RadioButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/minutes"
+            android:textAlignment="center"
+            android:textColor="#4E00DE"
+            tools:ignore="VisualLintButtonSize" />
+
+        <RadioButton
+            android:id="@+id/hoursRadioButton"
+            style="@style/Widget.App.RadioButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/hours"
+            android:textAlignment="center"
+            android:textColor="#4E00DE"
+            tools:ignore="VisualLintButtonSize" />
+
+        <RadioButton
+            android:id="@+id/daysRadioButton"
+            style="@style/Widget.App.RadioButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/days"
+            android:textAlignment="center"
+            android:textColor="#4E00DE"
+            tools:ignore="VisualLintButtonSize" />
+
+    </RadioGroup>
+
+    <!--Button-->
+    <Button
+        android:id="@+id/saveUserSettingsBtn"
+        style="@style/PinkButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/save"
+        tools:ignore="TextContrastCheck,VisualLintButtonSize" />
+
+</LinearLayout>

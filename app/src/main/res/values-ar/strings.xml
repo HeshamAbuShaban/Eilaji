@@ -53,6 +53,32 @@
     <string name="or">أو</string>
     <string name="description_of_the_prescription">وصف الروشتة</string>
     <string name="write_your_application_here">أكتب طلبك هنا</string>
+    <string name="title_reminder_notification">تذكير بأخذ حبوب دواءك</string>
     <string name="title_send_prescription">ارسال الروشتة</string>
     <string name="share">شارك</string>
+    <string name="enter_a_reminder_text_e_g_medicine_name">أدخل (نص تذكير ، على سبيل المثال ، اسم الدواء)</string>
+    <string name="remind_me_repeatedly">ذكرني بشكل متكرر</string>
+    <string name="remind_me_one_time">تذكيري مرة واحدة</string>
+    <string name="remind_me_something">ذكرني بشيء ..</string>
+    <string name="time_unit">الوحدة الزمنية ، مثل (الساعات ، الدقائق ، إلخ ..)</string>
+    <string name="repeat_interval">" تكرار الفاصل الزمني ، مثل (1،2،4 ..) "</string>
+    <string name="enter_a_valid_repeat_interval_amp_the_time_unit">أدخل فترة تكرار صالحة والوحدة الزمنية</string>
+    <string name="choose_the_image_s_location">" اختر موقع الصورة "</string>
+    <string name="gallery">" المعرض"</string>
+    <string name="camera">"الكاميرا "</string>
+    <string name="save">"حفظ "</string>
+    <string name="delete"> حذف </string>
+    <string name="days"> أيام </string>
+    <string name="minutes"> دقائق </string>
+    <string name="hours"> الساعات </string>
+    <string name="delay_time">وقت التأخير: s%</string>
+    <string name="empty_reminders">فارغة  تذكيرات!</string>
+    <string name="reminder_notification">خذ حبوبك التي أضفتها!</string>
+
+    <string name="pick_a_favorite_sound">اختر الصوت المفضل</string>
+    <string name="sound_name_long">طويل</string>
+    <string name="sound_name_cool">عصري</string>
+    <string name="sound_name_talking">متحدث</string>
+    <string name="sound_name_bell">جرس</string>
+    <string name="placeholder">غير محدد</string>
 </resources>

@@ -1,0 +1,93 @@
+    private ActivityResultLauncher<String> permissionResultLauncher;
+    private ActivityResultLauncher<Void> cameraResultLauncher;
+    private Bitmap imageBitmap;
+    private byte[] imagePart = null;
+
+-----------------------------------------------------------------
+
+//IMAGE
+    private void pickCameraImage() {
+        permissionResultLauncher.launch(Manifest.permission.CAMERA);
+    }
+
+    private void setupResultsLauncher() {
+        permissionResultLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), result -> {
+            if (result) {
+                cameraResultLauncher.launch(null);
+            } else {
+                Toast.makeText(NewEmpActivity.this, "False", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        cameraResultLauncher = registerForActivityResult(new ActivityResultContracts.TakePicturePreview(), result -> {
+            if (result != null) {
+                imageBitmap = result;
+                Log.i(TAG, "setupResultsLauncher: image =>" + imageBitmap);
+                Toast.makeText(this, "Image Picked Successfully", Toast.LENGTH_SHORT).show();
+                btn_pick_image.setBackgroundColor(getResources().getColor(R.color.special_green));
+            } else {
+                Toast.makeText(NewEmpActivity.this, "No Image Got Picked", Toast.LENGTH_SHORT).show();
+                btn_pick_image.setBackgroundColor(getResources().getColor(R.color.shiny_red));
+            }
+        });
+    }
+
+
+    private byte[] bitmapToBytes() {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        return stream.toByteArray();
+    }
+
+    @Override
+    public void onCameraClicked() {
+        pickCameraImage();
+    }
+
+    @Override
+    public void onGalleryClicked() {
+        pickImageFromGallery();
+    }
+    private void pickImageFromGallery() {
+        Intent intentPickImageFromGallery = new Intent();
+        intentPickImageFromGallery.setType("image/*");
+        intentPickImageFromGallery.setAction(Intent.ACTION_GET_CONTENT);
+        launchSomeActivity.launch(intentPickImageFromGallery);
+    }
+    private final ActivityResultLauncher<Intent> launchSomeActivity = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+        if (result.getResultCode() == Activity.RESULT_OK) {
+            Intent data = result.getData();
+            // do your operation from here....
+            if (data != null && data.getData() != null) {
+                Uri selectedImageUri = data.getData();
+                Bitmap selectedImageBitmap = null;
+                try {
+                    selectedImageBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImageUri);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                //here use the bitmap object as you wish
+                if (selectedImageBitmap!= null){
+                    imageBitmap = selectedImageBitmap;
+                    Log.i(TAG, "setupResultsLauncher: image =>" + imageBitmap);
+                    Toast.makeText(this, "Image Picked Successfully", Toast.LENGTH_SHORT).show();
+                    btn_pick_image.setBackgroundColor(getResources().getColor(R.color.special_green));
+                }else{
+                    Toast.makeText(NewEmpActivity.this, "What! No Image!", Toast.LENGTH_SHORT).show();
+                    btn_pick_image.setBackgroundColor(getResources().getColor(R.color.shiny_red));
+                }
+            }else{
+                Toast.makeText(NewEmpActivity.this, "No Image Got Picked", Toast.LENGTH_SHORT).show();
+                btn_pick_image.setBackgroundColor(getResources().getColor(R.color.shiny_red));
+            }
+        }
+    });
+
+
+
+
+
+
+
+
+

@@ -147,6 +147,17 @@ class BaseActivity : AppCompatActivity() {
 
         R.id.share_menu_item -> {
             showToast("share_menu_item")
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_SUBJECT, "Check out this app!")
+                putExtra(Intent.EXTRA_TEXT, "I found this amazing app that I wanted to share with you. Download it from [app store link].")
+            }
+
+            if (shareIntent.resolveActivity(packageManager) != null) {
+                startActivity(Intent.createChooser(shareIntent, "Share the app"))
+            } else {
+                Toast.makeText(this@BaseActivity, "No app found to share", Toast.LENGTH_SHORT).show()
+            }
             true
         }
 

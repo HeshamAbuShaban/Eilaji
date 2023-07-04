@@ -8,7 +8,7 @@
 
     <fragment
         android:id="@+id/navigation_home"
-        android:name="dev.anonymous.eilaji.ui.user_interface.home.HomeFragment"
+        android:name="dev.anonymous.eilaji.ui.base.user_interface.home.HomeFragment"
         android:label="@string/delivery_to_your_location"
         tools:layout="@layout/fragment_home"
         app:menu="@menu/home_menu"/>
@@ -16,26 +16,26 @@
 
     <fragment
         android:id="@+id/navigation_send_prescription"
-        android:name="dev.anonymous.eilaji.ui.user_interface.send_prescription.SendPrescriptionFragment"
+        android:name="dev.anonymous.eilaji.ui.base.user_interface.send_prescription.SendPrescriptionFragment"
         android:label="@string/title_send_prescription"
         tools:layout="@layout/fragment_send_prescription" />
 
     <fragment
         android:id="@+id/navigation_chatting"
-        android:name="dev.anonymous.eilaji.ui.user_interface.chatting.ChattingFragment"
+        android:name="dev.anonymous.eilaji.ui.base.user_interface.chatting.ChattingFragment"
         android:label="@string/chats"
         tools:layout="@layout/fragment_chatting" />
 
     <fragment
         android:id="@+id/navigation_categories"
-        android:name="dev.anonymous.eilaji.ui.user_interface.categories.CategoriesFragment"
+        android:name="dev.anonymous.eilaji.ui.base.user_interface.categories.CategoriesFragment"
         android:label="@string/categories"
         tools:layout="@layout/fragment_categories"
         app:menu="@menu/category_menu"/>
 
     <fragment
         android:id="@+id/navigation_profile"
-        android:name="dev.anonymous.eilaji.ui.user_interface.profile.ProfileFragment"
+        android:name="dev.anonymous.eilaji.ui.base.user_interface.profile.ProfileFragment"
         android:label="@string/title_profile"
         tools:layout="@layout/fragment_profile" />
 

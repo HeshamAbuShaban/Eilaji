@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.user_interface.profile.ProfileFragment">
+    tools:context=".ui.base.user_interface.profile.ProfileFragment">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -44,7 +44,7 @@
                     android:text="@string/favorites"
                     android:textSize="@dimen/_13ssp" />
 
-                <Space
+                <androidx.legacy.widget.Space
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1" />
@@ -87,9 +87,10 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/_8sdp"
                     android:text="@string/change_password"
-                    android:textSize="@dimen/_13ssp" />
+                    android:textSize="@dimen/_13ssp"
+                    tools:ignore="VisualLintLocaleText" />
 
-                <Space
+                <androidx.legacy.widget.Space
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1" />
@@ -134,7 +135,7 @@
                     android:text="@string/connect_with_us"
                     android:textSize="@dimen/_13ssp" />
 
-                <Space
+                <androidx.legacy.widget.Space
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1" />
@@ -179,7 +180,7 @@
                     android:text="@string/rate_the_app"
                     android:textSize="@dimen/_13ssp" />
 
-                <Space
+                <androidx.legacy.widget.Space
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1" />
@@ -224,7 +225,7 @@
                     android:text="@string/log_out"
                     android:textSize="@dimen/_13ssp" />
 
-                <Space
+                <androidx.legacy.widget.Space
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1" />

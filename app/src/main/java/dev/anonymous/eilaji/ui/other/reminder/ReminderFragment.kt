@@ -1,62 +1,164 @@
 package dev.anonymous.eilaji.ui.other.reminder
 
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TimePicker
 import android.widget.Toast
-import androidx.annotation.RequiresApi
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
+import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.FragmentReminderBinding
-//import dev.anonymous.eilaji.reminder_system.database.Medication
-//import dev.anonymous.eilaji.reminder_system.database.MedicationViewModel
-import java.util.Calendar
+import dev.anonymous.eilaji.reminder_system.database.entity.Reminder
+import dev.anonymous.eilaji.reminder_system.database.viewModel.ReminderDatabaseViewModel
+import dev.anonymous.eilaji.reminder_system.worker.ReminderScheduler
+import dev.anonymous.eilaji.storage.enums.ReminderType
+import dev.anonymous.eilaji.ui.other.dialogs.ChangeSoundDialogFragment
+import dev.anonymous.eilaji.ui.other.dialogs.ChangeSoundDialogFragment.ChangeSoundListener
+import dev.anonymous.eilaji.ui.other.dialogs.PeriodicReminderDialogFragment
+import dev.anonymous.eilaji.ui.other.dialogs.PeriodicReminderDialogFragment.PeriodicReminderListener
+import java.util.concurrent.TimeUnit
 
-class ReminderFragment : Fragment() {
-//    private lateinit var medicationViewModel: MedicationViewModel
+class ReminderFragment : Fragment() ,PeriodicReminderListener,ChangeSoundListener  {
+
+    private lateinit var reminderViewModel: ReminderViewModel
     private lateinit var binding: FragmentReminderBinding
+    private lateinit var reminderScheduler: ReminderScheduler
+    private lateinit var reminderDatabaseViewModel: ReminderDatabaseViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        // init the binding
         binding = FragmentReminderBinding.inflate(layoutInflater)
-//        medicationViewModel = ViewModelProvider(requireActivity())[MedicationViewModel::class.java]
+        // set up the view model and the ReminderScheduler Instance Object
+        setupComponents()
+        // set the back ground from the view model
+        reminderViewModel.determinedTheBackGround(binding)
         return binding.root
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
+    // init the reminderViewModel(for fragment) , reminderScheduler , ReminderDatabaseViewModel (database container)
+    private fun setupComponents() {
+        // view ViewModel
+        reminderViewModel = ViewModelProvider(this)[ReminderViewModel::class.java]
+        // rs Reminder Scheduler
+        reminderScheduler = ReminderScheduler(requireContext().applicationContext)
+        // set it to the v_view model
+        reminderViewModel.setReminderScheduler(reminderScheduler)
+       //  DATABASE VIEW_MODEL
+        reminderDatabaseViewModel =
+            ViewModelProvider(this)[ReminderDatabaseViewModel::class.java]
+        reminderViewModel.setDatabaseViewModel(reminderDatabaseViewModel)
+    }
+
+    // TODO(Under Testing)
+    override fun onResume() {
+        super.onResume()
+        requireActivity().onBackPressedDispatcher.addCallback(this) {
+            val nav = findNavController()
+
+            nav.popBackStack()
+            nav.navigate(R.id.navigation_reminders_list)
+        }
+    }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.reminderSubmitButton.setOnClickListener {
-            val name = binding.medicineNameET.text.toString()
-            val dosage = binding.dosageET.text.toString()
-            val reminderTime = getReminderTimeFromPicker(binding.reminderTimePicker)
+        setupListeners()
+    }
 
-//            val medication = Medication(name = name, dosage = dosage, reminderTime = reminderTime)
-//            medicationViewModel.saveMedication(medication)
-//            medicationViewModel.scheduleReminder(medication)
+    private fun setupListeners() {
+        with(binding) {
+            // the button submit 
+            remindOneTimeButton.setOnClickListener {
+                // TODO: Build an Object of the model and save it to the database and send it data to the worker
+                //  { pill_id, pill_name ,pill dosage, repeated_time , every-which-time }
 
-            Toast.makeText(requireContext(), "Medication reminder saved.", Toast.LENGTH_SHORT)
-                .show()
-            // Clear input fields
-            binding.medicineNameET.text.clear()
-            binding.dosageET.text.clear()
-            binding.reminderTimePicker.clearFocus()
+                // user text
+                var reminderText = binding.reminderNameEditText.text.toString()
+
+                // the time that the worker will wait for to do it work
+                val delayMinutes = reminderViewModel.calculateDelay(binding)
+
+                // if OneTimeWorkRequest or
+                // guard the null
+                if (reminderText.isEmpty()) reminderText = getString(R.string.placeholder)
+                val generatedId = "eilaji_reminder_${reminderViewModel.randomUUIDString()}"
+                val reminder = Reminder(generatedId,reminderText,delayMinutes.toString(),ReminderType.OneTime.reminderType)
+
+                // Set The Scheduler for the user reminder fromViewModel
+                reminderViewModel.reminderScheduler.value?.setReminderObject(reminder = reminder)
+                reminderViewModel.reminderScheduler.value?.scheduleReminderOneTimeWorkRequest()
+
+                // Show Remaining Time in TextClock
+                reminderViewModel.showRemainingTime(binding)
+
+
+                //Lets save it to the database :
+                reminderViewModel.storeReminderIntoDatabase(reminder)
+                // reminderViewModel.storeReminderIntoDatabase(reminderText,delayMinutes)
+
+                // toast that shows the request been made and the reminder been queued
+                Toast.makeText(requireContext(), "Reminder Saved.", Toast.LENGTH_SHORT).show()
+
+                // helps to clear the inputs
+                reminderViewModel.clearInputs(binding)
+            }
+
+            remindRepeatedlyButton.setOnClickListener {
+
+                // TODO : this now in the Dialog Listener
+                /*// Sets it for a repeated time
+                 reminderViewModel.reminderScheduler.value?.scheduleReminderPeriodicWorkRequest()*/
+                PeriodicReminderDialogFragment().show(childFragmentManager,"PeriodicReminder")
+
+            }
+
+            fabChangeSound.setOnClickListener {
+
+                ChangeSoundDialogFragment().show(childFragmentManager,"ChangeReminderSound")
+
+            }
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
-    private fun getReminderTimeFromPicker(timePicker: TimePicker): Long {
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.HOUR_OF_DAY, timePicker.hour)
-        calendar.set(Calendar.MINUTE, timePicker.minute)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
-        return calendar.timeInMillis
+    //DO NOT FORGET TO SET THE REMINDER OBJECT TO ReminderScheduler Class before any action
+    override fun collectUserPeriodicReminderListenerInputs(repeatInterval: Long?, timeUnit: TimeUnit?) {
+        // user text
+        var reminderText = binding.reminderNameEditText.text.toString()
+
+        // the time that the worker will wait for to do it work
+        val delayMinutes = reminderViewModel.calculateDelay(binding)
+
+
+        // guard the null
+        if (reminderText.isEmpty()) reminderText = getString(R.string.placeholder)
+        val generatedId = "eilaji_reminder_${reminderViewModel.randomUUIDString()}"
+        val reminder = Reminder(generatedId,reminderText,delayMinutes.toString(),ReminderType.Periodic.reminderType)
+
+        // Set The Scheduler for the user reminder fromViewModel
+        reminderViewModel.reminderScheduler.value?.setReminderObject(reminder = reminder)
+
+        // Sets it for a repeated time
+        reminderViewModel.reminderScheduler.value?.scheduleReminderPeriodicWorkRequest(repeatInterval!!,timeUnit!!) // don't worry for the force-null cuz i got some init values in the main obj
+
+        reminderViewModel.storeReminderIntoDatabase(reminder)
+        // Show Remaining Time in TextClock
+        reminderViewModel.showRemainingTime(binding)
+
+        // toast that shows the request been made and the reminder been queued
+        Toast.makeText(requireContext(), "Reminder Saved.", Toast.LENGTH_SHORT).show()
+
+        // helps to clear the inputs
+        reminderViewModel.clearInputs(binding)
     }
+
+    override fun collectUserReminderSoundListenerInputs(soundId: Int) {
+        reminderViewModel.reminderScheduler.value?.setReminderSound(soundId)
+    }
+
 }

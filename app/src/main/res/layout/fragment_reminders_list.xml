@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/c1_reminder_item"
+    tools:context=".ui.other.reminder.list.RemindersListFragment">
+    <!--Empty States Image-->
+    <ImageView
+        android:id="@+id/emptyListImage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"
+        android:scaleType="fitCenter"
+        android:visibility="invisible"
+        android:src="@drawable/bg_empty_3"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="ImageContrastCheck" />
+    <!--Empty States TextView-->
+    <TextView
+        android:id="@+id/emptyListText"
+        android:textSize="@dimen/_22sdp"
+        android:textAlignment="center"
+        android:gravity="top|center"
+        android:textStyle=""
+        android:layout_marginTop="@dimen/_15sdp"
+        android:visibility="invisible"
+        android:textColor="@color/white"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:ignore="VisualLintOverlap" />
+
+    <!--RecyclerView-->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recViewRemindersList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.5"
+        tools:listitem="@layout/item_reminder" />
+
+    <!--Fab-->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fabAddAReminder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_marginStart="@dimen/_25sdp"
+        android:layout_marginBottom="@dimen/_65sdp"
+        android:contentDescription="@null"
+        android:text="@string/add"
+        android:textColor="#E1BEE7"
+        android:textSize="@dimen/_13ssp"
+        android:textStyle="bold"
+        app:backgroundTint="#724cf9"
+        app:icon="@drawable/ic_add"
+        app:iconTint="#f896d8"
+        app:layout_constraintBottom_toBottomOf="@id/recViewRemindersList"
+        app:layout_constraintStart_toStartOf="@id/recViewRemindersList" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

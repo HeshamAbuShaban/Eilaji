@@ -1,0 +1,68 @@
+package dev.anonymous.eilaji.temp.image;
+
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+
+public class ImagePickerDialog extends DialogFragment {
+    private ImagePickerListener imagePickerListener;
+    private Button btn_Gallery, btn_Camera;
+
+    public ImagePickerDialog() {
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        try {
+            imagePickerListener = (ImagePickerListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context
+                    + " must implement ImagePickerListener ");
+        }
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = findViews(inflater, container);
+
+        btn_Camera.setOnClickListener(view_camera -> {
+            imagePickerListener.onCameraClicked();
+            dismiss();
+        });
+        btn_Gallery.setOnClickListener(view_gallery -> {
+            imagePickerListener.onGalleryClicked();
+            dismiss();
+        });
+        return view;
+    }
+
+    @SuppressLint("MissingInflatedId")
+    private View findViews(LayoutInflater inflater, ViewGroup container) {
+        View view = inflater.inflate(R.layout.dialog_image_picker, container, false);
+        btn_Camera = view.findViewById(R.id.btn_camera);
+        btn_Gallery = view.findViewById(R.id.btn_gallery);
+        return view;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        imagePickerListener = null;
+    }
+
+    public interface ImagePickerListener {
+        void onCameraClicked();
+
+        void onGalleryClicked();
+    }
+}
