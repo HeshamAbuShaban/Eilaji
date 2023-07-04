@@ -9,7 +9,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
+import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.FragmentSignUpBinding
 import dev.anonymous.eilaji.ui.base.BaseActivity
 
@@ -36,9 +38,14 @@ class SignUpFragment : Fragment() {
     }
     
     private fun setupListeners(){
+
         binding.buSkip.setOnClickListener {
             startActivity(Intent(requireContext(), BaseActivity::class.java))
             requireActivity().finish()
+        }
+
+        binding.buLoginScreen.setOnClickListener {
+            findNavController().navigate(R.id.navigation_Login)
         }
     }
     private fun setupViewModel() {

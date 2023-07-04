@@ -6,11 +6,11 @@ import android.content.SharedPreferences;
 
 public class AppSharedPreferences {
     private enum SharedPreferencesKeys {
-        invoked,onBoardingDone
+        /*invoked*/onBoardingDone,isFirstTime
     }
     private static AppSharedPreferences Instance;
     private final SharedPreferences sharedPreferences;
-    SharedPreferences.Editor editor;
+    private SharedPreferences.Editor editor;
 
     private AppSharedPreferences(Context context) {
         sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
@@ -22,12 +22,6 @@ public class AppSharedPreferences {
         }
         return Instance;
     }
-
-    /*`public void save(Object o) {
-        editor = sharedPreferences.edit();
-        editor.putString("", o.toString());
-        editor.apply();
-    }*/
 
 
     // FOR DATABASE NOTIFICATION ID CREATION
@@ -42,7 +36,7 @@ public class AppSharedPreferences {
 
     //------------------------------------
 
-    public void invokeDummyData() {
+    /*`public void invokeDummyData() {
         editor = sharedPreferences.edit();
         editor.putBoolean(SharedPreferencesKeys.invoked.name(), true);
         editor.apply();
@@ -50,7 +44,7 @@ public class AppSharedPreferences {
 
     public boolean isInvoked() {
         return sharedPreferences.getBoolean(SharedPreferencesKeys.invoked.name(), false);
-    }
+    }*/
 
     public void doneWithOnBoarding() {
         editor = sharedPreferences.edit();
@@ -62,28 +56,23 @@ public class AppSharedPreferences {
         return sharedPreferences.getBoolean(SharedPreferencesKeys.onBoardingDone.name(), false);
     }
 
-    /*`public void save(Student student) {
+    public void setHeIsFirstTimeOut() {
         editor = sharedPreferences.edit();
-        editor.putBoolean(PrefKeys.logged_in.name(), true);
-        editor.putInt(PrefKeys.id.name(), student.id);
-        editor.putString(PrefKeys.fullName.name(), student.fullName);
-        editor.putString(PrefKeys.email.name(), student.email);
-        editor.putString(PrefKeys.token.name(), "Bearer " +student.token);
+        editor.putBoolean(SharedPreferencesKeys.isFirstTime.name(), true);
         editor.apply();
-    }*/
-
-    /*`public String getStringForKey(PrefKeys key) {
-        return sharedPreferences.getString(key.name(), "NotFound");
-    }*/
-
-    /*`public String  getToken(){
-        return sharedPreferences.getString(PrefKeys.token.name(), "");
     }
 
-    public boolean isLoggedIn() {
-        return sharedPreferences.getBoolean(PrefKeys.logged_in.name(), false);
-    }*/
+    public void setHeIsFirstTimeDone() {
+        editor = sharedPreferences.edit();
+        editor.putBoolean(SharedPreferencesKeys.isFirstTime.name(), false);
+        editor.apply();
+    }
 
+    public boolean isHeFirstTime() {
+        return sharedPreferences.getBoolean(SharedPreferencesKeys.isFirstTime.name(), true);
+    }
+
+    // when user logout for instance
     public void clear() {
         editor = sharedPreferences.edit();
         editor.clear();

@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import dev.anonymous.eilaji.R
-import dev.anonymous.eilaji.utils.FragmentsKeys
+import dev.anonymous.eilaji.storage.enums.FragmentsKeys
 
 
 class AlternativesActivity : AppCompatActivity() {

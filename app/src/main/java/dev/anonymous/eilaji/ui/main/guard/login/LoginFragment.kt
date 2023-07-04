@@ -41,6 +41,12 @@ class LoginFragment : Fragment() {
         // this gets the navController from the host activity
         val navController = findNavController()
         binding.apply {
+
+            binding.buSkip.setOnClickListener {
+                startActivity(Intent(requireContext(), BaseActivity::class.java))
+                requireActivity().finish()
+            }
+
             buSignUp.setOnClickListener {
                 navController.navigate(R.id.navigation_SignUp)
                 /*@Deprecated

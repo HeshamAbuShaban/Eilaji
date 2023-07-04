@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import dev.anonymous.eilaji.R;
 import dev.anonymous.eilaji.databinding.FragmentChangeReminderSoundDialogBinding;
-import dev.anonymous.eilaji.utils.SoundNumbers;
+import dev.anonymous.eilaji.storage.enums.SoundNumbers;
 
 public class ChangeSoundDialogFragment extends DialogFragment {
     private ChangeSoundListener changeSoundListener;

@@ -15,7 +15,7 @@ import dev.anonymous.eilaji.databinding.FragmentHomeBinding
 import dev.anonymous.eilaji.ui.other.base.AlternativesActivity
 import dev.anonymous.eilaji.utils.DepthPageTransformer
 import dev.anonymous.eilaji.utils.DummyData
-import dev.anonymous.eilaji.utils.FragmentsKeys
+import dev.anonymous.eilaji.storage.enums.FragmentsKeys
 
 class HomeFragment : Fragment() {
     private lateinit var _binding: FragmentHomeBinding

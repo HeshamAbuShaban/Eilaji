@@ -93,5 +93,8 @@
     <string name="sound_name_bell">Bell</string>
 
     <string name="placeholder">Not Specified</string>
+    <string name="do_you_really_want_to_log_out">Do you really want to log out!?</string>
+    <string name="logout">Logout</string>
+    <string name="cancel">Cancel</string>
 
 </resources>

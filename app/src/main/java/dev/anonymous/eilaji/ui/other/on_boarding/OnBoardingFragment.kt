@@ -52,6 +52,7 @@ class OnBoardingFragment : Fragment() {
                 navController.navigate(R.id.navigation_Login)
                 //Set the sheared Value to True
                 AppSharedPreferences.getInstance(requireContext()).doneWithOnBoarding()
+                AppSharedPreferences.getInstance(requireContext()).setHeIsFirstTimeDone()
                 /*@Deprecated
                 val loginFragment = FragmentLogin()
                 parentFragmentManager.beginTransaction()
