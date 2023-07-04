@@ -9,9 +9,18 @@
         <item name="materialThemeOverlay">@style/ThemeOverlay.App.RadioButton</item>
     </style>
 
+    <style name="AppBottomSheetDialogTheme" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/AppBottomSheetModalStyle</item>
+    </style>
+
+    <style name="AppBottomSheetModalStyle" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/shape_bottom_sheet</item>
+    </style>
+
+
     <style name="ThemeOverlay.App.RadioButton" parent="">
-        <item name="colorOnSurface">@color/shrine_pink_900</item>
-        <item name="colorPrimary">@color/shrine_pink_100</item>
+        <item name="colorOnSurface">#8093f1</item>
+        <item name="colorPrimary">#b388eb</item>
     </style>
 
     <style name="Theme.Eilaji.TranslucentStatus" parent="Base.Theme.Eilaji">

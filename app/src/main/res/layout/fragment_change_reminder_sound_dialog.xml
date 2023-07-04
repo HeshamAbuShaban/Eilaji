@@ -3,8 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@drawable/shape_change_reminder_sound_dialog"
     android:orientation="vertical"
-    android:padding="@dimen/_5sdp"
+    android:padding="@dimen/_15sdp"
     tools:context=".ui.other.dialogs.ChangeSoundDialogFragment">
 
     <!--Title -->
@@ -14,55 +15,65 @@
         android:padding="@dimen/_2sdp"
         android:text="@string/pick_a_favorite_sound"
         android:textAlignment="center"
+        android:textColor="@color/c_text_over_pink"
         android:textSize="@dimen/_17ssp"
         android:textStyle="bold" />
-
-    <!--Second Field-->
-    <RadioGroup
-        android:id="@+id/soundsRadioGroup"
-        style="@style/Widget.App.RadioButton"
+    <!--Scroller-->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="@dimen/_5sdp">
-
-        <RadioButton
-            android:id="@+id/longSoundRadioButton"
+        android:layout_height="wrap_content">
+        <!--Second Field-->
+        <RadioGroup
+            android:id="@+id/soundsRadioGroup"
             style="@style/Widget.App.RadioButton"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/sound_name_long"
-            tools:ignore="VisualLintButtonSize" />
+            android:elevation="@dimen/_15sdp"
+            android:orientation="vertical"
+            android:padding="@dimen/_5sdp"
+            android:weightSum="4">
 
-        <RadioButton
-            android:id="@+id/coolSoundRadioButton"
-            style="@style/Widget.App.RadioButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/sound_name_cool"
-            tools:ignore="VisualLintButtonSize" />
+            <RadioButton
+                android:id="@+id/longSoundRadioButton"
+                style="@style/Widget.App.RadioButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/sound_name_long"
+                android:textColor="#4E00DE"
+                tools:ignore="VisualLintButtonSize" />
 
-        <RadioButton
-            android:id="@+id/talkingSoundRadioButton"
-            style="@style/Widget.App.RadioButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/sound_name_talking"
-            tools:ignore="VisualLintButtonSize" />
+            <RadioButton
+                android:id="@+id/coolSoundRadioButton"
+                style="@style/Widget.App.RadioButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/sound_name_cool"
+                android:textColor="#4E00DE"
+                tools:ignore="VisualLintButtonSize" />
 
-        <RadioButton
-            android:id="@+id/bellSoundRadioButton"
-            style="@style/Widget.App.RadioButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/sound_name_bell"
-            tools:ignore="VisualLintButtonSize" />
+            <RadioButton
+                android:id="@+id/talkingSoundRadioButton"
+                style="@style/Widget.App.RadioButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/sound_name_talking"
+                android:textColor="#4E00DE"
+                tools:ignore="VisualLintButtonSize" />
 
-    </RadioGroup>
+            <RadioButton
+                android:id="@+id/bellSoundRadioButton"
+                style="@style/Widget.App.RadioButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/sound_name_bell"
+                android:textColor="#4E00DE"
+                tools:ignore="VisualLintButtonSize" />
+
+        </RadioGroup>
+    </ScrollView>
     <!--Button-->
     <Button
         android:id="@+id/saveUserSettingsBtn"

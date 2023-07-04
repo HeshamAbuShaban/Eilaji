@@ -60,7 +60,7 @@ class ProfileFragment : Fragment() {
             }
             // rate temp
             buRateApp.setOnClickListener {
-                val query = "who is the goat of football"
+                val query = "Leo Messi"
                 val url = "https://www.google.com/search?q=${URLEncoder.encode(query, "UTF-8")}"
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                 startActivity(intent)
@@ -68,10 +68,11 @@ class ProfileFragment : Fragment() {
 
             // connect with us temp
             buConnectWithUs.setOnClickListener {
-                val query = "dev.anonymous.eilaji"
-                val url = "https://www.google.com/search?q=${URLEncoder.encode(query, "UTF-8")}"
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                startActivity(intent)
+                val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                    data = Uri.parse("mailto:eilaji.health@gmail.com")
+                    putExtra(Intent.EXTRA_SUBJECT, "Connect with us")
+                }
+                startActivity(emailIntent)
             }
             // etc..
         }

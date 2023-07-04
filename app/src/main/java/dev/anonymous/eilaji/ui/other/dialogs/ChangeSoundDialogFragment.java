@@ -1,6 +1,8 @@
 package dev.anonymous.eilaji.ui.other.dialogs;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,6 +36,14 @@ public class ChangeSoundDialogFragment extends DialogFragment {
         }
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        var dialog = getDialog();
+        if (dialog!= null){
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

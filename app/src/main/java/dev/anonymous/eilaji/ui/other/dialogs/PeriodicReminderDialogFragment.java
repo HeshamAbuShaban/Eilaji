@@ -1,6 +1,8 @@
 package dev.anonymous.eilaji.ui.other.dialogs;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -49,6 +51,14 @@ public class PeriodicReminderDialogFragment extends DialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         return binding.getRoot();
+    }
+    @Override
+    public void onStart() {
+        super.onStart();
+        var dialog = getDialog();
+        if (dialog!= null){
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
     }
 
     @Override

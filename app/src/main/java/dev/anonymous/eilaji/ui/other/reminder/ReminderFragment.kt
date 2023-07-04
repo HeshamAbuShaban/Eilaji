@@ -86,7 +86,7 @@ class ReminderFragment : Fragment() ,PeriodicReminderListener,ChangeSoundListene
 
                 // if OneTimeWorkRequest or
                 // guard the null
-                if (reminderText.isEmpty()) reminderText = "set_to_null"
+                if (reminderText.isEmpty()) reminderText = getString(R.string.placeholder)
                 val generatedId = "eilaji_reminder_${reminderViewModel.randomUUIDString()}"
                 val reminder = Reminder(generatedId,reminderText,delayMinutes.toString(),ReminderType.OneTime.reminderType)
 
@@ -136,7 +136,7 @@ class ReminderFragment : Fragment() ,PeriodicReminderListener,ChangeSoundListene
 
 
         // guard the null
-        if (reminderText.isEmpty()) reminderText = "set_to_null"
+        if (reminderText.isEmpty()) reminderText = getString(R.string.placeholder)
         val generatedId = "eilaji_reminder_${reminderViewModel.randomUUIDString()}"
         val reminder = Reminder(generatedId,reminderText,delayMinutes.toString(),ReminderType.Periodic.reminderType)
 
