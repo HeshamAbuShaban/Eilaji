@@ -86,7 +86,6 @@ class BaseActivity : AppCompatActivity() {
                     val menuResource = when (destination.id) {
                         R.id.navigation_home -> R.menu.home_menu
                         R.id.navigation_categories -> R.menu.category_menu
-                        R.id.navigation_profile -> R.menu.medicine_menu
                         // Add more destinations and their associated menu resources here
                         else -> 0
                     }

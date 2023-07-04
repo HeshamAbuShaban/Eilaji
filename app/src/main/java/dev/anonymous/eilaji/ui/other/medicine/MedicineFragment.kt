@@ -2,8 +2,8 @@ package dev.anonymous.eilaji.ui.other.medicine
 
 import android.app.Activity
 import android.content.Context
-import android.graphics.Color
 import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -20,6 +20,7 @@ import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.adapters.AboutMedicationAdapter
 import dev.anonymous.eilaji.databinding.FragmentMedicineBinding
 import dev.anonymous.eilaji.utils.DummyData
+import dev.anonymous.eilaji.utils.UtilsScreen
 import net.lucode.hackware.magicindicator.ViewPagerHelper
 import net.lucode.hackware.magicindicator.buildins.UIUtil
 import net.lucode.hackware.magicindicator.buildins.commonnavigator.CommonNavigator
@@ -134,7 +135,11 @@ class MedicineFragment : Fragment() {
                 val textSize = UIUtil.dip2px(context, 16.0).toFloat()
                 pagerTitleView.text = mDataList!![index]
                 pagerTitleView.textSize = textSize
-                pagerTitleView.textColor = ContextCompat.getColor(context, R.color.black)
+                pagerTitleView.textColor =
+                    if (UtilsScreen.isDarkMode(context))
+                        ContextCompat.getColor(context, R.color.white)
+                    else
+                        ContextCompat.getColor(context, R.color.black)
                 pagerTitleView.clipColor = ContextCompat.getColor(context, R.color.white)
                 pagerTitleView.setOnClickListener {
                     binding.onBoardingPager.currentItem = index
@@ -153,7 +158,7 @@ class MedicineFragment : Fragment() {
                 indicator.lineHeight = lineHeight
                 indicator.roundRadius = roundRadius
                 indicator.yOffset = borderWidth + 0f
-                indicator.setColors(Color.parseColor("#FF74B1"))
+                indicator.setColors(ContextCompat.getColor(context, R.color.primary_color))
                 return indicator
             }
         }
@@ -167,5 +172,11 @@ class MedicineFragment : Fragment() {
             ContextCompat.getColor(context, newColorId),
             PorterDuff.Mode.SRC_ATOP
         )
+    }
+
+    fun changeDrawableColor(context: Context, icon: Int, newColor: Int): Drawable {
+        val mDrawable = ContextCompat.getDrawable(context, icon)!!.mutate()
+        mDrawable.colorFilter = PorterDuffColorFilter(newColor, PorterDuff.Mode.SRC_IN)
+        return mDrawable
     }
 }

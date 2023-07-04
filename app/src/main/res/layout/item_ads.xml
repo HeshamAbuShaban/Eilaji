@@ -22,7 +22,6 @@
             android:gravity="center"
             android:paddingHorizontal="@dimen/_18sdp"
             android:text="حمل الروشتة الآن!"
-            android:textColor="@color/black"
             android:textSize="@dimen/_16ssp"
             android:textStyle="bold" />
 

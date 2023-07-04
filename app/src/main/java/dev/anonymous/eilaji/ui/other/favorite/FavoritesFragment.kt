@@ -48,7 +48,7 @@ class FavoritesFragment : Fragment() {
 
         Thread {
             SystemClock.sleep(1500)
-            requireActivity().runOnUiThread {
+            activity?.runOnUiThread {
                 val list: ArrayList<MedicineModel> = ArrayList()
                 for (medicine in DummyData.listMedicineModels) {
                     if (medicine.isFavorite) {

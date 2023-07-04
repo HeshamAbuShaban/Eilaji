@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity() {
      * Checks if user is signed in aka (non-null) and update UI accordingly.
      * */
     private fun checkUserStatus() {
-        if (FirebaseController.getInstance().getCurrentUser() != null) {
+        if (FirebaseController.getInstance().getCurrentUser() == null) {
 
             /**
              *
@@ -98,7 +98,8 @@ class MainActivity : AppCompatActivity() {
              *
              * */
             val intent = Intent(this@MainActivity, BaseActivity::class.java)
-            startActivity(intent);finish()
+            startActivity(intent)
+            finish()
         }
     }
 

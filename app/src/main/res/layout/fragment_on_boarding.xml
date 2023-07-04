@@ -31,7 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:progress="33"
-            app:indicatorColor="@color/primary_pink"
+            app:indicatorColor="@color/primary_color"
             app:indicatorSize="@dimen/_60sdp"
             app:trackColor="@color/gray"
             app:trackCornerRadius="@dimen/_7sdp"
@@ -42,7 +42,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            app:cardBackgroundColor="@color/primary_pink"
+            app:cardBackgroundColor="@color/primary_color"
             app:cardCornerRadius="@dimen/_50sdp"
             app:cardElevation="@dimen/_3sdp"
             app:cardUseCompatPadding="true">

@@ -11,7 +11,6 @@
         android:layout_height="@dimen/_30sdp"
         android:gravity="center_vertical"
         android:text="السعر"
-        android:textColor="@color/black"
         android:textSize="@dimen/_13sdp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/ratingBarPrice" />
@@ -34,7 +33,6 @@
         android:layout_height="@dimen/_30sdp"
         android:gravity="center_vertical"
         android:text="سرعة الشفاء"
-        android:textColor="@color/black"
         android:textSize="@dimen/_13sdp"
         app:layout_constraintStart_toStartOf="@+id/tvRatingBar4"
         app:layout_constraintTop_toBottomOf="@+id/tvRatingBar4" />
@@ -59,7 +57,6 @@
         android:layout_height="@dimen/_30sdp"
         android:gravity="center_vertical"
         android:text="فعالية الدواء"
-        android:textColor="@color/black"
         android:textSize="@dimen/_13sdp"
         app:layout_constraintStart_toStartOf="@+id/tvRatingBar"
         app:layout_constraintTop_toBottomOf="@+id/tvRatingBar" />
@@ -83,7 +80,6 @@
         android:layout_height="@dimen/_30sdp"
         android:gravity="center_vertical"
         android:text="طعم الدواء"
-        android:textColor="@color/black"
         android:textSize="@dimen/_13sdp"
         app:layout_constraintStart_toStartOf="@+id/tvRatingBar2"
         app:layout_constraintTop_toBottomOf="@+id/tvRatingBar2" />

@@ -183,37 +183,37 @@ object DummyData {
             val list = ArrayList<PharmacyDepartmentModel>()
             list.add(
                 PharmacyDepartmentModel(
-                    R.drawable.temp_category_1,
+                    R.drawable.temp_category_pills,
                     "الأدوية"
                 )
             )
             list.add(
                 PharmacyDepartmentModel(
-                    R.drawable.temp_category_2,
+                    R.drawable.temp_category_hand,
                     "عناية بالطفل"
                 )
             )
             list.add(
                 PharmacyDepartmentModel(
-                    R.drawable.temp_category_3,
+                    R.drawable.temp_category_whey,
                     "مكملات"
                 )
             )
             list.add(
                 PharmacyDepartmentModel(
-                    R.drawable.temp_category_1,
+                    R.drawable.temp_category_teeth,
                     "الفم والاسنان"
                 )
             )
             list.add(
                 PharmacyDepartmentModel(
-                    R.drawable.temp_category_2,
+                    R.drawable.temp_category_hair_care,
                     "عناية بالشعر"
                 )
             )
             list.add(
                 PharmacyDepartmentModel(
-                    R.drawable.temp_category_3,
+                    R.drawable.temp_category_check,
                     "عناية بالبشرة"
                 )
             )

@@ -15,18 +15,18 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Eilaji.WhiteStatusBar"
+        android:theme="@style/Theme.Eilaji.MainActivity"
         tools:targetApi="31">
         <activity
             android:name=".ui.other.base.AlternativesActivity"
             android:exported="false"
-            android:theme="@style/Theme.Eilaji.PinkStatusBar" />
+            android:theme="@style/Theme.Eilaji.BaseActivity" />
         <!-- This One is now responsible for the user-interface screens -->
         <activity
             android:name=".ui.base.BaseActivity"
             android:exported="false"
             android:label="@string/title_activity_base"
-            android:theme="@style/Theme.Eilaji.PinkStatusBar" />
+            android:theme="@style/Theme.Eilaji.BaseActivity" />
         <activity
             android:name=".ui.main.MainActivity"
             android:exported="true"
@@ -41,6 +41,7 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyCsXYZw3o-s2V3dVrdzFBF_7gM1rJzEoi4" />
+
     </application>
 
 </manifest>

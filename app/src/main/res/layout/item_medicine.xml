@@ -7,7 +7,6 @@
     <androidx.cardview.widget.CardView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
         android:layout_margin="@dimen/_7sdp"
         app:cardCornerRadius="@dimen/_13sdp"
         app:cardElevation="@dimen/_2sdp"
@@ -38,7 +37,6 @@
                 android:layout_marginStart="@dimen/_8sdp"
                 android:layout_marginTop="@dimen/_6sdp"
                 android:text="قطرة مسكنة للآلام"
-                android:textColor="@color/black"
                 android:textSize="@dimen/_12ssp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
@@ -66,7 +64,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/_8sdp"
                 android:text="20$"
-                android:textColor="@color/black"
                 android:textSize="@dimen/_13ssp"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="@+id/buAddMedicineToFavorite"

@@ -20,7 +20,7 @@
             app:collapsedTitleGravity="center_horizontal"
             app:collapsedTitleTextAppearance="@style/TextAppearance.expandedTitle"
             app:collapsedTitleTextColor="@color/white"
-            app:contentScrim="@color/primary_pink"
+            app:contentScrim="@color/primary_color"
             app:expandedTitleTextColor="@android:color/transparent"
             app:layout_scrollFlags="scroll|snap|exitUntilCollapsed"
             app:statusBarScrim="@android:color/transparent"
@@ -77,25 +77,26 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/_15sdp"
                 android:layout_marginTop="45dp"
-                tools:text="مثبط هرمونات"
+                android:text="مثبط هرمونات"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_20ssp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/textView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/_15sdp"
-                tools:text="20$"
-                android:textColor="@color/black"
+                android:text="20$"
                 android:textSize="@dimen/_18ssp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textView2" />
+                app:layout_constraintTop_toBottomOf="@+id/textView2"
+                tools:ignore="HardcodedText" />
 
             <net.lucode.hackware.magicindicator.MagicIndicator
                 android:id="@+id/magic_indicator3"
@@ -129,14 +130,12 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
+            style="@style/RippleRectangleEffectCardStyle"
             android:layout_width="@dimen/_48sdp"
             android:layout_height="@dimen/_48sdp"
             android:layout_margin="@dimen/_10sdp"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackground"
-            app:cardBackgroundColor="@color/primary_pink"
+            app:cardBackgroundColor="@color/primary_color"
             app:cardCornerRadius="@dimen/_12sdp">
 
             <ImageView
@@ -146,7 +145,7 @@
                 android:contentDescription="@null"
                 android:src="@drawable/ic_shopping_cart" />
 
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
 
         <LinearLayout
             android:layout_width="0dp"
@@ -176,13 +175,12 @@
                 android:layout_weight="1"
                 tools:ignore="NestedWeights" />
 
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/buIncrement"
+                style="@style/RippleRectangleEffectCardStyle"
                 android:layout_width="@dimen/_30sdp"
                 android:layout_height="@dimen/_30sdp"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="@dimen/_12sdp">
 
                 <ImageView
@@ -192,7 +190,7 @@
                     android:contentDescription="@null"
                     android:src="@drawable/ic_add" />
 
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
             <TextView
                 android:id="@+id/tvNumMedicines"
@@ -205,14 +203,13 @@
                 android:textStyle="bold"
                 tools:ignore="HardcodedText" />
 
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/buDecrease"
+                style="@style/RippleRectangleEffectCardStyle"
                 android:layout_width="@dimen/_30sdp"
                 android:layout_height="@dimen/_30sdp"
                 android:layout_marginEnd="@dimen/_7sdp"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="@dimen/_12sdp">
 
                 <ImageView
@@ -222,7 +219,7 @@
                     android:contentDescription="@null"
                     android:src="@drawable/ic_remove" />
 
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
 
