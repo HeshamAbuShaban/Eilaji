@@ -81,4 +81,7 @@
     <string name="sound_name_talking">متحدث</string>
     <string name="sound_name_bell">جرس</string>
     <string name="placeholder">غير محدد</string>
+    <string name="do_you_really_want_to_log_out"> هل تريد حقًا تسجيل الخروج !؟ </string>
+    <string name="logout"> تسجيل الخروج </string>
+    <string name="cancel"> إلغاء </string>
 </resources>

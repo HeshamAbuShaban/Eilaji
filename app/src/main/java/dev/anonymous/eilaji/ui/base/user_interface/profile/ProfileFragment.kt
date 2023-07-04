@@ -11,10 +11,12 @@ import dev.anonymous.eilaji.databinding.FragmentProfileBinding
 import dev.anonymous.eilaji.firebase.FirebaseController
 import dev.anonymous.eilaji.ui.main.MainActivity
 import dev.anonymous.eilaji.ui.other.base.AlternativesActivity
-import dev.anonymous.eilaji.utils.FragmentsKeys
+import dev.anonymous.eilaji.storage.enums.FragmentsKeys
+import dev.anonymous.eilaji.ui.other.dialogs.LogoutDialogFragment
+import dev.anonymous.eilaji.ui.other.dialogs.LogoutDialogFragment.LogoutDialogListener
 import java.net.URLEncoder
 
-class ProfileFragment : Fragment() {
+class ProfileFragment : Fragment() ,LogoutDialogListener{
     private lateinit var _binding: FragmentProfileBinding
     private val binding get() = _binding
     private val firebaseController = FirebaseController.getInstance()
@@ -37,14 +39,8 @@ class ProfileFragment : Fragment() {
         with(binding){
             // SignOut
             buLogout.setOnClickListener {
-                //first logout from firebase server
-                firebaseController.signOut()
-                // pop the current screen from the back stack
-                requireActivity().finish()
-                // move to the login screen
-                val intent = Intent(requireContext(), MainActivity::class.java)
-                intent.putExtra("logoutTrigger",FragmentsKeys.logout.name)
-                startActivity(intent)
+                // show an alert to notify user of the logout action
+                LogoutDialogFragment().show(childFragmentManager,"LogoutTriggered")
             }
             // change-password need to be fixed
             buChangePassword.setOnClickListener {
@@ -77,5 +73,17 @@ class ProfileFragment : Fragment() {
             // etc..
         }
 
+    }
+    // logout inside of dialog that shows when user clicked on bnLogout in the fragment
+    override fun onLogoutClicked() {
+        //first logout from firebase server
+        firebaseController.signOut()
+        // pop the current screen from the back stack
+        requireActivity().finish()
+        // move to the login screen
+        val intent = Intent(requireContext(), MainActivity::class.java)
+        intent.putExtra("logoutTrigger",
+            FragmentsKeys.logout.name)
+        startActivity(intent)
     }
 }

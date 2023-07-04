@@ -1,4 +1,4 @@
-package dev.anonymous.eilaji.utils;
+package dev.anonymous.eilaji.storage.enums;
 
 public enum SoundNumbers {
     SoundTalking(1),
