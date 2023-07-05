@@ -7,6 +7,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -23,65 +26,74 @@ import com.google.android.gms.maps.model.MarkerOptions
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.adapters.PharmaciesLocationsAdapter
 import dev.anonymous.eilaji.databinding.FragmentMapBinding
+import dev.anonymous.eilaji.ui.other.dialogs.permissions.RequestPermissionsDialogFragment
+import dev.anonymous.eilaji.ui.other.dialogs.permissions.RequestPermissionsDialogFragment.RequestPermissionsListener
 import dev.anonymous.eilaji.utils.DummyData
 
 
-class MapFragment : Fragment(), OnMapReadyCallback {
+class MapFragment : Fragment(), OnMapReadyCallback ,RequestPermissionsListener{
+    private lateinit var requestPermissionLauncher : ActivityResultLauncher<Array<String>>
+
     private lateinit var _binding: FragmentMapBinding
     private val binding get() = _binding
 
     private lateinit var mapViewModel: MapViewModel
-    // private late-init var permissionHandler: PermissionHandler
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        _binding = FragmentMapBinding.inflate(layoutInflater)
         // Fix => Unable to update local snapshot for com.google.android.libraries.consentverifier
         // Fix => Unable to update local snapshot for com.google.android.libraries.conservativeness
         // Fix => set_timerslack_ns write failed: Operation not permitted
-        MapsInitializer.initialize(
-            requireContext(),
-            MapsInitializer.Renderer.LATEST
-        ) { _: MapsInitializer.Renderer? -> }
-
-        _binding = FragmentMapBinding.inflate(inflater, container, false)
-
+        MapsInitializer.initialize(requireContext(), MapsInitializer.Renderer.LATEST) { _: MapsInitializer.Renderer? -> }
+        setupVMComponent()
+        return binding.root
+    }
+    private fun setupVMComponent(){
         // Initialize the view model
         mapViewModel = ViewModelProvider(this)[MapViewModel::class.java]
-
-        // #This Block of code is not good to be relayed on .. do the permission handling
-        /*// create google Map Instance && getting the current location
-        mapViewModel.checkLocationPermission().let { granted ->
-            if (granted) {
-                // Permission granted, proceed with map-related functionality
-                obtainGoogleMapInstance()
-                observeCurrentLocation()
+        requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            // Check if all permissions are granted
+            val allGranted = permissions.all { it.value }
+            if (allGranted) {
+                // All permissions granted, you can proceed with sending notifications
+                Toast.makeText(
+                    requireContext(),
+                    "Great Now you are all set to use The Reminder",
+                    Toast.LENGTH_LONG).show()
             } else {
-                // Permission denied, handle accordingly (e.g., show a message or disable map-related functionality)
-                Toast.makeText(context, "The Map Permissions are required !!", Toast.LENGTH_LONG)
-                    .show()
-                Log.d("MapFragment", "onCreateView() called with: granted = false")
+                // Permission denied, handle accordingly
+                // At least one permission denied, handle accordingly (e.g., show a message or disable certain features)
+                Toast.makeText(requireContext(),
+                    "Permission denied. Cannot create reminder.",
+                    Toast.LENGTH_SHORT).show()
             }
-        }*/
 
-        return binding.root
+        }
+        mapViewModel.setRequestPermissionLauncher(requestPermissionLauncher)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // `Temporary` call of this line
-        obtainGoogleMapInstance()
-        observeCurrentLocation()
-        setupAdsPager()
+
+        if (mapViewModel.arePermissionsGranted()){
+            obtainGoogleMapInstance()
+            observeCurrentLocation()
+            setupAdsPager()
+        }else{
+            RequestPermissionsDialogFragment.newInstance("Please allow the map permission to be able to use the app properly").show(childFragmentManager,"MapPermissions")
+        }
+
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
         // Set the GoogleMap instance in the view model
         mapViewModel.setMap(googleMap)
-        setupAdsPager() // this method needs the map: GoogleMap to be initialized
 
+        mapViewModel.updateLastLocation()
 
         // Hesham:?> Provide Some Context of what dose this block of code do ?
         googleMap.setOnMarkerClickListener { marker ->
@@ -103,10 +115,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             true
         }
 
-        //This What Fat-ooh Started with ! need to be changed do suite our case
-//        mapViewModel.updateMarkerOptions()
-
-
         /*// This Is Just a test
         mapViewModel.moveCameraToPosition(
             LatLng(31.449624242321853, 34.39510808345772),
@@ -123,7 +131,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 )
             )
         }
-
     }
 
 
@@ -142,13 +149,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             mapViewModel.animateCameraToPosition(currentLatLng, 17f)
 
             // Add a marker to the current location
-            mapViewModel.addMarkerToMap(
-                markerOptions(latLng = currentLatLng, title = "Home Location")
+            mapViewModel.addMarkerToMap(markerOptions(latLng = currentLatLng, title = "Home Location")
             )
         }
     }
 
-    // +++++++++Setup Method
+    // +++++++++Setup AdsPager
     private fun setupAdsPager() {
         var scrollIsDragging = false
         with(binding.pharmaciesLocationsPager) {
@@ -183,7 +189,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    // +++++++++Utilities Method
+    // +++++++++Utilities for design
     private fun markerOptions(
         latLng: LatLng,
         title: String,
@@ -215,6 +221,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         )
         drawable.draw(canvas)
         return BitmapDescriptorFactory.fromBitmap(bitmap)
+    }
+
+    // Permission Interface callbacks
+    override fun onAllowClicked() {
+        mapViewModel.requestPermissions()
+    }
+
+    override fun onDenyClicked() {
+        Toast.makeText(requireContext(),getString(R.string.permissions_message_sorry_you_can_not),Toast.LENGTH_SHORT).show()
     }
 
 

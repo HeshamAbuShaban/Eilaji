@@ -84,4 +84,12 @@
     <string name="do_you_really_want_to_log_out"> هل تريد حقًا تسجيل الخروج !؟ </string>
     <string name="logout"> تسجيل الخروج </string>
     <string name="cancel"> إلغاء </string>
+    <!--PermissionsDialog-->
+    <string name="allow">قبول</string>
+    <string name="deny">رفض</string>
+    <string name="permissions_message_starter">يستخدم تطبيقنا إذن الإخطار ، لتنبيهك بالتذكير ، يرجى منح الأذونات التالية</string>
+    <string name="permissions_message_we_are_sorry">نحن آسفون ، يجب أن تسمح للتطبيق باستخدام إذن معين من أجل استخدام هذه الوظيفة ، يرجى منح الأذونات التالية</string>
+    <string name="permissions_message_sorry_you_can_not">آسف ولكن لا يمكنك استخدام هذه الوظيفة!</string>
+    <string name="battery_optimization">لضمان حسن سير التذكيرات ، يرجى استبعاد هذا التطبيق من تحسين البطارية.</string>
+    <string name="battery_optimization_still_running">قد لا يظهر تذكيرك في الوقت المناسب !!!</string>
 </resources>
