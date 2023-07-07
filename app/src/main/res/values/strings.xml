@@ -96,5 +96,13 @@
     <string name="do_you_really_want_to_log_out">Do you really want to log out!?</string>
     <string name="logout">Logout</string>
     <string name="cancel">Cancel</string>
+    <string name="allow">Allow</string>
+    <string name="deny">Deny</string>
+    <string name="permissions_message_starter">Our app uses the notification permission, to alert you with your reminder , please grant the following permissions</string>
+    <string name="permissions_message_we_are_sorry">we are sorry, you must allow the app to use certain permission in order to use this functionality , please grant the following permissions</string>
+    <string name="permissions_message_sorry_you_can_not">Sorry but you can\'t use this functionality!</string>
+    <string name="battery_optimization">To ensure proper functioning of reminders, please exclude this app from battery optimization.</string>
+    <string name="battery_optimization_still_running">YOUR REMINDER MIGHT NOT SHOW UP IN TIME!!!</string>
+    <string name="the_app_map">The app map</string>
 
 </resources>

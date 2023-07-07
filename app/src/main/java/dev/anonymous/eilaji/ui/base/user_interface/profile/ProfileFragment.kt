@@ -61,6 +61,12 @@ class ProfileFragment : Fragment() ,LogoutDialogListener{
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                 startActivity(intent)
             }
+            // map temp
+            buAppMap.setOnClickListener {
+                val intent = Intent(requireContext(), AlternativesActivity::class.java)
+                intent.putExtra("fragmentType", FragmentsKeys.map.name)
+                startActivity(intent)
+            }
 
             // connect with us temp
             buConnectWithUs.setOnClickListener {

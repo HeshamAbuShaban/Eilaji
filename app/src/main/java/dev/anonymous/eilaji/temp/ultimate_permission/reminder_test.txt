@@ -1,0 +1,109 @@
+@declare a proper permissions in the manifest
+
+@declare a ActivityResultLauncher<Array<String>> type of object
+
+private late-init var requestPermissionLauncher : ActivityResultLauncher<Array<String>>
+
+/**
+  * @initialize the object in (i.e. initialization, onAttach(), or onCreate()).
+  * Error might occurred if not in between these
+  *
+  * java.lang.IllegalStateException: Fragment ReminderFragment{12after5} (7d80feed-8634-4cac-8949-4281d1e55bc2 id=0x7f080196 tag=7bf66b8a-b343-435b-8f00-c3f0de9ffb3a) is attempting to registerForActivityResult after being created. Fragments must call registerForActivityResult() before they are created (i.e. initialization, onAttach(), or onCreate()).
+  *
+  */
+
+ override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // initialize the requestPermissionLauncher
+        requestPermissionLauncher =
+            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+                // Check if all permissions are granted
+                val allGranted = permissions.all { it.value }
+                if (allGranted) {
+                    // All permissions granted, you can proceed with sending notifications , viewing map , etc..
+                    Toast.makeText(requireContext(),
+                        "Great Now you are all set to use The Reminder",
+                        Toast.LENGTH_LONG).show()
+                } else {
+                    // Permission denied, handle accordingly
+                    // At least one permission denied, handle accordingly (e.g., show a message or disable certain features)
+                    Toast.makeText(requireContext(),
+                        "Permission denied. Cannot create reminder.",
+                        Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+## Additionally you can check if the user has the permissions granted in the onViewCreated for example , like so :
+
+     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // initialize the requestPermissionLauncher
+        requestPermissionLauncher /... rest of the code
+
+            // Request permissions if not granted
+            if (!arePermissionsGranted()) {
+                RequestPermissionsDialogFragment.newInstance(getString(R.string.permissions_message_starter)).show(childFragmentManager, "StarterInform")
+            }
+            // if the BatteryOptimization Enabled
+            if (isBatteryOptimizationEnabled()) {
+                showBatteryOptimizationDialog()
+            }
+
+        }
+
+### These should help inorder to check and processed
+======================================================================================================
+ // are the permissions granted ?
+    private fun arePermissionsGranted(): Boolean {
+        return REQUIRED_PERMISSIONS.all {
+            ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
+    /*private fun isBatteryOptimizationEnabled(): Boolean {
+        val powerManager = requireActivity().getSystemService(Context.POWER_SERVICE) as PowerManager
+        return powerManager.isPowerSaveMode
+    }*/
+    private fun isBatteryOptimizationEnabled(): Boolean {
+        val powerManager = requireActivity().getSystemService(Context.POWER_SERVICE) as PowerManager
+        val packageName = requireContext().packageName
+        return !powerManager.isIgnoringBatteryOptimizations(packageName)
+    }
+
+    private fun showBatteryOptimizationDialog() {
+        val dialogBuilder = AlertDialog.Builder(requireContext())
+        dialogBuilder.setTitle("Battery Optimization")
+        dialogBuilder.setMessage("To ensure proper functioning of reminders, please exclude this app from battery optimization.")
+        dialogBuilder.setPositiveButton("Go to Settings") { _, _ ->
+            // Open battery optimization settings screen
+            val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+            startActivity(intent)
+        }
+        dialogBuilder.setNegativeButton("Cancel", null)
+        dialogBuilder.create().show()
+    }
+======================================================================================================
+
+@Finally here's how you can lunch the request:
+
+    private fun requestPermissions() {
+        requestPermissionLauncher.launch(REQUIRED_PERMISSIONS)
+    }
+
+@The Way to declare your array of permissions
+
+    companion object {
+            private val REQUIRED_PERMISSIONS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                arrayOf(
+                    Manifest.permission.POST_NOTIFICATIONS,
+                    Manifest.permission.VIBRATE,
+                )
+            } else {
+                arrayOf(
+                    Manifest.permission.VIBRATE,
+                )
+            }
+        }

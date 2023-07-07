@@ -22,7 +22,7 @@ android {
         targetSdk 33
         versionCode 1
         versionName "1.0"
-        multiDexEnabled true
+        multiDexEnabled true //Todo : remove this
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -109,4 +109,7 @@ dependencies {
     def work_version = "2.8.1"
     implementation "androidx.work:work-runtime-ktx:$work_version"
 
+    // Pick Image in a recommend way
+    def activity_version = "1.7.2"
+    implementation "androidx.activity:activity-ktx:$activity_version"
 }

@@ -34,7 +34,6 @@ class ReminderScheduler(private val context: Context) {
     }
 
 
-    // TODO: Send the Medicine Reminder Id from the database here to set it as the Notification id.
 
     // This For one Time Reminder
     fun scheduleReminderOneTimeWorkRequest(timeUnit: TimeUnit = TimeUnit.MINUTES) {

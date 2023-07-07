@@ -1,0 +1,19 @@
+ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
+
+
+        pickMedia = registerForActivityResult(new ActivityResultContracts.PickMultipleVisualMedia(10), uri -> {
+//        pickMedia = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
+            if (uri != null) {
+                Log.d("PhotoPicker", "Selected URI: " + uri);
+            }
+        });
+
+
+
+
+            pickMedia.launch(new PickVisualMediaRequest.Builder()
+//                    .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                    .setMediaType(ActivityResultContracts.PickVisualMedia.VideoOnly.INSTANCE)
+//                    .setMediaType(ActivityResultContracts.PickVisualMedia.ImageAndVideo.INSTANCE)
+//                    .setMediaType(new ActivityResultContracts.PickVisualMedia.SingleMimeType("image/gif"))
+                    .build());

@@ -194,6 +194,53 @@
 
             </LinearLayout>
 
+            <!--New Map-->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_1sdp"
+                android:layout_marginStart="@dimen/_53sdp"
+                android:layout_marginEnd="@dimen/_25sdp"
+                android:background="@color/gray" />
+
+            <LinearLayout
+                android:id="@+id/buAppMap"
+                style="@style/SelectableItemBackgroundStyle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:paddingHorizontal="@dimen/_25sdp"
+                android:paddingVertical="@dimen/_12sdp">
+
+                <ImageView
+                    android:layout_width="@dimen/_20sdp"
+                    android:layout_height="@dimen/_20sdp"
+                    android:contentDescription="@null"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/ic_map"
+                    app:tint="@color/pink_light"
+                    tools:ignore="ImageContrastCheck" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_8sdp"
+                    android:text="@string/the_app_map"
+                    android:textSize="@dimen/_13ssp" />
+
+                <androidx.legacy.widget.Space
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/_15sdp"
+                    android:layout_marginEnd="@dimen/_3sdp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_arrow_forward" />
+
+            </LinearLayout>
+
             <View
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_1sdp"
