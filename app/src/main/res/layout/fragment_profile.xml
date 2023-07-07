@@ -25,6 +25,7 @@
                 style="@style/SelectableItemBackgroundStyle"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingHorizontal="@dimen/_25sdp"
                 android:paddingVertical="@dimen/_12sdp">
@@ -70,6 +71,7 @@
                 style="@style/SelectableItemBackgroundStyle"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingHorizontal="@dimen/_25sdp"
                 android:paddingVertical="@dimen/_12sdp">
@@ -116,6 +118,7 @@
                 style="@style/SelectableItemBackgroundStyle"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingHorizontal="@dimen/_25sdp"
                 android:paddingVertical="@dimen/_12sdp">
@@ -161,6 +164,7 @@
                 style="@style/SelectableItemBackgroundStyle"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingHorizontal="@dimen/_25sdp"
                 android:paddingVertical="@dimen/_12sdp">
@@ -207,6 +211,7 @@
                 style="@style/SelectableItemBackgroundStyle"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingHorizontal="@dimen/_25sdp"
                 android:paddingVertical="@dimen/_12sdp">
@@ -217,7 +222,7 @@
                     android:contentDescription="@null"
                     android:scaleType="fitXY"
                     android:src="@drawable/ic_map"
-                    app:tint="@color/pink_light"
+                    app:tint="@color/primary_color"
                     tools:ignore="ImageContrastCheck" />
 
                 <TextView

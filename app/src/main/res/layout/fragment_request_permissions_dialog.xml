@@ -24,7 +24,7 @@
     <!--Button Allow-->
     <Button
         android:id="@+id/allowPermissions"
-        style="@style/PinkButton"
+        style="@style/PrimaryButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/allow"
@@ -32,7 +32,7 @@
     <!--Button Deny-->
     <Button
         android:id="@+id/denyPermissions"
-        style="@style/PinkButton"
+        style="@style/PrimaryButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:backgroundTint="@color/c1_reminder_item"

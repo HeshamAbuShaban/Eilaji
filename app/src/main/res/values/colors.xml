@@ -13,10 +13,27 @@
 
     <color name="night_window_background_color">#121212</color>
 
+    <color name="primary_pink">#FF74B1</color>
+    <color name="gray_light">#FBFBFB</color>
+
     <!--    otp pin view colors -->
     <color name="otp_item_color">#EFEFEF</color>
     <color name="otp_text_focused">#E91E63</color>
     <color name="otp_text_default">#000000</color>
     <color name="eeeeee">#EEEEEE</color>
+
+    <!--  CustomPink as Temp-->
+    <color name="temp_color">#99646464</color>
+    <color name="light_pink">#73BE6464</color>
+    <color name="dark_red">#d62828</color>
+    <color name="dark_blue">#003049</color>
+
+    <!--  Material as Temp-->
+    <color name="shrine_pink_100">#FEDBD0</color>
+    <color name="shrine_pink_900">#442C2E</color>
+    <color name="c1_reminder_item">#ffc4d6</color>
+    <color name="c1_reminder_item_">#fca3a7</color>
+    <color name="c2_reminder_item">#ff87ab</color>
+    <color name="c_text_over_pink">#6d23b6</color>
 
 </resources>

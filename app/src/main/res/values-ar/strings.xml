@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">علاجي</string>
-    <string name="username">اسم المستخدم</string>
+    <string name="full_name">الاسم الكامل</string>
     <string name="password">كلمة المرور</string>
     <string name="email">البريد الالكتروني</string>
     <string name="login">تسجيل الدخول</string>

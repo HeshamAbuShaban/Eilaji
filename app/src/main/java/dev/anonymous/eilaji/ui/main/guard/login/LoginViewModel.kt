@@ -15,18 +15,19 @@ class LoginViewModel : ViewModel() {
     val loginResult: LiveData<LoginResult> get() = _loginResult
 
     fun login(email: String, password: String, activity: Activity) {
-        firebaseController.login(email, password, activity, onTaskSuccessful = {
-            _loginResult.value = LoginResult.Success
-        }, showSnackBar = { task ->
-            val exception = task.exception
-            if (exception is FirebaseAuthException) {
-                val errorCode = exception.errorCode
-                val errorMessage = getFirebaseErrorMessage(errorCode)
-                _loginResult.value = LoginResult.Error(errorMessage)
-            } else {
-                _loginResult.value = LoginResult.Error("Authentication failed.")
-            }
-        })
+        firebaseController.login(email, password, activity,
+            onTaskSuccessful = {
+                _loginResult.value = LoginResult.Success
+            }, showSnackBar = { task ->
+                val exception = task.exception
+                if (exception is FirebaseAuthException) {
+                    val errorCode = exception.errorCode
+                    val errorMessage = getFirebaseErrorMessage(errorCode)
+                    _loginResult.value = LoginResult.Error(errorMessage)
+                } else {
+                    _loginResult.value = LoginResult.Error("Authentication failed.")
+                }
+            })
     }
 
     private fun getFirebaseErrorMessage(errorCode: String): String {

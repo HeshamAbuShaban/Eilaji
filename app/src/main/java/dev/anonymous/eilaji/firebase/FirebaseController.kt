@@ -1,18 +1,24 @@
 package dev.anonymous.eilaji.firebase
 
 import android.app.Activity
+import android.content.Context
 import android.util.Log
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.UserProfileChangeRequest
-import kotlin.Exception
+import com.google.firebase.firestore.FirebaseFirestore
+import dev.anonymous.eilaji.storage.AppSharedPreferences
 
 
 class FirebaseController private constructor() {
+    enum class FirebaseKeys {
+        userUid, fullName, imageUrl, token
+    }
+
     private var auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val fireStore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
     companion object {
         @Volatile
@@ -23,6 +29,59 @@ class FirebaseController private constructor() {
             }
 
         private const val TAG = "FirebaseController"
+    }
+
+    fun getUser(
+        userUid: String,
+        onTaskSuccessful: (fullName: String, imageUrl: String) -> Unit,
+        onTaskFailed: (error: String) -> Unit,
+    ) {
+        fireStore.collection("Users")
+            .document(userUid)
+            .get()
+            .addOnCompleteListener {
+                if (it.isSuccessful) {
+                    it.result.data?.let { data ->
+                        onTaskSuccessful(
+                            data["fullName"].toString(),
+                            data["imageUrl"].toString()
+                        )
+                    }
+                } else {
+                    onTaskFailed(it.exception?.message!!)
+                }
+            }.addOnFailureListener {
+                onTaskFailed(it.message.toString())
+            }
+    }
+
+    fun addUser(
+        userUid: String,
+        fullName: String,
+        imageUrl: String = "default",
+        token: String,
+        onTaskSuccessful: () -> Unit,
+        onTaskFailed: (error: String) -> Unit,
+    ) {
+        val data: Map<String, String> = mapOf(
+            "userUid" to userUid,
+            "fullName" to fullName,
+            "imageUrl" to imageUrl,
+            "token" to token,
+        )
+
+        fireStore.collection("Users")
+            .document(userUid)
+            .set(data)
+            .addOnCompleteListener {
+                if (it.isSuccessful) {
+                    onTaskSuccessful()
+                } else {
+                    onTaskFailed(it.exception?.message!!)
+                }
+            }.addOnFailureListener {
+                onTaskFailed(it.message.toString())
+            }
     }
 
     fun login(
@@ -43,7 +102,6 @@ class FirebaseController private constructor() {
     }
 
     fun register(
-        username: String,
         email: String,
         password: String,
         onTaskSuccessful: () -> Unit,
@@ -52,11 +110,6 @@ class FirebaseController private constructor() {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    val user = auth.currentUser
-                    // Update user profile with username if desired
-                    user?.updateProfile(
-                        UserProfileChangeRequest.Builder().setDisplayName(username).build()
-                    )
                     onTaskSuccessful()
                 } else {
                     Log.d(TAG, "register: task isn't successfully proceed", task.exception)
@@ -67,15 +120,19 @@ class FirebaseController private constructor() {
             }
     }
 
-    fun signOut() {
+    fun signOut(context: Context) {
         auth.signOut()
+        AppSharedPreferences.getInstance(context).clear()
     }
 
     fun getCurrentUser(): FirebaseUser? {
         return auth.currentUser
     }
 
-    fun forgotPassword(email:String, onTaskSuccessful: () -> Unit, onTaskFailed: (Exception) -> Unit) {
+    fun forgotPassword(
+        email: String, onTaskSuccessful: () -> Unit,
+        onTaskFailed: (Exception) -> Unit
+    ) {
         auth.sendPasswordResetEmail(email)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {

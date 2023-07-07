@@ -11,9 +11,9 @@ class SignUpViewModel : ViewModel() {
     private val _signUpResult = MutableLiveData<SignUpResult>()
     val signUpResult: LiveData<SignUpResult> get() = _signUpResult
 
-    fun signUp(username: String, email: String, password: String, confirmPassword: String) {
+    fun signUp(fullName: String, email: String, password: String, confirmPassword: String) {
         // Perform input validation
-        if (username.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+        if (fullName.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             _signUpResult.value = SignUpResult.Error("Please fill in all fields.")
             return
         }
@@ -24,13 +24,15 @@ class SignUpViewModel : ViewModel() {
         }
 
         // Call the register method from FirebaseController
-        firebaseController.register(username, email, password, onTaskSuccessful = {
-            _signUpResult.value = SignUpResult.Success
-        }, onTaskFailed = { exception ->
+        firebaseController.register(email, password,
+            onTaskSuccessful = {
+                _signUpResult.value = SignUpResult.Success(fullName)
+            }, onTaskFailed = { exception ->
 //            val errorMessage = getFirebaseErrorMessage(exception)
-            // now onTaskFailed returns final massage without the need for getFirebaseErrorMessage
-            _signUpResult.value = SignUpResult.Error(exception)
-        })
+                // now onTaskFailed returns final massage without the need for getFirebaseErrorMessage
+                _signUpResult.value = SignUpResult.Error(exception)
+            }
+        )
     }
 
     /*
@@ -55,6 +57,6 @@ class SignUpViewModel : ViewModel() {
 }
 
 sealed class SignUpResult {
-    object Success : SignUpResult()
+    class Success(val fullName: String, val imageUrl: String = "default") : SignUpResult()
     data class Error(val errorMessage: String) : SignUpResult()
 }

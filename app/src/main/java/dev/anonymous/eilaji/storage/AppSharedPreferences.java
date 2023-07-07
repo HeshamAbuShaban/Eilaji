@@ -6,8 +6,9 @@ import android.content.SharedPreferences;
 
 public class AppSharedPreferences {
     private enum SharedPreferencesKeys {
-        /*invoked*/onBoardingDone,isFirstTime
+        /*invoked*/onBoardingDone, isFirstTime, token, fullName, imageUrl
     }
+
     private static AppSharedPreferences Instance;
     private final SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
@@ -23,11 +24,41 @@ public class AppSharedPreferences {
         return Instance;
     }
 
+    public String getImageUrl() {
+        return sharedPreferences.getString(SharedPreferencesKeys.imageUrl.name(), "default");
+    }
+
+    public void putImageUrl(String token) {
+        editor = sharedPreferences.edit();
+        editor.putString(SharedPreferencesKeys.imageUrl.name(), token);
+        editor.apply();
+    }
+
+    public String getFullName() {
+        return sharedPreferences.getString(SharedPreferencesKeys.fullName.name(), null);
+    }
+
+    public void putFullName(String token) {
+        editor = sharedPreferences.edit();
+        editor.putString(SharedPreferencesKeys.fullName.name(), token);
+        editor.apply();
+    }
+
+    public String getToken() {
+        return sharedPreferences.getString(SharedPreferencesKeys.token.name(), null);
+    }
+
+    public void putToken(String token) {
+        editor = sharedPreferences.edit();
+        editor.putString(SharedPreferencesKeys.token.name(), token);
+        editor.apply();
+    }
 
     // FOR DATABASE NOTIFICATION ID CREATION
     public int getLastNotificationId() {
         return sharedPreferences.getInt("LAST_NOTIFICATION_ID", 0);
     }
+
     public void putNewNotificationId(int id) {
         editor = sharedPreferences.edit();
         editor.putInt("LAST_NOTIFICATION_ID", id);

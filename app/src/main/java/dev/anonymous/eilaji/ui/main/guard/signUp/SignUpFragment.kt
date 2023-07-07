@@ -13,7 +13,9 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.FragmentSignUpBinding
+import dev.anonymous.eilaji.storage.AppSharedPreferences
 import dev.anonymous.eilaji.ui.base.BaseActivity
+import dev.anonymous.eilaji.utils.AppController
 
 class SignUpFragment : Fragment() {
     private lateinit var _binding: FragmentSignUpBinding
@@ -36,8 +38,8 @@ class SignUpFragment : Fragment() {
         observeSignUpResult()
         setupListeners()
     }
-    
-    private fun setupListeners(){
+
+    private fun setupListeners() {
 
         binding.buSkip.setOnClickListener {
             startActivity(Intent(requireContext(), BaseActivity::class.java))
@@ -48,6 +50,7 @@ class SignUpFragment : Fragment() {
             findNavController().navigate(R.id.navigation_Login)
         }
     }
+
     private fun setupViewModel() {
         signUpViewModel = ViewModelProvider(this)[SignUpViewModel::class.java]
     }
@@ -56,11 +59,11 @@ class SignUpFragment : Fragment() {
     private fun performSignUp() {
         binding.buCreateAnAccount.setOnClickListener {
             if (validateInputs()) {
-                val username = binding.edUsername.text.toString()
+                val fullName = binding.edFullName.text.toString()
                 val email = binding.edEmail.text.toString()
                 val password = binding.edPassword.text.toString()
                 val confirmPassword = binding.edConfirmPassword.text.toString()
-                signUpViewModel.signUp(username, email, password, confirmPassword)
+                signUpViewModel.signUp(fullName, email, password, confirmPassword)
             }
             Log.i("FragmentSignUp", "performSingUp: data got collected")
         }
@@ -71,9 +74,14 @@ class SignUpFragment : Fragment() {
         signUpViewModel.signUpResult.observe(viewLifecycleOwner) { signUpResult ->
             when (signUpResult) {
                 is SignUpResult.Success -> {
+                    val preferences = AppSharedPreferences.getInstance(AppController.getInstance())
+                    preferences.putFullName(signUpResult.fullName)
+                    preferences.putImageUrl(signUpResult.imageUrl)
+
                     // Handle successful sign up
                     // Show success message or navigate to the next screen
                     showSnackBar("Sign up successful")
+
                     //now its fine to say lets get to home.
                     navigateToHomeActivity()
                 }
@@ -102,7 +110,7 @@ class SignUpFragment : Fragment() {
 
     private fun handleInputValidationErrors(errorMessage: String) {
         when (errorMessage) {
-            "INVALID_USERNAME" -> binding.edUsername.error = "Invalid username"
+            "INVALID_USERNAME" -> binding.edFullName.error = "Invalid username"
             "INVALID_EMAIL" -> binding.edEmail.error = "Invalid email"
             "INVALID_PASSWORD" -> binding.edPassword.error = "Invalid password"
             // Handle other validation errors as needed
@@ -112,17 +120,17 @@ class SignUpFragment : Fragment() {
     private fun validateInputs(): Boolean {
         var isValid = true
 
-        val username = binding.edUsername.text.toString().trim()
+        val username = binding.edFullName.text.toString().trim()
         val email = binding.edEmail.text.toString().trim()
         val password = binding.edPassword.text.toString()
         val confirmPassword = binding.edConfirmPassword.text.toString()
 
         // Validate username
         if (username.isEmpty()) {
-            binding.edUsername.error = "Please enter a username"
+            binding.edFullName.error = "Please enter a username"
             isValid = false
         } else if (username.length < 6) {
-            binding.edUsername.error = "Username must be at least 6 characters long"
+            binding.edFullName.error = "Username must be at least 6 characters long"
             isValid = false
         }
 
@@ -160,5 +168,5 @@ class SignUpFragment : Fragment() {
         return isValid
     }
 
-    
+
 }

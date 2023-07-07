@@ -83,7 +83,7 @@ class ProfileFragment : Fragment() ,LogoutDialogListener{
     // logout inside of dialog that shows when user clicked on bnLogout in the fragment
     override fun onLogoutClicked() {
         //first logout from firebase server
-        firebaseController.signOut()
+        firebaseController.signOut(requireContext())
         // pop the current screen from the back stack
         requireActivity().finish()
         // move to the login screen

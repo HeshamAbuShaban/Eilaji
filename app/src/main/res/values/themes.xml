@@ -6,6 +6,9 @@
         <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
         <item name="android:textViewStyle">@style/AppTextViewStyle</item>
         <item name="android:fontFamily">@font/cairo_medium</item>
+
+        <item name="radioButtonStyle">@style/Widget.App.RadioButton</item>
+
         <!-- target android sdk versions < 26 and > 14 if theme other than AppCompat -->
         <item name="fontFamily">@font/cairo_medium</item>
     </style>
@@ -86,7 +89,7 @@
         <item name="android:textColor">@color/black</item>
     </style>
 
-    <style name="PinkButton" parent="Widget.MaterialComponents.Button">
+    <style name="PrimaryButton" parent="Widget.MaterialComponents.Button">
         <item name="backgroundTint">@color/primary_color</item>
         <item name="android:paddingTop">@dimen/_12sdp</item>
         <item name="android:paddingBottom">@dimen/_12sdp</item>
@@ -136,6 +139,24 @@
         <item name="android:background">@drawable/ripple_circle_effect</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
+    </style>
+
+    <!--  #############################################################  -->
+    <style name="AppBottomSheetDialogTheme" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/AppBottomSheetModalStyle</item>
+    </style>
+
+    <style name="AppBottomSheetModalStyle" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/shape_bottom_sheet</item>
+    </style>
+
+    <style name="Widget.App.RadioButton" parent="Widget.Material3.CompoundButton.RadioButton">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.App.RadioButton</item>
+    </style>
+
+    <style name="ThemeOverlay.App.RadioButton" parent="">
+        <item name="colorOnSurface">#8093f1</item>
+        <item name="colorPrimary">#b388eb</item>
     </style>
 
 </resources>

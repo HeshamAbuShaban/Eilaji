@@ -34,7 +34,7 @@
     <!--fabChangeSound-->
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabChangeSound"
-        style="@style/PinkButton"
+        style="@style/PrimaryButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:importantForAccessibility="no"
@@ -107,7 +107,7 @@
     <!--Button OneTime-->
     <Button
         android:id="@+id/remindOneTimeButton"
-        style="@style/PinkButton"
+        style="@style/PrimaryButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/_15sdp"
@@ -124,7 +124,7 @@
 
     <Button
         android:id="@+id/remindRepeatedlyButton"
-        style="@style/PinkButton"
+        style="@style/PrimaryButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/_15sdp"

@@ -70,7 +70,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buAddAddress"
-                style="@style/PinkButton"
+                style="@style/PrimaryButton"
                 android:layout_width="match_parent"
                 android:layout_marginHorizontal="@dimen/_15sdp"
                 android:layout_height="wrap_content"

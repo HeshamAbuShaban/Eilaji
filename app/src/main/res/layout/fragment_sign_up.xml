@@ -37,7 +37,7 @@
             app:layout_constraintTop_toBottomOf="@+id/buSkip" />
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/textInputLayoutUsername"
+            android:id="@+id/textInputLayoutFullName"
             style="@style/TextInputAccountInformationStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -48,12 +48,12 @@
             app:layout_constraintTop_toBottomOf="@+id/imageView">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/edUsername"
+                android:id="@+id/edFullName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:drawableEnd="@drawable/ic_person"
                 android:drawablePadding="@dimen/_10sdp"
-                android:hint="@string/username"
+                android:hint="@string/full_name"
                 android:imeOptions="actionNext"
                 android:inputType="textPersonName"
                 android:maxLines="1" />
@@ -69,7 +69,7 @@
             app:hintEnabled="false"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textInputLayoutUsername">
+            app:layout_constraintTop_toBottomOf="@+id/textInputLayoutFullName">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/edEmail"
@@ -136,7 +136,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buCreateAnAccount"
-            style="@style/PinkButton"
+            style="@style/PrimaryButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_22sdp"
