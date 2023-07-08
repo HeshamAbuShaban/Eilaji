@@ -26,7 +26,7 @@
 
     <Button
         android:id="@+id/btn_logout"
-        style="@style/PinkButton"
+        style="@style/PrimaryButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:padding="15dp"
@@ -40,7 +40,7 @@
 
     <Button
         android:id="@+id/btn_cancel"
-        style="@style/PinkButton"
+        style="@style/PrimaryButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="@string/cancel"

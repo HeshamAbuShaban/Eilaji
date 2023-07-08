@@ -27,12 +27,31 @@ class SignUpViewModel : ViewModel() {
         firebaseController.register(username, email, password, onTaskSuccessful = {
             _signUpResult.value = SignUpResult.Success
         }, onTaskFailed = { exception ->
-            // val errorMessage = getFirebaseErrorMessage(exception)
+//            val errorMessage = getFirebaseErrorMessage(exception)
             // now onTaskFailed returns final massage without the need for getFirebaseErrorMessage
             _signUpResult.value = SignUpResult.Error(exception)
         })
     }
 
+    /*
+    //this one is a bit different than the Login one
+    private fun getFirebaseErrorMessage(errorCode: String): String {
+        Log.d("SignUp", "getFirebaseErrorMessage: errorCode from Firebase :$errorCode")
+        // Map Firebase error codes to error messages
+        return when (errorCode) {
+            //Older 3 dose-nt actually work
+            "ERROR_INVALID_EMAIL" -> "Invalid email address."
+            "ERROR_WEAK_PASSWORD" -> "Weak password. Please choose a stronger password."
+            "ERROR_EMAIL_ALREADY_IN_USE" -> "Email already in use."
+            //New 3Lines That ChatP provide when ask to show error massage for `SignUp`
+            "INVALID_USERNAME" -> "Invalid username"
+            "INVALID_EMAIL" -> "Invalid email"
+            "INVALID_PASSWORD" -> "Invalid password"
+            //default replay if not found the accurate one.
+            else -> "Sign up failed."
+        }
+    }
+     */
 }
 
 sealed class SignUpResult {

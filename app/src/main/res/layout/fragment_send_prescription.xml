@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".ui.base.user_interface.send_prescription.SendPrescriptionFragment">
 
-
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -44,7 +43,6 @@
                         android:gravity="center"
                         android:paddingHorizontal="@dimen/_18sdp"
                         android:text="@string/attach_a_picture_of_a_prescription"
-                        android:textColor="@color/black"
                         android:textSize="@dimen/_16ssp"
                         android:textStyle="bold" />
 
@@ -83,7 +81,6 @@
                     android:layout_marginHorizontal="@dimen/_15sdp"
                     android:gravity="center"
                     android:text="@string/or"
-                    android:textColor="@color/black"
                     android:textSize="@dimen/_16ssp"
                     android:textStyle="bold" />
 
@@ -97,7 +94,7 @@
             </LinearLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/textInputLayoutUsername"
+                android:id="@+id/textInputLayoutFullName"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -156,7 +153,7 @@
         android:contentDescription="@null"
         android:text="@string/send"
         android:textColor="@color/white"
-        app:backgroundTint="@color/primary_pink"
+        app:backgroundTint="@color/primary_color"
         app:icon="@drawable/ic_send"
         app:iconTint="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"

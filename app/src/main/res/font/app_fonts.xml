@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<font-family xmlns:app="http://schemas.android.com/apk/res-auto">
+    <font
+        app:fontStyle="normal"
+        app:font="@font/cairo_black"
+        app:fontWeight="900" />
+
+    <font
+        app:fontStyle="normal"
+        app:font="@font/cairo_bold"
+        app:fontWeight="700" />
+
+    <font
+        app:fontStyle="normal"
+        app:font="@font/cairo_medium"
+        app:fontWeight="500" />
+</font-family>

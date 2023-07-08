@@ -7,11 +7,6 @@
     android:layout_height="match_parent"
     tools:context=".ui.base.BaseActivity">
 
-    <!--ToolBarIncluded-->
-    <include
-        android:id="@+id/includeAppBarLayoutBase"
-        layout="@layout/app_bar_layout" />
-
     <!--NavHost-->
     <fragment
         android:id="@+id/nav_host_fragment_activity_base"
@@ -24,6 +19,11 @@
         app:navGraph="@navigation/mobile_navigation"
         tools:ignore="FragmentTagUsage" />
 
+    <!--ToolBarIncluded-->
+    <include
+        android:id="@+id/includeAppBarLayoutBase"
+        layout="@layout/app_bar_layout" />
+
     <!--BottomNavigationView-->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/navView"
@@ -31,12 +31,11 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:background="?android:windowBackground"
-        app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
         app:itemHorizontalTranslationEnabled="true"
-        app:itemIconTint="@color/primary_pink"
+        app:itemIconTint="@color/primary_color"
         app:itemTextColor="@color/black"
+        app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
         app:layout_insetEdge="bottom"
-        app:menu="@menu/bottom_nav_menu"
-        tools:ignore="VisualLintBottomNav" />
+        app:menu="@menu/bottom_nav_menu" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

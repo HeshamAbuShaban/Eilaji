@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <!--    on item is selected  -->
-    <item android:color="@color/primary_pink" android:state_selected="true" />
+    <item android:color="@color/primary_color" android:state_selected="true" />
     <!--    on pin view is focused  -->
     <item android:color="@color/otp_item_color" android:state_focused="true" />
     <!--    on pin view is not focused  -->

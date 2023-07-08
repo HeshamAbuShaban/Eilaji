@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.base.user_interface.home.HomeFragment">
+    tools:context=".ui.user_interface.home.HomeFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -53,7 +53,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/pagerAds"
-            app:selectedIndicatorColor="@color/primary_pink"
+            app:selectedIndicatorColor="@color/primary_color"
             app:selectedIndicatorWidthScale="8" />
 
         <!-- marginEnd _15sdp + TextButton paddingStart _5sdp = _20sdp  -->
@@ -74,10 +74,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/categories_pharmaceuticals"
-                android:textColor="@color/black"
                 android:textSize="@dimen/_13sdp" />
 
-            <androidx.legacy.widget.Space
+            <Space
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
@@ -121,10 +120,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/best_seller"
-                android:textColor="@color/black"
                 android:textSize="@dimen/_13sdp" />
 
-            <androidx.legacy.widget.Space
+            <Space
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />

@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingHorizontal="@dimen/_20sdp"
     android:scrollbars="none"
     tools:context=".ui.main.guard.login.LoginFragment">
 
@@ -12,17 +11,31 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guidelineEnd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_end="@dimen/_20sdp" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guidelineBegin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_begin="@dimen/_20sdp" />
+
         <TextView
             android:id="@+id/buSkip"
             style="@style/TextButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_25sdp"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:background="@drawable/ripple_circle_effect"
             android:text="@string/skip"
             android:textSize="@dimen/_14sdp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/guidelineEnd"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
@@ -32,19 +45,19 @@
             android:layout_height="@dimen/_110sdp"
             android:layout_marginTop="@dimen/_12sdp"
             android:contentDescription="@null"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/guidelineEnd"
+            app:layout_constraintStart_toStartOf="@+id/guidelineBegin"
             app:layout_constraintTop_toBottomOf="@+id/buSkip" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputLayoutEmail"
             style="@style/TextInputAccountInformationStyle"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_60sdp"
             app:hintEnabled="false"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/guidelineEnd"
+            app:layout_constraintStart_toStartOf="@+id/guidelineBegin"
             app:layout_constraintTop_toBottomOf="@+id/imageView">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -63,14 +76,14 @@
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputLayoutPassword"
             style="@style/TextInputAccountInformationStyle"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_15sdp"
             app:endIconMode="password_toggle"
-            app:endIconTint="@color/primary_pink"
+            app:endIconTint="@color/primary_color"
             app:hintEnabled="false"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/guidelineEnd"
+            app:layout_constraintStart_toStartOf="@+id/guidelineBegin"
             app:layout_constraintTop_toBottomOf="@+id/textInputLayoutEmail">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -92,11 +105,11 @@
             android:checked="true"
             android:minHeight="@dimen/_37sdp"
             android:text="@string/remember_me"
-            android:textColor="@color/primary_pink"
+            android:textColor="@color/primary_color"
             android:textSize="@dimen/_12ssp"
             android:theme="@style/checkBoxStyle"
             app:layout_constraintBottom_toBottomOf="@+id/buForgotYourPassword"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/guidelineBegin"
             app:layout_constraintTop_toTopOf="@+id/buForgotYourPassword" />
 
         <TextView
@@ -107,20 +120,20 @@
             android:layout_marginTop="@dimen/_3sdp"
             android:text="@string/forgot_your_password"
             android:textSize="@dimen/_12ssp"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/guidelineEnd"
             app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toEndOf="@+id/cbRememberMe"
             app:layout_constraintTop_toBottomOf="@+id/textInputLayoutPassword" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buLogin"
-            style="@style/PinkButton"
-            android:layout_width="match_parent"
+            style="@style/PrimaryButton"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_22sdp"
             android:text="@string/login"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/guidelineEnd"
+            app:layout_constraintStart_toStartOf="@+id/guidelineBegin"
             app:layout_constraintTop_toBottomOf="@+id/buForgotYourPassword" />
 
         <TextView
@@ -128,10 +141,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/do_not_have_an_account"
-            android:textColor="@color/black"
             android:textSize="@dimen/_12sdp"
             app:layout_constraintBottom_toBottomOf="@+id/buSignUp"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/guidelineBegin"
             app:layout_constraintTop_toTopOf="@+id/buSignUp"
             tools:ignore="TextSizeCheck" />
 
@@ -145,7 +157,7 @@
             android:textSize="@dimen/_11sdp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/guidelineEnd"
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toEndOf="@id/textView"
             app:layout_constraintTop_toBottomOf="@+id/buLogin"
