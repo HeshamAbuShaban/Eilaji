@@ -54,16 +54,19 @@ class SignUpFragment : Fragment() {
 
     //this method have a ClickListener that performSignUp using the ViewModel call for register method and the Result are being controlled in the @#observeSignUpResult()
     private fun performSignUp() {
-        binding.buCreateAnAccount.setOnClickListener {
-            if (validateInputs()) {
-                val username = binding.edUsername.text.toString()
-                val email = binding.edEmail.text.toString()
-                val password = binding.edPassword.text.toString()
-                val confirmPassword = binding.edConfirmPassword.text.toString()
-                signUpViewModel.signUp(username, email, password, confirmPassword)
+        with(binding){
+            buCreateAnAccount.setOnClickListener {
+                if (validateInputs()) {
+                    val username = edUsername.text.toString()
+                    val email = edEmail.text.toString()
+                    val password = edPassword.text.toString()
+                    val confirmPassword = edConfirmPassword.text.toString()
+                    signUpViewModel.signUp(username, email, password, confirmPassword)
+                }
+                Log.i("FragmentSignUp", "performSingUp: data got collected")
             }
-            Log.i("FragmentSignUp", "performSingUp: data got collected")
         }
+
     }
 
     //this method is responsible for making action based on the result of the registration
@@ -111,52 +114,53 @@ class SignUpFragment : Fragment() {
 
     private fun validateInputs(): Boolean {
         var isValid = true
+        with(binding) {
+            val username = edUsername.text.toString().trim()
+            val email = edEmail.text.toString().trim()
+            val password = edPassword.text.toString()
+            val confirmPassword = edConfirmPassword.text.toString()
 
-        val username = binding.edUsername.text.toString().trim()
-        val email = binding.edEmail.text.toString().trim()
-        val password = binding.edPassword.text.toString()
-        val confirmPassword = binding.edConfirmPassword.text.toString()
 
-        // Validate username
-        if (username.isEmpty()) {
-            binding.edUsername.error = "Please enter a username"
-            isValid = false
-        } else if (username.length < 6) {
-            binding.edUsername.error = "Username must be at least 6 characters long"
-            isValid = false
+            // Validate username
+            if (username.isEmpty()) {
+                edUsername.error = "Please enter a username"
+                isValid = false
+            } else if (username.length < 6) {
+                edUsername.error = "Username must be at least 6 characters long"
+                isValid = false
+            }
+
+            // Validate email
+            if (email.isEmpty()) {
+                edEmail.error = "Please enter an email"
+                isValid = false
+            } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                edEmail.error = "Invalid email format"
+                isValid = false
+            }
+
+            // Validate password
+            if (password.isEmpty()) {
+                edPassword.error = "Please enter a password"
+                isValid = false
+            } else if (password.length < 8) {
+                edPassword.error = "Password must be at least 8 characters long"
+                isValid = false
+            } else if (!password.matches(Regex("^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).*\$"))) {
+                edPassword.error =
+                    "Password should contain at least one uppercase letter, one lowercase letter, and one digit"
+                isValid = false
+            }
+
+            // Validate password confirmation
+            if (confirmPassword.isEmpty()) {
+                edConfirmPassword.error = "Please confirm the password"
+                isValid = false
+            } else if (password != confirmPassword) {
+                edConfirmPassword.error = "Passwords do not match"
+                isValid = false
+            }
         }
-
-        // Validate email
-        if (email.isEmpty()) {
-            binding.edEmail.error = "Please enter an email"
-            isValid = false
-        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            binding.edEmail.error = "Invalid email format"
-            isValid = false
-        }
-
-        // Validate password
-        if (password.isEmpty()) {
-            binding.edPassword.error = "Please enter a password"
-            isValid = false
-        } else if (password.length < 8) {
-            binding.edPassword.error = "Password must be at least 8 characters long"
-            isValid = false
-        } else if (!password.matches(Regex("^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).*\$"))) {
-            binding.edPassword.error =
-                "Password should contain at least one uppercase letter, one lowercase letter, and one digit"
-            isValid = false
-        }
-
-        // Validate password confirmation
-        if (confirmPassword.isEmpty()) {
-            binding.edConfirmPassword.error = "Please confirm the password"
-            isValid = false
-        } else if (password != confirmPassword) {
-            binding.edConfirmPassword.error = "Passwords do not match"
-            isValid = false
-        }
-
         return isValid
     }
 

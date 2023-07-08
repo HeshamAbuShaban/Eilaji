@@ -126,6 +126,8 @@ class ReminderWorker(private val context: Context, workerParams: WorkerParameter
             channel.enableLights(true)
             channel.lightColor = RED
             channel.enableVibration(true)
+            channel.name = "Reminders Channel"
+            channel.description = "This Control the appearance of the app reminders"
             channel.vibrationPattern = longArrayOf(100, 200, 300, 400, 500, 400, 300, 200, 400)
             channel.setSound(ringtoneManager, audioAttributes)
             notificationManager.createNotificationChannel(channel)

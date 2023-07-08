@@ -17,8 +17,10 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.google.android.material.snackbar.Snackbar
 import dev.anonymous.eilaji.databinding.FragmentSendPrescriptionBinding
 import dev.anonymous.eilaji.ui.other.dialogs.ImagePickerDialogFragment
 import dev.anonymous.eilaji.ui.other.dialogs.ImagePickerDialogFragment.ImagePickerListener
@@ -62,16 +64,45 @@ class SendPrescriptionFragment : Fragment(), ImagePickerListener,
         // Setup The Launchers
         setupCameraLauncher()
         setupGalleryLauncher()
+        // setup the data from the viewModel container
+        setupInitialedDataInputs()
+    }
 
+    private fun setupInitialedDataInputs() {
+        with(binding) {
+            edAskAboutPrescription.setText(sendPrescriptionViewModel.prescriptionAdditionalText.value)
+            prescriptionImagePreview.setImageBitmap(sendPrescriptionViewModel.bitmap.value)
+        }
     }
 
     private fun setupClickListeners() {
+        // this to capture the user inputs text
+        setEditTextChangeListener()
         with(binding) {
-
+            // this to fire up the image selecting functionality
             sendPrescriptionLinearParent.setOnClickListener {
                 // Must BE "*childFragmentManager*"
                 ImagePickerDialogFragment().show(childFragmentManager, "ImagePicking")
             }
+
+            // and this is to collect the user data and send them to some where
+            fabSendPrescription.setOnClickListener {
+                //get the values from the viewModel
+                val bitmap :Bitmap? = sendPrescriptionViewModel.bitmap.value
+                val text :String = sendPrescriptionViewModel.prescriptionAdditionalText.value.toString()
+                if (bitmap == null || text.isEmpty()) {
+                    Snackbar.make(root,"Please Enter a Prescription Detail",Snackbar.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(requireContext(),"Text : $text, Image: $bitmap",Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    // if the user typed any word it will be saved into the view-model to be called later on
+    private fun setEditTextChangeListener(){
+        binding.edAskAboutPrescription.addTextChangedListener {
+            sendPrescriptionViewModel.setPrescriptionAdditionalText(it.toString())
         }
     }
 
@@ -182,8 +213,10 @@ class SendPrescriptionFragment : Fragment(), ImagePickerListener,
     override fun onImageSelected(bitmap: Bitmap) {
         // save or send or do what ever with the image
         collectedBitmap = bitmap
-        //set a preview
-        binding.prescriptionImagePreview.setImageBitmap(collectedBitmap)
+        //send this to the viewModel
+        sendPrescriptionViewModel.setBitmap(collectedBitmap)
+        // set a preview from the changed bitmap value within the viewModel If it got changed
+        binding.prescriptionImagePreview.setImageBitmap(sendPrescriptionViewModel.bitmap.value)
     }
 
     override fun onImageSelectionCancelled() {
