@@ -6,7 +6,7 @@ import android.content.SharedPreferences;
 
 public class AppSharedPreferences {
     private enum SharedPreferencesKeys {
-        /*invoked*/onBoardingDone, isFirstTime, token, fullName, imageUrl
+        onBoardingDone, isFirstTime, token, fullName, imageUrl, currentUserChattingUid
     }
 
     private static AppSharedPreferences Instance;
@@ -22,6 +22,22 @@ public class AppSharedPreferences {
             Instance = new AppSharedPreferences(context);
         }
         return Instance;
+    }
+
+    public String getCurrentUserChattingUID() {
+        return sharedPreferences.getString(SharedPreferencesKeys.currentUserChattingUid.name(), "");
+    }
+
+    public void putCurrentUserChattingUID(String uid) {
+        editor = sharedPreferences.edit();
+        editor.putString(SharedPreferencesKeys.currentUserChattingUid.name(), uid);
+        editor.apply();
+    }
+
+    public void removeCurrentUserChattingUID() {
+        editor = sharedPreferences.edit();
+        editor.remove(SharedPreferencesKeys.currentUserChattingUid.name());
+        editor.apply();
     }
 
     public String getImageUrl() {

@@ -2,7 +2,6 @@ package dev.anonymous.eilaji.ui.main.guard.signUp
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
@@ -13,12 +12,16 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.FragmentSignUpBinding
+import dev.anonymous.eilaji.storage.AppSharedPreferences
 import dev.anonymous.eilaji.ui.base.BaseActivity
+import dev.anonymous.eilaji.utils.AppController
 
 class SignUpFragment : Fragment() {
     private lateinit var _binding: FragmentSignUpBinding
     private lateinit var signUpViewModel: SignUpViewModel
     private val binding get() = _binding
+
+    private val preferences = AppSharedPreferences.getInstance(AppController.getInstance())
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -31,14 +34,14 @@ class SignUpFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         setupViewModel()
         performSignUp()
         observeSignUpResult()
         setupListeners()
     }
-    
-    private fun setupListeners(){
 
+    private fun setupListeners() {
         binding.buSkip.setOnClickListener {
             startActivity(Intent(requireContext(), BaseActivity::class.java))
             requireActivity().finish()
@@ -48,6 +51,7 @@ class SignUpFragment : Fragment() {
             findNavController().navigate(R.id.navigation_Login)
         }
     }
+
     private fun setupViewModel() {
         signUpViewModel = ViewModelProvider(this)[SignUpViewModel::class.java]
     }
@@ -56,13 +60,21 @@ class SignUpFragment : Fragment() {
     private fun performSignUp() {
         binding.buCreateAnAccount.setOnClickListener {
             if (validateInputs()) {
-                val username = binding.edUsername.text.toString()
+                val fullName = binding.edFullName.text.toString()
                 val email = binding.edEmail.text.toString()
                 val password = binding.edPassword.text.toString()
-                val confirmPassword = binding.edConfirmPassword.text.toString()
-                signUpViewModel.signUp(username, email, password, confirmPassword)
+                val token = preferences.token
+
+                if (token == null) {
+                    signUpViewModel.getToken()
+                    signUpViewModel.token.observe(viewLifecycleOwner) {
+                        preferences.putToken(it)
+                        signUpViewModel.signUp(fullName, it, email, password)
+                    }
+                } else {
+                    signUpViewModel.signUp(fullName, token, email, password)
+                }
             }
-            Log.i("FragmentSignUp", "performSingUp: data got collected")
         }
     }
 
@@ -71,9 +83,12 @@ class SignUpFragment : Fragment() {
         signUpViewModel.signUpResult.observe(viewLifecycleOwner) { signUpResult ->
             when (signUpResult) {
                 is SignUpResult.Success -> {
+                    preferences.putFullName(signUpResult.fullName)
+
                     // Handle successful sign up
                     // Show success message or navigate to the next screen
                     showSnackBar("Sign up successful")
+
                     //now its fine to say lets get to home.
                     navigateToHomeActivity()
                 }
@@ -88,8 +103,7 @@ class SignUpFragment : Fragment() {
     }
 
     private fun showSnackBar(massage: String) {
-        Snackbar.make(binding.root, massage, Snackbar.LENGTH_SHORT)
-            .show()
+        Snackbar.make(binding.root, massage, Snackbar.LENGTH_SHORT).show()
     }
 
     //TODO SET the proper direction after SingUp successfully here
@@ -102,7 +116,7 @@ class SignUpFragment : Fragment() {
 
     private fun handleInputValidationErrors(errorMessage: String) {
         when (errorMessage) {
-            "INVALID_USERNAME" -> binding.edUsername.error = "Invalid username"
+            "INVALID_USERNAME" -> binding.edFullName.error = "Invalid username"
             "INVALID_EMAIL" -> binding.edEmail.error = "Invalid email"
             "INVALID_PASSWORD" -> binding.edPassword.error = "Invalid password"
             // Handle other validation errors as needed
@@ -112,17 +126,17 @@ class SignUpFragment : Fragment() {
     private fun validateInputs(): Boolean {
         var isValid = true
 
-        val username = binding.edUsername.text.toString().trim()
+        val username = binding.edFullName.text.toString().trim()
         val email = binding.edEmail.text.toString().trim()
         val password = binding.edPassword.text.toString()
         val confirmPassword = binding.edConfirmPassword.text.toString()
 
         // Validate username
         if (username.isEmpty()) {
-            binding.edUsername.error = "Please enter a username"
+            binding.edFullName.error = "Please enter a username"
             isValid = false
         } else if (username.length < 6) {
-            binding.edUsername.error = "Username must be at least 6 characters long"
+            binding.edFullName.error = "Username must be at least 6 characters long"
             isValid = false
         }
 
@@ -157,8 +171,11 @@ class SignUpFragment : Fragment() {
             isValid = false
         }
 
+        if (password != confirmPassword) {
+            binding.edConfirmPassword.error = "Passwords do not match."
+            isValid = false
+        }
+
         return isValid
     }
-
-    
 }

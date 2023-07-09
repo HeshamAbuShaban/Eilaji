@@ -19,7 +19,6 @@ class SendPrescriptionViewModel : ViewModel() {
     fun setPrescriptionAdditionalText(text :String) {
         _prescriptionAdditionalText.value = text
     }
-
     fun registerImagePickerCallback(callback: ImagePickerResultCallback) {
         imagePickerCallback = callback
     }

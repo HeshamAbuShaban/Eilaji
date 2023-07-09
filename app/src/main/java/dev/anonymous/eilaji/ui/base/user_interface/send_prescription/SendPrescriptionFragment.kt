@@ -67,14 +67,12 @@ class SendPrescriptionFragment : Fragment(), ImagePickerListener,
         // setup the data from the viewModel container
         setupInitialedDataInputs()
     }
-
     private fun setupInitialedDataInputs() {
         with(binding) {
             edAskAboutPrescription.setText(sendPrescriptionViewModel.prescriptionAdditionalText.value)
             prescriptionImagePreview.setImageBitmap(sendPrescriptionViewModel.bitmap.value)
         }
     }
-
     private fun setupClickListeners() {
         // this to capture the user inputs text
         setEditTextChangeListener()
@@ -84,7 +82,6 @@ class SendPrescriptionFragment : Fragment(), ImagePickerListener,
                 // Must BE "*childFragmentManager*"
                 ImagePickerDialogFragment().show(childFragmentManager, "ImagePicking")
             }
-
             // and this is to collect the user data and send them to some where
             fabSendPrescription.setOnClickListener {
                 //get the values from the viewModel

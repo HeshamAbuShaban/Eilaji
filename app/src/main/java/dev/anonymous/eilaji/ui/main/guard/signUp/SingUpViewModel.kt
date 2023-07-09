@@ -11,26 +11,41 @@ class SignUpViewModel : ViewModel() {
     private val _signUpResult = MutableLiveData<SignUpResult>()
     val signUpResult: LiveData<SignUpResult> get() = _signUpResult
 
-    fun signUp(username: String, email: String, password: String, confirmPassword: String) {
-        // Perform input validation
-        if (username.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-            _signUpResult.value = SignUpResult.Error("Please fill in all fields.")
-            return
-        }
+    private val _token = MutableLiveData<String>()
+    val token: LiveData<String> get() = _token
 
-        if (password != confirmPassword) {
-            _signUpResult.value = SignUpResult.Error("Passwords do not match.")
-            return
-        }
-
+    fun signUp(fullName: String, token: String, email: String, password: String) {
         // Call the register method from FirebaseController
-        firebaseController.register(username, email, password, onTaskSuccessful = {
-            _signUpResult.value = SignUpResult.Success
-        }, onTaskFailed = { exception ->
+        firebaseController.register(email, password,
+            onTaskSuccessful = { userUid ->
+                putUserData(userUid, fullName, token)
+            },
+            onTaskFailed = { exception ->
 //            val errorMessage = getFirebaseErrorMessage(exception)
-            // now onTaskFailed returns final massage without the need for getFirebaseErrorMessage
-            _signUpResult.value = SignUpResult.Error(exception)
-        })
+                // now onTaskFailed returns final massage without the need for getFirebaseErrorMessage
+                _signUpResult.value = SignUpResult.Error(exception)
+            }
+        )
+    }
+
+    private fun putUserData(userUid: String, fullName: String, token: String) {
+        firebaseController.addUser(userUid, fullName, token = token,
+            onTaskSuccessful = {
+                _signUpResult.value = SignUpResult.Success(fullName)
+            },
+            onTaskFailed = {
+                _signUpResult.value = SignUpResult.Error(it)
+            }
+        )
+    }
+
+    fun getToken() {
+        firebaseController.getToken(
+            onTaskSuccessful = { _token.value = it },
+            onTaskFailed = {
+                _signUpResult.value = SignUpResult.Error(it)
+            }
+        )
     }
 
     /*
@@ -55,6 +70,6 @@ class SignUpViewModel : ViewModel() {
 }
 
 sealed class SignUpResult {
-    object Success : SignUpResult()
+    data class Success(val fullName: String) : SignUpResult()
     data class Error(val errorMessage: String) : SignUpResult()
 }

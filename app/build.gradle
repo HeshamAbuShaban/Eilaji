@@ -81,6 +81,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics-ktx'
     implementation 'com.google.firebase:firebase-auth-ktx'
     implementation 'com.google.firebase:firebase-firestore-ktx'
+    implementation 'com.google.firebase:firebase-messaging-ktx'
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.3'
 
@@ -113,4 +114,8 @@ dependencies {
     // Pick Image in a recommend way
     def activity_version = "1.7.2"
     implementation "androidx.activity:activity-ktx:$activity_version"
+
+    // Retrofit for send fcm notification
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
 }

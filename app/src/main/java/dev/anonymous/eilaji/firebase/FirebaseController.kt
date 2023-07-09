@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import dev.anonymous.eilaji.storage.AppSharedPreferences
 
 
@@ -31,9 +32,24 @@ class FirebaseController private constructor() {
         private const val TAG = "FirebaseController"
     }
 
+    fun getToken(
+        onTaskSuccessful: (token: String) -> Unit,
+        onTaskFailed: (error: String) -> Unit,
+    ) {
+        FirebaseMessaging.getInstance().token
+            .addOnSuccessListener { token ->
+                Log.d(TAG, "getToken: $token")
+                onTaskSuccessful(token)
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "onCreate:getToken: " + e.message)
+                onTaskFailed(e.message!!)
+            }
+    }
+
     fun getUser(
         userUid: String,
-        onTaskSuccessful: (fullName: String, imageUrl: String) -> Unit,
+        onTaskSuccessful: (exists: Boolean, fullName: String?, imageUrl: String?) -> Unit,
         onTaskFailed: (error: String) -> Unit,
     ) {
         fireStore.collection("Users")
@@ -41,11 +57,16 @@ class FirebaseController private constructor() {
             .get()
             .addOnCompleteListener {
                 if (it.isSuccessful) {
-                    it.result.data?.let { data ->
-                        onTaskSuccessful(
-                            data["fullName"].toString(),
-                            data["imageUrl"].toString()
-                        )
+                    if (it.result.exists()) {
+                        it.result.data?.let { data ->
+                            onTaskSuccessful(
+                                true,
+                                data["fullName"].toString(),
+                                data["imageUrl"].toString()
+                            )
+                        }
+                    } else {
+                        onTaskSuccessful(false, null, null)
                     }
                 } else {
                     onTaskFailed(it.exception?.message!!)
@@ -63,7 +84,7 @@ class FirebaseController private constructor() {
         onTaskSuccessful: () -> Unit,
         onTaskFailed: (error: String) -> Unit,
     ) {
-        val data: Map<String, String> = mapOf(
+        val data = mapOf(
             "userUid" to userUid,
             "fullName" to fullName,
             "imageUrl" to imageUrl,
@@ -88,13 +109,13 @@ class FirebaseController private constructor() {
         email: String,
         password: String,
         activity: Activity,
-        onTaskSuccessful: () -> Unit,
+        onTaskSuccessful: (userUid: String) -> Unit,
         showSnackBar: (task: Task<AuthResult>) -> Unit,
     ) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(activity) { task ->
                 if (task.isSuccessful) {
-                    onTaskSuccessful()
+                    onTaskSuccessful(task.result.user!!.uid)
                 } else {
                     showSnackBar(task)
                 }
@@ -104,13 +125,13 @@ class FirebaseController private constructor() {
     fun register(
         email: String,
         password: String,
-        onTaskSuccessful: () -> Unit,
+        onTaskSuccessful: (userUid: String) -> Unit,
         onTaskFailed: (String) -> Unit,
     ) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    onTaskSuccessful()
+                    onTaskSuccessful(task.result.user!!.uid)
                 } else {
                     Log.d(TAG, "register: task isn't successfully proceed", task.exception)
                     val exception = task.exception as? FirebaseAuthException

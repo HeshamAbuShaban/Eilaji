@@ -11,12 +11,15 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.FragmentLoginBinding
+import dev.anonymous.eilaji.storage.AppSharedPreferences
 import dev.anonymous.eilaji.ui.base.BaseActivity
+import dev.anonymous.eilaji.utils.AppController
 
 class LoginFragment : Fragment() {
     private lateinit var _binding: FragmentLoginBinding
     private lateinit var loginViewModel: LoginViewModel
     private val binding get() = _binding
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -49,11 +52,6 @@ class LoginFragment : Fragment() {
 
             buSignUp.setOnClickListener {
                 navController.navigate(R.id.navigation_SignUp)
-                /*@Deprecated
-                    val singUpFragment = FragmentSignUp()
-                    parentFragmentManager.beginTransaction()
-                        .replace(R.id.mainActivityContainer, singUpFragment)
-                        .commitAllowingStateLoss()*/
             }
 
             buLogin.setOnClickListener {
@@ -88,8 +86,10 @@ class LoginFragment : Fragment() {
         loginViewModel.loginResult.observe(viewLifecycleOwner) { loginResult ->
             when (loginResult) {
                 is LoginResult.Success -> {
-                    // Handle successful login
-                    //TODO HomeActivity >> Base
+                    val preferences = AppSharedPreferences.getInstance(AppController.getInstance())
+                    preferences.putFullName(loginResult.fullName)
+                    preferences.putImageUrl(loginResult.imageUrl)
+
                     startActivity(Intent(requireContext(), BaseActivity::class.java))
                     requireActivity().finish()
                 }
