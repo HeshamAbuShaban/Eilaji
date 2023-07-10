@@ -2,7 +2,6 @@ package dev.anonymous.eilaji.ui.main.guard.signUp
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
@@ -22,6 +21,8 @@ class SignUpFragment : Fragment() {
     private lateinit var signUpViewModel: SignUpViewModel
     private val binding get() = _binding
 
+    private val preferences = AppSharedPreferences.getInstance(AppController.getInstance())
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -33,6 +34,7 @@ class SignUpFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         setupViewModel()
         performSignUp()
         observeSignUpResult()
@@ -40,7 +42,6 @@ class SignUpFragment : Fragment() {
     }
 
     private fun setupListeners() {
-
         binding.buSkip.setOnClickListener {
             startActivity(Intent(requireContext(), BaseActivity::class.java))
             requireActivity().finish()
@@ -62,10 +63,18 @@ class SignUpFragment : Fragment() {
                 val fullName = binding.edFullName.text.toString()
                 val email = binding.edEmail.text.toString()
                 val password = binding.edPassword.text.toString()
-                val confirmPassword = binding.edConfirmPassword.text.toString()
-                signUpViewModel.signUp(fullName, email, password, confirmPassword)
+                val token = preferences.token
+
+                if (token == null) {
+                    signUpViewModel.getToken()
+                    signUpViewModel.token.observe(viewLifecycleOwner) {
+                        preferences.putToken(it)
+                        signUpViewModel.signUp(fullName, it, email, password)
+                    }
+                } else {
+                    signUpViewModel.signUp(fullName, token, email, password)
+                }
             }
-            Log.i("FragmentSignUp", "performSingUp: data got collected")
         }
     }
 
@@ -74,9 +83,7 @@ class SignUpFragment : Fragment() {
         signUpViewModel.signUpResult.observe(viewLifecycleOwner) { signUpResult ->
             when (signUpResult) {
                 is SignUpResult.Success -> {
-                    val preferences = AppSharedPreferences.getInstance(AppController.getInstance())
                     preferences.putFullName(signUpResult.fullName)
-                    preferences.putImageUrl(signUpResult.imageUrl)
 
                     // Handle successful sign up
                     // Show success message or navigate to the next screen
@@ -96,8 +103,7 @@ class SignUpFragment : Fragment() {
     }
 
     private fun showSnackBar(massage: String) {
-        Snackbar.make(binding.root, massage, Snackbar.LENGTH_SHORT)
-            .show()
+        Snackbar.make(binding.root, massage, Snackbar.LENGTH_SHORT).show()
     }
 
     //TODO SET the proper direction after SingUp successfully here
@@ -165,8 +171,11 @@ class SignUpFragment : Fragment() {
             isValid = false
         }
 
+        if (password != confirmPassword) {
+            binding.edConfirmPassword.error = "Passwords do not match."
+            isValid = false
+        }
+
         return isValid
     }
-
-
 }

@@ -17,8 +17,6 @@ import dev.anonymous.eilaji.databinding.ActivityBaseBinding
 import dev.anonymous.eilaji.ui.other.base.AlternativesActivity
 import dev.anonymous.eilaji.storage.enums.FragmentsKeys
 
-
-// This BaseActivity is in charge of the user interface pieces, often known as (the manager of our app screens).
 class BaseActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityBaseBinding
@@ -72,10 +70,8 @@ class BaseActivity : AppCompatActivity() {
                  * of configuring, to work with the navController that stored in the baseViewModel.
                  */
                 binding.navView.setupWithNavController(nonNullNavController)
-
         }
     }
-
 
     // ************ ~these are the menu builder methods~ ************
     private fun updateToolbarMenu() {

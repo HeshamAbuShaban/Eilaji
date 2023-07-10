@@ -14,11 +14,13 @@ class LoginViewModel : ViewModel() {
     private val _loginResult = MutableLiveData<LoginResult>()
     val loginResult: LiveData<LoginResult> get() = _loginResult
 
+    private val _token = MutableLiveData<String>()
+    val token: LiveData<String> get() = _token
+
     fun login(email: String, password: String, activity: Activity) {
         firebaseController.login(email, password, activity,
-            onTaskSuccessful = {
-                _loginResult.value = LoginResult.Success
-            }, showSnackBar = { task ->
+            onTaskSuccessful = { getUserData(it) },
+            showSnackBar = { task ->
                 val exception = task.exception
                 if (exception is FirebaseAuthException) {
                     val errorCode = exception.errorCode
@@ -28,6 +30,33 @@ class LoginViewModel : ViewModel() {
                     _loginResult.value = LoginResult.Error("Authentication failed.")
                 }
             })
+    }
+
+    private fun getUserData(userUid: String) {
+        firebaseController.getUser(
+            userUid,
+            onTaskSuccessful = { exists, fullName, imageUrl ->
+                if (exists) {
+                    _loginResult.value = LoginResult.Success(
+                        fullName.toString(), imageUrl.toString()
+                    )
+                } else {
+                    _loginResult.value = LoginResult.Error("User not found")
+                }
+            },
+            onTaskFailed = {
+                _loginResult.value = LoginResult.Error(it)
+            }
+        )
+    }
+
+    fun getToken() {
+        firebaseController.getToken(
+            onTaskSuccessful = { _token.value = it },
+            onTaskFailed = {
+                _loginResult.value = LoginResult.Error(it)
+            }
+        )
     }
 
     private fun getFirebaseErrorMessage(errorCode: String): String {
@@ -42,6 +71,6 @@ class LoginViewModel : ViewModel() {
 }
 
 sealed class LoginResult {
-    object Success : LoginResult()
+    data class Success(val fullName: String, val imageUrl: String) : LoginResult()
     data class Error(val errorMessage: String) : LoginResult()
 }

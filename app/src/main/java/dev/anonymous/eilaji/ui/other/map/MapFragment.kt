@@ -13,6 +13,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.findNavController
 import androidx.viewpager2.widget.ViewPager2
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.google.android.gms.maps.GoogleMap
@@ -31,8 +32,8 @@ import dev.anonymous.eilaji.ui.other.dialogs.permissions.RequestPermissionsDialo
 import dev.anonymous.eilaji.utils.DummyData
 
 
-class MapFragment : Fragment(), OnMapReadyCallback ,RequestPermissionsListener{
-    private lateinit var requestPermissionLauncher : ActivityResultLauncher<Array<String>>
+class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
+    private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
 
     private lateinit var _binding: FragmentMapBinding
     private val binding get() = _binding
@@ -48,43 +49,52 @@ class MapFragment : Fragment(), OnMapReadyCallback ,RequestPermissionsListener{
         // Fix => Unable to update local snapshot for com.google.android.libraries.consentverifier
         // Fix => Unable to update local snapshot for com.google.android.libraries.conservativeness
         // Fix => set_timerslack_ns write failed: Operation not permitted
-        MapsInitializer.initialize(requireContext(), MapsInitializer.Renderer.LATEST) { _: MapsInitializer.Renderer? -> }
+        MapsInitializer.initialize(
+            requireContext(),
+            MapsInitializer.Renderer.LATEST
+        ) { _: MapsInitializer.Renderer? -> }
         setupVMComponent()
         return binding.root
     }
-    private fun setupVMComponent(){
+
+    private fun setupVMComponent() {
         // Initialize the view model
         mapViewModel = ViewModelProvider(this)[MapViewModel::class.java]
-        requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-            // Check if all permissions are granted
-            val allGranted = permissions.all { it.value }
-            if (allGranted) {
-                // All permissions granted, you can proceed with sending notifications
-                Toast.makeText(
-                    requireContext(),
-                    "Great Now you are all set to use The Reminder",
-                    Toast.LENGTH_LONG).show()
-            } else {
-                // Permission denied, handle accordingly
-                // At least one permission denied, handle accordingly (e.g., show a message or disable certain features)
-                Toast.makeText(requireContext(),
-                    "Permission denied. Cannot create reminder.",
-                    Toast.LENGTH_SHORT).show()
-            }
+        requestPermissionLauncher =
+            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+                // Check if all permissions are granted
+                val allGranted = permissions.all { it.value }
+                if (allGranted) {
+                    // All permissions granted, you can proceed with sending notifications
+                    Toast.makeText(
+                        requireContext(),
+                        "Great Now you are all set to use The Reminder",
+                        Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    // Permission denied, handle accordingly
+                    // At least one permission denied, handle accordingly (e.g., show a message or disable certain features)
+                    Toast.makeText(
+                        requireContext(),
+                        "Permission denied. Cannot create reminder.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
 
-        }
+            }
         mapViewModel.setRequestPermissionLauncher(requestPermissionLauncher)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        if (mapViewModel.arePermissionsGranted()){
+        if (mapViewModel.arePermissionsGranted()) {
             obtainGoogleMapInstance()
             observeCurrentLocation()
             setupAdsPager()
-        }else{
-            RequestPermissionsDialogFragment.newInstance("Please allow the map permission to be able to use the app properly").show(childFragmentManager,"MapPermissions")
+        } else {
+            RequestPermissionsDialogFragment.newInstance("Please allow the map permission to be able to use the app properly")
+                .show(childFragmentManager, "MapPermissions")
         }
 
     }
@@ -149,7 +159,8 @@ class MapFragment : Fragment(), OnMapReadyCallback ,RequestPermissionsListener{
             mapViewModel.animateCameraToPosition(currentLatLng, 17f)
 
             // Add a marker to the current location
-            mapViewModel.addMarkerToMap(markerOptions(latLng = currentLatLng, title = "Home Location")
+            mapViewModel.addMarkerToMap(
+                markerOptions(latLng = currentLatLng, title = "Home Location")
             )
         }
     }
@@ -158,7 +169,16 @@ class MapFragment : Fragment(), OnMapReadyCallback ,RequestPermissionsListener{
     private fun setupAdsPager() {
         var scrollIsDragging = false
         with(binding.pharmaciesLocationsPager) {
-            adapter = PharmaciesLocationsAdapter(DummyData.listPharmaciesModels)
+            adapter = PharmaciesLocationsAdapter(
+                DummyData.listPharmaciesModels,
+                navigateToChat = {
+                    val action = MapFragmentDirections.actionNavigationMapToMessagingFragment(
+                        null, it.uid, it.name, it.imageUrl, it.token
+                    )
+                    binding.pharmaciesLocationsPager.findNavController().navigate(action)
+                }
+            )
+
             registerOnPageChangeCallback(object : OnPageChangeCallback() {
                 override fun onPageScrollStateChanged(state: Int) {
 //                    ViewPager2.SCROLL_STATE_DRAGGING // 1 // سحب
@@ -229,7 +249,11 @@ class MapFragment : Fragment(), OnMapReadyCallback ,RequestPermissionsListener{
     }
 
     override fun onDenyClicked() {
-        Toast.makeText(requireContext(),getString(R.string.permissions_message_sorry_you_can_not),Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            requireContext(),
+            getString(R.string.permissions_message_sorry_you_can_not),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
 

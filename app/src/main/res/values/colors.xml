@@ -10,11 +10,15 @@
     <color name="gray_light_for_night">#0FFBFBFB</color>
     <color name="gray">#EFEFEF</color>
     <color name="gray_dark">#AEAEAE</color>
+    <color name="blue_light">#5E70FF</color>
+
+    <color name="place_holder_color">#AAADC4</color>
 
     <color name="night_window_background_color">#121212</color>
 
     <color name="primary_pink">#FF74B1</color>
     <color name="gray_light">#FBFBFB</color>
+    <color name="darkGray">#929292</color>
 
     <!--    otp pin view colors -->
     <color name="otp_item_color">#EFEFEF</color>

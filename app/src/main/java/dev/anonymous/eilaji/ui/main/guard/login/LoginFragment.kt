@@ -11,12 +11,17 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.FragmentLoginBinding
+import dev.anonymous.eilaji.storage.AppSharedPreferences
 import dev.anonymous.eilaji.ui.base.BaseActivity
+import dev.anonymous.eilaji.utils.AppController
 
 class LoginFragment : Fragment() {
     private lateinit var _binding: FragmentLoginBinding
     private lateinit var loginViewModel: LoginViewModel
     private val binding get() = _binding
+
+    private val preferences = AppSharedPreferences.getInstance(AppController.getInstance())
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -41,7 +46,6 @@ class LoginFragment : Fragment() {
         // this gets the navController from the host activity
         val navController = findNavController()
         binding.apply {
-
             binding.buSkip.setOnClickListener {
                 startActivity(Intent(requireContext(), BaseActivity::class.java))
                 requireActivity().finish()
@@ -49,19 +53,23 @@ class LoginFragment : Fragment() {
 
             buSignUp.setOnClickListener {
                 navController.navigate(R.id.navigation_SignUp)
-                /*@Deprecated
-                    val singUpFragment = FragmentSignUp()
-                    parentFragmentManager.beginTransaction()
-                        .replace(R.id.mainActivityContainer, singUpFragment)
-                        .commitAllowingStateLoss()*/
             }
 
             buLogin.setOnClickListener {
                 val email = edEmail.text.toString()
                 val password = edPassword.text.toString()
+                val token = preferences.token
 
                 if (checkData(email, password)) {
-                    loginViewModel.login(email, password, requireActivity())
+                    if (token == null) {
+                        loginViewModel.getToken()
+                        loginViewModel.token.observe(viewLifecycleOwner) {
+                            preferences.putToken(it)
+                            loginViewModel.login(email, password, requireActivity())
+                        }
+                    } else {
+                        loginViewModel.login(email, password, requireActivity())
+                    }
                 } else {
                     showTextError(email, password)
                 }
@@ -88,8 +96,10 @@ class LoginFragment : Fragment() {
         loginViewModel.loginResult.observe(viewLifecycleOwner) { loginResult ->
             when (loginResult) {
                 is LoginResult.Success -> {
-                    // Handle successful login
-                    //TODO HomeActivity >> Base
+                    val preferences = AppSharedPreferences.getInstance(AppController.getInstance())
+                    preferences.putFullName(loginResult.fullName)
+                    preferences.putImageUrl(loginResult.imageUrl)
+
                     startActivity(Intent(requireContext(), BaseActivity::class.java))
                     requireActivity().finish()
                 }

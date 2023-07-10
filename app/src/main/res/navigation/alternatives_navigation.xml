@@ -15,17 +15,24 @@
         android:id="@+id/navigation_map"
         android:name="dev.anonymous.eilaji.ui.other.map.MapFragment"
         android:label="@string/pharmacies_map"
-        tools:layout="@layout/fragment_map" />
+        tools:layout="@layout/fragment_map">
+        <action
+            android:id="@+id/action_navigation_map_to_messagingFragment"
+            app:destination="@id/messagingFragment" />
+    </fragment>
+
     <fragment
         android:id="@+id/navigation_medicine"
         android:name="dev.anonymous.eilaji.ui.other.medicine.MedicineFragment"
         android:label="fragment_medicine"
         tools:layout="@layout/fragment_medicine" />
+
     <fragment
         android:id="@+id/navigation_favorites"
         android:name="dev.anonymous.eilaji.ui.other.favorite.FavoritesFragment"
         android:label="fragment_favorite"
         tools:layout="@layout/fragment_favorites" />
+
     <fragment
         android:id="@+id/navigation_add_address"
         android:name="dev.anonymous.eilaji.ui.other.add_address.AddAddressFragment"
@@ -36,17 +43,39 @@
         android:id="@+id/navigation_add_reminder"
         android:name="dev.anonymous.eilaji.ui.other.reminder.ReminderFragment"
         android:label="fragment_reminder"
-        tools:layout="@layout/fragment_reminder" >
-    </fragment>
+        tools:layout="@layout/fragment_reminder" />
 
     <fragment
         android:id="@+id/navigation_reminders_list"
         android:name="dev.anonymous.eilaji.ui.other.reminder.list.RemindersListFragment"
         android:label="fragment_reminders_list"
-        tools:layout="@layout/fragment_reminders_list" >
+        tools:layout="@layout/fragment_reminders_list">
         <action
             android:id="@+id/action_navigation_reminders_list_to_navigation_add_reminder"
             app:destination="@id/navigation_add_reminder" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/messagingFragment"
+        android:name="dev.anonymous.eilaji.ui.other.messaging.MessagingFragment"
+        android:label="fragment_messaging"
+        tools:layout="@layout/fragment_messaging">
+        <argument
+            android:name="chatId"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="receiverUid"
+            app:argType="string" />
+        <argument
+            android:name="receiverFullName"
+            app:argType="string" />
+        <argument
+            android:name="receiverUrlImage"
+            app:argType="string" />
+        <argument
+            android:name="receiverToken"
+            app:argType="string" />
     </fragment>
 
 </navigation>

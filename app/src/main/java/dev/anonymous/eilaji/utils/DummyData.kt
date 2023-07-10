@@ -225,57 +225,62 @@ object DummyData {
             val list = ArrayList<PharmacyModel>()
             list.add(
                 PharmacyModel(
-                    R.drawable.temp_pharmacy_1,
+                    "adfgdfgfdgg7dsf7g6df",
+                    "https://firebasestorage.googleapis.com/v0/b/eilaji-9b01b.appspot.com/o/v9IN7O0myxRoeKfUuaDdgTrJJ1n1%2FPharmaciesImages%2F359d464b-6ea2-4056-bcfe-37cb62512abb.jpg?alt=media&token=be6a8417-b9c4-4d52-b449-86af68c87a2c",
                     "فتيح",
-                    arrayListOf("د.محمد محمود فتيح"),
                     "+970597152714",
                     "الرمال - دوار فتوح - مقابل برج المعادي",
                     31.44927529166395,
-                    34.39462522569722
+                    34.39462522569722,
+                    "cHvTb0OtQsWROdx5QxL-oV:APA91bEzVhhR3kw03tsZf1L7vaFVHJR-5OEsFtHJvuMoU7FVTbVfuvVPCnTpth9sCpT41VR2aQv-DiPQ3U8pv-RR0ujV1etY-otlCxDzwPl8yz6zab8nxXtPKxrQTWleLm1lgzbLw-Rf"
                 )
             )
             list.add(
                 PharmacyModel(
-                    R.drawable.temp_pharmacy_2,
+                    "adfgdfg345fdg7dsf7g6df",
+                    "https://firebasestorage.googleapis.com/v0/b/eilaji-9b01b.appspot.com/o/v9IN7O0myxRoeKfUuaDdgTrJJ1n1%2FPharmaciesImages%2F359d464b-6ea2-4056-bcfe-37cb62512abb.jpg?alt=media&token=be6a8417-b9c4-4d52-b449-86af68c87a2c",
                     "تقى عابدين",
-                    arrayListOf("د.تقى عابدين"),
                     "+970568856720",
                     "الشجاعية - مقابل برج وطن",
                     31.450573262978924,
-                    34.393475898066065
+                    34.393475898066065,
+                    "cJ7SP3IeSnagT4EczukGPm:APA91bG6vpAyuoXDQDLLqnTiWyXc3Lw0z2oiXvP1XD6FN4pttQXvkQq70qrui4umlY8BfyM_1aq74pykevcGTLWthTFQKroq2KUHgKiXJG0uZ58oN2_w_LyzOq3bHU_ZeTisUImafUmT"
                 )
             )
             list.add(
                 PharmacyModel(
-                    R.drawable.temp_pharmacy_3,
+                    "adfgdfgfdg7dsf34t7g6df",
+                    "https://firebasestorage.googleapis.com/v0/b/eilaji-9b01b.appspot.com/o/v9IN7O0myxRoeKfUuaDdgTrJJ1n1%2FPharmaciesImages%2F359d464b-6ea2-4056-bcfe-37cb62512abb.jpg?alt=media&token=be6a8417-b9c4-4d52-b449-86af68c87a2c",
                     "عبق الشجر",
-                    arrayListOf("د.محمد الحمامي"),
                     "+970562005006",
                     "الشجاعية - بجوار مسجد الصحابة",
                     31.448934162124537,
-                    34.39408320427861
+                    34.39408320427861,
+                    "cJ7SP3IeSnagT4EczukGPm:APA91bG6vpAyuoXDQDLLqnTiWyXc3Lw0z2oiXvP1XD6FN4pttQXvkQq70qrui4umlY8BfyM_1aq74pykevcGTLWthTFQKroq2KUHgKiXJG0uZ58oN2_w_LyzOq3bHU_ZeTisUImafUmT"
                 )
             )
             list.add(
                 PharmacyModel(
-                    R.drawable.temp_pharmacy_4,
+                    "adfgdfgfdg7dsf7g6df",
+                    "https://firebasestorage.googleapis.com/v0/b/eilaji-9b01b.appspot.com/o/v9IN7O0myxRoeKfUuaDdgTrJJ1n1%2FPharmaciesImages%2F359d464b-6ea2-4056-bcfe-37cb62512abb.jpg?alt=media&token=be6a8417-b9c4-4d52-b449-86af68c87a2c",
                     "عبد العزيز محمود حبيب",
-                    arrayListOf("د.عبد العزيز محمود حبيب"),
                     "+970598756400",
                     "النصيرات - بجوار ابو دلال مول",
                     31.44747884783767,
-                    34.392811840775806
+                    34.392811840775806,
+                    "cJ7SP3IeSnagT4EczukGPm:APA91bG6vpAyuoXDQDLLqnTiWyXc3Lw0z2oiXvP1XD6FN4pttQXvkQq70qrui4umlY8BfyM_1aq74pykevcGTLWthTFQKroq2KUHgKiXJG0uZ58oN2_w_LyzOq3bHU_ZeTisUImafUmT"
                 )
             )
             list.add(
                 PharmacyModel(
-                    R.drawable.temp_pharmacy_5,
+                    "adfgdfgfdg7d34tsf7g6df",
+                    "https://firebasestorage.googleapis.com/v0/b/eilaji-9b01b.appspot.com/o/v9IN7O0myxRoeKfUuaDdgTrJJ1n1%2FPharmaciesImages%2F359d464b-6ea2-4056-bcfe-37cb62512abb.jpg?alt=media&token=be6a8417-b9c4-4d52-b449-86af68c87a2c",
                     "الرمادي",
-                    arrayListOf("د.خليل الكحلوت"),
                     "+9705993236841",
                     "النصيرات - السوق - منتصف شارع القسام",
                     31.447918798916653,
-                    34.39636771288554
+                    34.39636771288554,
+                    "cJ7SP3IeSnagT4EczukGPm:APA91bG6vpAyuoXDQDLLqnTiWyXc3Lw0z2oiXvP1XD6FN4pttQXvkQq70qrui4umlY8BfyM_1aq74pykevcGTLWthTFQKroq2KUHgKiXJG0uZ58oN2_w_LyzOq3bHU_ZeTisUImafUmT"
                 )
             )
             return list
