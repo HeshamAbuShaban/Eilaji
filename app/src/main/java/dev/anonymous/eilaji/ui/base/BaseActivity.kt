@@ -6,7 +6,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -18,11 +17,8 @@ import dev.anonymous.eilaji.databinding.ActivityBaseBinding
 import dev.anonymous.eilaji.storage.enums.FragmentsKeys
 import dev.anonymous.eilaji.ui.other.base.AlternativesActivity
 
-class BaseActivity : AppCompatActivity(){
-    // to make the navView disappear
-//    private var isMessagingFragmentVisible: Boolean = false
 
-
+class BaseActivity : AppCompatActivity() {
     private lateinit var binding: ActivityBaseBinding
     private lateinit var baseViewModel: BaseViewModel
 
@@ -93,11 +89,6 @@ class BaseActivity : AppCompatActivity(){
                 if (menuResource != 0) {
                     toolbar.inflateMenu(menuResource)
                 }
-
-                // Hide the bottom navigation view for the MessagingFragment
-                val hideBottomNavView = destination.id == R.id.navigation_messaging
-                binding.navView.isVisible = !hideBottomNavView
-                binding.includeAppBarLayoutBase.toolbarApp.isVisible = !hideBottomNavView
             }
 
             // Handle bottom navigation item selection
@@ -114,13 +105,11 @@ class BaseActivity : AppCompatActivity(){
         }
     }
 
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.empty_menu, menu) // Inflate an empty menu
         updateToolbarMenu() // Update the toolbar menu
         return true
     }
-
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
         R.id.search_menu_item -> {

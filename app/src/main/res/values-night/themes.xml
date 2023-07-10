@@ -58,4 +58,16 @@
         <item name="strokeWidth">0dp</item>
     </style>
 
+    <style name="black_light_white_night_background">
+        <item name="android:background">#FFFFFF</item>
+    </style>
+
+    <style name="white_light_gray_night_background">
+        <item name="android:background">@color/gray_light_for_night</item>
+    </style>
+
+    <style name="item_image_profile_tint">
+        <item name="android:backgroundTint">@color/white</item>
+    </style>
+
 </resources>

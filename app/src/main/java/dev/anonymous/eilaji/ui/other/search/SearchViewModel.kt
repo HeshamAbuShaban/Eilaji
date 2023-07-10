@@ -9,12 +9,16 @@ import dev.anonymous.eilaji.models.server.Medicine
 class SearchViewModel: ViewModel() {
     private val _medicinesData  = MutableLiveData<ArrayList<Medicine>>()
     val medicineData : LiveData<ArrayList<Medicine>> = _medicinesData
+
     fun setMedicinesData(medicinesData: ArrayList<Medicine>) {
         _medicinesData.value = medicinesData
     }
+
     // -------------------------------------------------------------
+
     private val _pharmaciesData  = MutableLiveData<ArrayList<Pharmacy>>()
     val pharmaciesData : LiveData<ArrayList<Pharmacy>> = _pharmaciesData
+
     fun setPharmaciesDataData(pharmaciesData: ArrayList<Pharmacy>) {
         _pharmaciesData.value = pharmaciesData
     }

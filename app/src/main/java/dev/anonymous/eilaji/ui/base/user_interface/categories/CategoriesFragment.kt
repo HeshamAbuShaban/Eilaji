@@ -1,5 +1,6 @@
 package dev.anonymous.eilaji.ui.base.user_interface.categories
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,6 +14,8 @@ import dev.anonymous.eilaji.adapters.server.CategoryAdapter
 import dev.anonymous.eilaji.databinding.FragmentCategoriesBinding
 import dev.anonymous.eilaji.models.server.Category
 import dev.anonymous.eilaji.storage.enums.CollectionNames
+import dev.anonymous.eilaji.storage.enums.FragmentsKeys
+import dev.anonymous.eilaji.ui.other.base.AlternativesActivity
 
 class CategoriesFragment : Fragment() {
     // #-Firebase
@@ -45,7 +48,7 @@ class CategoriesFragment : Fragment() {
         displayCategories()
     }
 
-    private fun displayCategories(){
+    private fun displayCategories() {
         // setup the viewPager with data
         categoriesViewModel.categoryList.observe(viewLifecycleOwner) {
             setupPharmacyDepartmentsRecycler(it)
@@ -56,8 +59,18 @@ class CategoriesFragment : Fragment() {
         with(binding.recyclerPharmacyDepartments) {
             setHasFixedSize(false)
             layoutManager = GridLayoutManager(activity, 2)
-            adapter = CategoryAdapter(categoryList)
+            adapter = CategoryAdapter(categoryList) { categoryId , categoryTitle->
+                navToSubCategories(categoryId, categoryTitle)
+            }
         }
+    }
+
+    private fun navToSubCategories(argCategoryId: String,argCategoryTitle :String) {
+        val intent = Intent(requireContext(), AlternativesActivity::class.java)
+        intent.putExtra("fragmentType", FragmentsKeys.subCategories.name)
+        intent.putExtra("categoryId", argCategoryId)
+        intent.putExtra("categoryTitle", argCategoryTitle)
+        startActivity(intent)
     }
 
     private fun fetchCategories() {
@@ -79,7 +92,8 @@ class CategoriesFragment : Fragment() {
         super.onDestroyView()
         removeListeners()
     }
-    private fun removeListeners(){
+
+    private fun removeListeners() {
         categoriesViewModel.categoryList.removeObservers(viewLifecycleOwner)
     }
 

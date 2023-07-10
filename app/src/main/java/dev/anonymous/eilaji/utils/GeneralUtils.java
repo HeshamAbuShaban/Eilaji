@@ -4,6 +4,7 @@ import android.graphics.drawable.Drawable;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.navigation.NavOptions;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestBuilder;
@@ -46,5 +47,14 @@ public class GeneralUtils {
     public static String formatTimeStamp(Long timeStamp) {
         SimpleDateFormat format = new SimpleDateFormat("hh:mm a", Locale.getDefault());
         return format.format(timeStamp);
+    }
+
+    public static NavOptions getNavOptions() {
+        return new NavOptions.Builder()
+                .setEnterAnim(R.anim.slide_in_left)
+                .setExitAnim(R.anim.slide_out_right)
+                .setPopEnterAnim(R.anim.slide_in_right)
+                .setPopExitAnim(R.anim.slide_out_left)
+                .build();
     }
 }

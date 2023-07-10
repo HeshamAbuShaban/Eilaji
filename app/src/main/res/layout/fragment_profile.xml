@@ -16,9 +16,9 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:paddingVertical="@dimen/_20sdp"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingVertical="@dimen/_20sdp">
 
             <LinearLayout
                 android:id="@+id/buFavorites"
@@ -51,11 +51,12 @@
                     android:layout_weight="1" />
 
                 <ImageView
+                    style="@style/item_image_profile_tint"
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/_15sdp"
                     android:layout_marginEnd="@dimen/_3sdp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_arrow_forward" />
+                    android:background="@drawable/ic_arrow_forward"
+                    android:contentDescription="@null" />
 
             </LinearLayout>
 
@@ -98,11 +99,12 @@
                     android:layout_weight="1" />
 
                 <ImageView
+                    style="@style/item_image_profile_tint"
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/_15sdp"
                     android:layout_marginEnd="@dimen/_3sdp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_arrow_forward" />
+                    android:background="@drawable/ic_arrow_forward"
+                    android:contentDescription="@null" />
 
             </LinearLayout>
 
@@ -144,11 +146,12 @@
                     android:layout_weight="1" />
 
                 <ImageView
+                    style="@style/item_image_profile_tint"
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/_15sdp"
                     android:layout_marginEnd="@dimen/_3sdp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_arrow_forward" />
+                    android:background="@drawable/ic_arrow_forward"
+                    android:contentDescription="@null" />
 
             </LinearLayout>
 
@@ -190,11 +193,12 @@
                     android:layout_weight="1" />
 
                 <ImageView
+                    style="@style/item_image_profile_tint"
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/_15sdp"
                     android:layout_marginEnd="@dimen/_3sdp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_arrow_forward" />
+                    android:background="@drawable/ic_arrow_forward"
+                    android:contentDescription="@null" />
 
             </LinearLayout>
 
@@ -238,11 +242,12 @@
                     android:layout_weight="1" />
 
                 <ImageView
+                    style="@style/item_image_profile_tint"
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/_15sdp"
                     android:layout_marginEnd="@dimen/_3sdp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_arrow_forward" />
+                    android:background="@drawable/ic_arrow_forward"
+                    android:contentDescription="@null" />
 
             </LinearLayout>
 
@@ -263,6 +268,7 @@
                 android:paddingVertical="@dimen/_12sdp">
 
                 <ImageView
+                    style="@style/item_image_profile_tint"
                     android:layout_width="@dimen/_20sdp"
                     android:layout_height="@dimen/_20sdp"
                     android:contentDescription="@null"
@@ -283,11 +289,12 @@
                     android:layout_weight="1" />
 
                 <ImageView
+                    style="@style/item_image_profile_tint"
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/_15sdp"
                     android:layout_marginEnd="@dimen/_3sdp"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_arrow_forward" />
+                    android:background="@drawable/ic_arrow_forward"
+                    android:contentDescription="@null" />
 
             </LinearLayout>
 

@@ -102,7 +102,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/linearLayout"
             tools:itemCount="4"
-            tools:listitem="@layout/item_categories_pharmaceuticals" />
+            tools:listitem="@layout/item_sub_category" />
 
         <LinearLayout
             android:id="@+id/linearLayout2"

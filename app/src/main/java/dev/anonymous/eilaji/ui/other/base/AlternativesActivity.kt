@@ -30,9 +30,46 @@ class AlternativesActivity : AppCompatActivity() {
                     FragmentsKeys.reminder.name -> nonNullNavController.navigate(R.id.navigation_reminders_list)
                     FragmentsKeys.search.name -> nonNullNavController.navigate(R.id.navigation_search)
                     FragmentsKeys.map.name -> nonNullNavController.navigate(R.id.navigation_map)
+                    FragmentsKeys.messaging.name -> {
+                        nonNullNavController.navigate(R.id.navigation_messaging, getArgsMessaging())
+                    }
+
+                    FragmentsKeys.subCategories.name -> {
+                        nonNullNavController.navigate(
+                            R.id.navigation_sub_categories_fragment, getArgsSubCategories()
+                        )
+                    }
                 }
             }
         }
+    }
+
+    private fun getArgsSubCategories(): Bundle {
+        val categoryId: String = intent.getStringExtra("categoryId")!!
+        val categoryTitle: String = intent.getStringExtra("categoryTitle")!!
+
+        val args = Bundle()
+        args.putString("categoryId", categoryId)
+        args.putString("categoryTitle", categoryTitle)
+
+        return args
+    }
+
+    private fun getArgsMessaging(): Bundle {
+        val chatId: String = intent.getStringExtra("chatId")!!
+        val receiverUid: String = intent.getStringExtra("receiverUid")!!
+        val receiverFullName: String = intent.getStringExtra("receiverFullName")!!
+        val receiverUrlImage: String = intent.getStringExtra("receiverUrlImage")!!
+        val receiverToken: String = intent.getStringExtra("receiverToken")!!
+
+        val args = Bundle()
+        args.putString("chatId", chatId)
+        args.putString("receiverUid", receiverUid)
+        args.putString("receiverFullName", receiverFullName)
+        args.putString("receiverUrlImage", receiverUrlImage)
+        args.putString("receiverToken", receiverToken);
+
+        return args
     }
 
     private fun setupViewModel() {

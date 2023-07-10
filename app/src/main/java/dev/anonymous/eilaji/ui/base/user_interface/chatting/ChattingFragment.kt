@@ -1,11 +1,11 @@
 package dev.anonymous.eilaji.ui.base.user_interface.chatting
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.firebase.ui.database.FirebaseRecyclerOptions
 import com.google.firebase.auth.FirebaseUser
@@ -15,6 +15,8 @@ import dev.anonymous.eilaji.databinding.FragmentChattingBinding
 import dev.anonymous.eilaji.firebase.FirebaseChatManager
 import dev.anonymous.eilaji.firebase.FirebaseController
 import dev.anonymous.eilaji.models.ChatModel
+import dev.anonymous.eilaji.storage.enums.FragmentsKeys
+import dev.anonymous.eilaji.ui.other.base.AlternativesActivity
 
 class ChattingFragment : Fragment(), ChatListCallback {
     private var _binding: FragmentChattingBinding? = null
@@ -83,11 +85,15 @@ class ChattingFragment : Fragment(), ChatListCallback {
         _binding = null
         super.onDestroyView()
     }
-    override fun onChatItemClicked(chatModel: ChatModel?, userUid: String?, key: String?) {
-        val action = ChattingFragmentDirections.actionNavigationChattingToNavigationMessaging(
-            chatModel?.chatId, userUid!!, chatModel?.userFullName!!, chatModel.userImageUrl!!,
-            chatModel.userToken!!
-        )
-        findNavController().navigate(action)
+
+    override fun onChatItemClicked(chatModel: ChatModel, key: String) {
+        val intent = Intent(requireContext(), AlternativesActivity::class.java)
+        intent.putExtra("fragmentType", FragmentsKeys.messaging.name)
+        intent.putExtra("chatId", chatModel.chatId)
+        intent.putExtra("receiverUid", key)
+        intent.putExtra("receiverFullName", chatModel.userFullName)
+        intent.putExtra("receiverUrlImage", chatModel.userImageUrl)
+        intent.putExtra("receiverToken", chatModel.userToken)
+        startActivity(intent)
     }
 }

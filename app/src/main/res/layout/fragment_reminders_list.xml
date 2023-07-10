@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/c1_reminder_item"
     tools:context=".ui.other.reminder.list.RemindersListFragment">
+
     <!--Empty States Image-->
     <ImageView
         android:id="@+id/emptyListImage"
@@ -13,25 +14,26 @@
         android:layout_height="match_parent"
         android:contentDescription="@null"
         android:scaleType="fitCenter"
-        android:visibility="invisible"
         android:src="@drawable/bg_empty_3"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="ImageContrastCheck" />
+
     <!--Empty States TextView-->
     <TextView
         android:id="@+id/emptyListText"
-        android:textSize="@dimen/_22sdp"
-        android:textAlignment="center"
-        android:gravity="top|center"
-        android:textStyle=""
-        android:layout_marginTop="@dimen/_15sdp"
-        android:visibility="invisible"
-        android:textColor="@color/white"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/_15sdp"
+        android:gravity="top|center"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_22sdp"
+        android:textStyle=""
+        android:visibility="invisible"
         tools:ignore="VisualLintOverlap" />
 
     <!--RecyclerView-->
@@ -54,8 +56,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|start"
-        android:layout_marginStart="@dimen/_15sdp"
-        android:layout_marginBottom="@dimen/_22sdp"
+        android:layout_marginStart="@dimen/_12sdp"
+        android:layout_marginBottom="@dimen/_20sdp"
         android:contentDescription="@null"
         android:text="@string/add"
         android:textColor="#E1BEE7"
@@ -64,7 +66,7 @@
         app:backgroundTint="#724cf9"
         app:icon="@drawable/ic_add"
         app:iconTint="#f896d8"
-        app:layout_constraintBottom_toBottomOf="@id/recViewRemindersList"
-        app:layout_constraintStart_toStartOf="@id/recViewRemindersList" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

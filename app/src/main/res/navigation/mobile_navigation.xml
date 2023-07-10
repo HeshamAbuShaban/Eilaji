@@ -5,14 +5,12 @@
     android:id="@+id/mobile_navigation"
     app:startDestination="@+id/navigation_home">
 
-
     <fragment
         android:id="@+id/navigation_home"
         android:name="dev.anonymous.eilaji.ui.base.user_interface.home.HomeFragment"
         android:label="@string/delivery_to_your_location"
-        tools:layout="@layout/fragment_home"
-        app:menu="@menu/home_menu"/>
-
+        app:menu="@menu/home_menu"
+        tools:layout="@layout/fragment_home" />
 
     <fragment
         android:id="@+id/navigation_send_prescription"
@@ -24,7 +22,7 @@
         android:id="@+id/navigation_chatting"
         android:name="dev.anonymous.eilaji.ui.base.user_interface.chatting.ChattingFragment"
         android:label="@string/chats"
-        tools:layout="@layout/fragment_chatting" >
+        tools:layout="@layout/fragment_chatting">
         <action
             android:id="@+id/action_navigation_chatting_to_navigation_messaging"
             app:destination="@id/navigation_messaging" />
@@ -34,37 +32,13 @@
         android:id="@+id/navigation_categories"
         android:name="dev.anonymous.eilaji.ui.base.user_interface.categories.CategoriesFragment"
         android:label="@string/categories"
-        tools:layout="@layout/fragment_categories"
-        app:menu="@menu/category_menu"/>
+        app:menu="@menu/category_menu"
+        tools:layout="@layout/fragment_categories" />
 
     <fragment
         android:id="@+id/navigation_profile"
         android:name="dev.anonymous.eilaji.ui.base.user_interface.profile.ProfileFragment"
         android:label="@string/title_profile"
         tools:layout="@layout/fragment_profile" />
-
-    <fragment
-        android:id="@+id/navigation_messaging"
-        android:name="dev.anonymous.eilaji.ui.other.messaging.MessagingFragment"
-        android:label="fragment_messaging"
-        tools:layout="@layout/fragment_messaging">
-        <argument
-            android:name="chatId"
-            app:argType="string"
-            app:nullable="true" />
-        <argument
-            android:name="receiverUid"
-            app:argType="string" />
-        <argument
-            android:name="receiverFullName"
-            app:argType="string" />
-        <argument
-            android:name="receiverUrlImage"
-            app:argType="string" />
-        <argument
-            android:name="receiverToken"
-            app:argType="string" />
-    </fragment>
-
 
 </navigation>

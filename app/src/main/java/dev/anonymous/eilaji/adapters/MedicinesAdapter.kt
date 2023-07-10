@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.ItemMedicineBinding
 import dev.anonymous.eilaji.models.server.Medicine
 import dev.anonymous.eilaji.utils.GeneralUtils
@@ -57,23 +58,22 @@ class MedicinesAdapter(
                 tvMedicineName.text = model.title
                 tvMedicineSalary.text = "${model.price}$"
 
-//                setUpFavoriteIcon(model)
+                setUpFavoriteIcon(model)
 
-/*
+
                 buAddMedicineToFavorite.setOnClickListener {
-                    model.isFavorite = !model.isFavorite
                     setUpFavoriteIcon(model)
                 }
-*/
+
             }
         }
 
-        /*private fun setUpFavoriteIcon(model: Medicine) {
+        private fun setUpFavoriteIcon(model: Medicine) {
             if (model.isFavorite) {
                 binding.buAddMedicineToFavorite.setImageResource(R.drawable.ic_favorite)
             } else {
                 binding.buAddMedicineToFavorite.setImageResource(R.drawable.ic_favorite_border)
             }
-        }*/
+        }
     }
 }

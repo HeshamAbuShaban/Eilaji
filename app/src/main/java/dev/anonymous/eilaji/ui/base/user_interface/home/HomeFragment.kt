@@ -13,8 +13,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.FirebaseFirestore
 import dev.anonymous.eilaji.adapters.AdsAdapter
-import dev.anonymous.eilaji.adapters.CategoriesPharmaceuticalsAdapter
 import dev.anonymous.eilaji.adapters.MedicinesAdapter
+import dev.anonymous.eilaji.adapters.SubCategoriesAdapter
 import dev.anonymous.eilaji.databinding.FragmentHomeBinding
 import dev.anonymous.eilaji.models.server.Ad
 import dev.anonymous.eilaji.models.server.Medicine
@@ -50,16 +50,20 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
+
         // init the viewModel
         homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupListeners()
+
         /*setupAdsPager()*/
         fetchAds() // now the setup AdpVP works if the data arrived from server
+
         // display
         displayAds()
         setupCategoriesPharmaceuticalsRecycler()
@@ -150,9 +154,9 @@ class HomeFragment : Fragment() {
 
     private fun setupCategoriesPharmaceuticalsRecycler() {
         with(binding.recyclerCategoriesPharmaceuticals) {
-            setHasFixedSize(false)
-            layoutManager = LinearLayoutManager(activity, RecyclerView.HORIZONTAL, false)
-            adapter = CategoriesPharmaceuticalsAdapter(DummyData.listCategoriesPharmaceuticalModels)
+//            setHasFixedSize(false)
+//            layoutManager = LinearLayoutManager(activity, RecyclerView.HORIZONTAL, false)
+//            adapter = SubCategoriesAdapter(DummyData.listCategoriesPharmaceuticalModels)
         }
     }
 

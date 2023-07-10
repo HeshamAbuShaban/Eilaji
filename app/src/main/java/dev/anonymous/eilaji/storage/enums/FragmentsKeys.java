@@ -1,6 +1,8 @@
 package dev.anonymous.eilaji.storage.enums;
 
 public enum FragmentsKeys {
+    subCategories,
+    messaging,
     changePassword,
     add_address,
     favorites,

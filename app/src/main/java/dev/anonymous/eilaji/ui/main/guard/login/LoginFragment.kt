@@ -5,15 +5,16 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
-import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.FragmentLoginBinding
 import dev.anonymous.eilaji.storage.AppSharedPreferences
 import dev.anonymous.eilaji.ui.base.BaseActivity
 import dev.anonymous.eilaji.utils.AppController
+import dev.anonymous.eilaji.utils.GeneralUtils
 
 class LoginFragment : Fragment() {
     private lateinit var _binding: FragmentLoginBinding
@@ -52,7 +53,9 @@ class LoginFragment : Fragment() {
             }
 
             buSignUp.setOnClickListener {
-                navController.navigate(R.id.navigation_SignUp)
+                val directions =
+                    LoginFragmentDirections.actionNavigationLoginToNavigationSignUp()
+                navController.navigate(directions, GeneralUtils.getNavOptions())
             }
 
             buLogin.setOnClickListener {
@@ -76,7 +79,9 @@ class LoginFragment : Fragment() {
             }
 
             buForgotYourPassword.setOnClickListener {
-                navController.navigate(R.id.navigation_forgotPassword)
+                val directions =
+                    LoginFragmentDirections.actionNavigationLoginToNavigationForgotPassword()
+                navController.navigate(directions, GeneralUtils.getNavOptions())
             }
         }
     }
@@ -117,4 +122,10 @@ class LoginFragment : Fragment() {
         Snackbar.make(requireView(), message, Snackbar.LENGTH_LONG).show()
     }
 
+    override fun onResume() {
+        super.onResume()
+        requireActivity().onBackPressedDispatcher.addCallback(this) {
+            requireActivity().finish()
+        }
+    }
 }

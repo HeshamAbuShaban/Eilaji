@@ -18,7 +18,9 @@
         tools:layout="@layout/fragment_map">
         <action
             android:id="@+id/action_navigation_map_to_navigation_messaging"
-            app:destination="@id/navigation_messaging" />
+            app:destination="@id/navigation_messaging"
+            app:enterAnim="@android:anim/slide_in_left"
+            app:exitAnim="@android:anim/slide_out_right" />
     </fragment>
 
     <fragment
@@ -48,10 +50,14 @@
         android:id="@+id/navigation_reminders_list"
         android:name="dev.anonymous.eilaji.ui.other.reminder.list.RemindersListFragment"
         android:label="fragment_reminders_list"
-        tools:layout="@layout/fragment_reminders_list" >
+        tools:layout="@layout/fragment_reminders_list">
         <action
             android:id="@+id/action_navigation_reminders_list_to_navigation_add_reminder"
-            app:destination="@id/navigation_add_reminder" />
+            app:destination="@id/navigation_add_reminder"
+            app:enterAnim="@anim/slide_in_left"
+            app:exitAnim="@anim/slide_out_right"
+            app:popEnterAnim="@anim/slide_in_right"
+            app:popExitAnim="@anim/slide_out_left" />
     </fragment>
 
     <fragment
@@ -74,6 +80,19 @@
             app:argType="string" />
         <argument
             android:name="receiverToken"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_sub_categories_fragment"
+        android:name="dev.anonymous.eilaji.ui.other.sub_categories.SubCategoriesFragment"
+        android:label="fragment_sub_categories"
+        tools:layout="@layout/fragment_sub_categories" >
+        <argument
+            android:name="categoryId"
+            app:argType="string" />
+        <argument
+            android:name="categoryTitle"
             app:argType="string" />
     </fragment>
 

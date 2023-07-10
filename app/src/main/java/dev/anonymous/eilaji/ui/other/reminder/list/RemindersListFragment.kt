@@ -83,10 +83,10 @@ class RemindersListFragment : Fragment(), RemindersAdapter.RemindersListCallback
 
     private fun showEmptyStates() {
         // Show the empty image view or set its visibility to visible
-        with(binding){
+        with(binding) {
             root.setBackgroundResource(R.color.c1_reminder_item_)
             emptyListImage.visibility = View.VISIBLE
-            with(emptyListText){
+            with(emptyListText) {
                 visibility = View.VISIBLE
                 val boldText = getString(R.string.empty_reminders)
                 val normalText = "create a reminder and it will show up here."
@@ -105,7 +105,7 @@ class RemindersListFragment : Fragment(), RemindersAdapter.RemindersListCallback
 
     private fun hideEmptyStates() {
         // Hide the empty image view or set its visibility to gone
-        with(binding){
+        with(binding) {
             root.setBackgroundResource(R.color.c1_reminder_item)
             emptyListImage.visibility = View.GONE
             emptyListText.visibility = View.GONE
@@ -119,9 +119,12 @@ class RemindersListFragment : Fragment(), RemindersAdapter.RemindersListCallback
             with(remindersAdapter) {
                 remindersList.removeAt(position)
                 notifyItemRemoved(position)
-                notifyItemRangeChanged(position, remindersList.size) // Notify the adapter that item positions have changed
+                notifyItemRangeChanged(
+                    position,
+                    remindersList.size
+                ) // Notify the adapter that item positions have changed
             }
-            binding.recViewRemindersList.smoothScrollToPosition(position +1)
+            binding.recViewRemindersList.smoothScrollToPosition(position + 1)
         }
     }
 

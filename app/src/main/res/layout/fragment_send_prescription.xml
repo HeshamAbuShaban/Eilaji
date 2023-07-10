@@ -64,16 +64,16 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_25sdp"
+                android:layout_marginTop="@dimen/_20sdp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
                 <View
+                    style="@style/black_light_white_night_background"
                     android:layout_width="0dp"
                     android:layout_height="@dimen/_1sdp"
                     android:layout_marginStart="@dimen/_20sdp"
-                    android:layout_weight="1"
-                    android:background="@color/black" />
+                    android:layout_weight="1" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -85,23 +85,23 @@
                     android:textStyle="bold" />
 
                 <View
+                    style="@style/black_light_white_night_background"
                     android:layout_width="0dp"
                     android:layout_height="@dimen/_1sdp"
                     android:layout_marginEnd="@dimen/_20sdp"
-                    android:layout_weight="1"
-                    android:background="@color/black" />
+                    android:layout_weight="1" />
 
             </LinearLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/textInputLayoutFullName"
+                android:id="@+id/textInputLayoutAskAboutPrescription"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/_20sdp"
-                android:layout_marginTop="@dimen/_24sdp"
+                android:layout_marginTop="@dimen/_20sdp"
                 android:hint="@string/description_of_the_prescription"
-                app:boxStrokeColor="@color/black"
+                app:boxStrokeColor="@drawable/selector_text_input_ask_about_prescription"
                 app:boxStrokeWidth="@dimen/_1sdp"
                 app:boxStrokeWidthFocused="@dimen/_1sdp"
                 app:expandedHintEnabled="false"
@@ -117,27 +117,17 @@
                     android:inputType="textMultiLine"
                     android:maxLines="8"
                     android:minLines="5"
-                    android:textColorHint="#757575"
+                    android:textColorHint="@color/gray_dark"
                     tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/_10sdp"
+                android:layout_height="@dimen/_45sdp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/recyclerBestSeller" />
-
-
-            <ImageView
-                android:id="@+id/prescriptionImagePreview"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/_140sdp"
-                android:layout_gravity="center"
-                android:scaleType="fitCenter"
-                tools:ignore="ContentDescription,ImageContrastCheck" />
-
 
         </LinearLayout>
 
@@ -148,13 +138,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_marginEnd="@dimen/_25sdp"
-        android:layout_marginBottom="@dimen/_75sdp"
+        android:layout_marginEnd="@dimen/_12sdp"
+        android:layout_marginBottom="@dimen/_70sdp"
         android:contentDescription="@null"
         android:text="@string/send"
         android:textColor="@color/white"
         app:backgroundTint="@color/primary_color"
         app:icon="@drawable/ic_send"
+        app:iconGravity="textEnd"
+        app:iconPadding="@dimen/_20ssp"
         app:iconTint="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

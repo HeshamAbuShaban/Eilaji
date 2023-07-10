@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginHorizontal="@dimen/_10sdp"
-        tools:listitem="@layout/item_pharmacy_department"
+        tools:listitem="@layout/item_category"
         tools:itemCount="4"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
         app:spanCount="2"

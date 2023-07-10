@@ -9,13 +9,30 @@
         android:id="@+id/navigation_onBoarding"
         android:name="dev.anonymous.eilaji.ui.other.on_boarding.OnBoardingFragment"
         android:label="fragment_on_boarding"
-        tools:layout="@layout/fragment_on_boarding"/>
+        tools:layout="@layout/fragment_on_boarding">
+
+        <action
+            android:id="@+id/action_navigation_onBoarding_to_navigation_Login"
+            app:destination="@id/navigation_Login"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_Login"
         android:name="dev.anonymous.eilaji.ui.main.guard.login.LoginFragment"
         android:label="fragment_login"
-        tools:layout="@layout/fragment_login" />
+        tools:layout="@layout/fragment_login">
+        <action
+            android:id="@+id/action_navigation_Login_to_navigation_forgotPassword"
+            app:destination="@id/navigation_forgotPassword" />
+
+        <action
+            android:id="@+id/action_navigation_Login_to_navigation_SignUp"
+            app:destination="@id/navigation_SignUp" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_SignUp"
@@ -28,6 +45,5 @@
         android:name="dev.anonymous.eilaji.ui.main.guard.password.ForgotPasswordFragment"
         android:label="fragment_forgot_password"
         tools:layout="@layout/fragment_forgot_password" />
-
 
 </navigation>

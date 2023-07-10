@@ -11,6 +11,7 @@ class ChatModel {
     var timestamp: Long? = null
 
     constructor() {}
+
     constructor(
         chatId: String?,
         lastMessageText: String?,

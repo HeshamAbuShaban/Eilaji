@@ -11,11 +11,11 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.CompositePageTransformer
 import androidx.viewpager2.widget.MarginPageTransformer
 import androidx.viewpager2.widget.ViewPager2
-import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.adapters.OnBoardingAdapter
 import dev.anonymous.eilaji.databinding.FragmentOnBoardingBinding
 import dev.anonymous.eilaji.storage.AppSharedPreferences
 import dev.anonymous.eilaji.utils.DummyData
+import dev.anonymous.eilaji.utils.GeneralUtils
 import dev.anonymous.eilaji.utils.UtilsAnimation
 import dev.anonymous.eilaji.utils.UtilsScreen
 
@@ -46,18 +46,18 @@ class OnBoardingFragment : Fragment() {
             if (navigateToLogin) {
                 //Get the NavController  inside a fragment that is hosted within an activity with a NavHostFragment
                 val navController = findNavController()
+
                 // removes the onBoardingScreen of the back stack
                 navController.popBackStack()
+
                 // navigate to the Login with making sure there is no return cause of the line above
-                navController.navigate(R.id.navigation_Login)
+                val directions =
+                    OnBoardingFragmentDirections.actionNavigationOnBoardingToNavigationLogin()
+                navController.navigate(directions)
+
                 //Set the sheared Value to True
                 AppSharedPreferences.getInstance(requireContext()).doneWithOnBoarding()
                 AppSharedPreferences.getInstance(requireContext()).setHeIsFirstTimeDone()
-                /*@Deprecated
-                val loginFragment = FragmentLogin()
-                parentFragmentManager.beginTransaction()
-                    .replace(R.id.mainActivityContainer, loginFragment)
-                    .commitAllowingStateLoss()*/
             }
         }
     }

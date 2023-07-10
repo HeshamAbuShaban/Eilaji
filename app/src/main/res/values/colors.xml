@@ -41,4 +41,5 @@
     <!--PlaceHolder-->
     <color name="place_holder_color">#AAADC4</color>
 
+    <color name="alpha_gray">#28B9B9B9</color>
 </resources>

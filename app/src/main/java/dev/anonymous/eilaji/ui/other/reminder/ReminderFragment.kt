@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit
 
 class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListener,
     RequestPermissionsListener {
-    private lateinit var requestPermissionLauncher : ActivityResultLauncher<Array<String>>
+    private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
 
     private lateinit var reminderViewModel: ReminderViewModel
     private lateinit var binding: FragmentReminderBinding
@@ -75,10 +75,7 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
     override fun onResume() {
         super.onResume()
         requireActivity().onBackPressedDispatcher.addCallback(this) {
-            val nav = findNavController()
-
-            nav.popBackStack()
-            nav.navigate(R.id.navigation_reminders_list)
+            findNavController().popBackStack()
         }
     }
 
@@ -95,18 +92,22 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
                     Toast.makeText(
                         requireContext(),
                         "Great Now you are all set to use The Reminder",
-                        Toast.LENGTH_LONG).show()
+                        Toast.LENGTH_LONG
+                    ).show()
                 } else {
                     // Permission denied, handle accordingly
                     // At least one permission denied, handle accordingly (e.g., show a message or disable certain features)
-                    Toast.makeText(requireContext(),
+                    Toast.makeText(
+                        requireContext(),
                         "Permission denied. Cannot create reminder.",
-                        Toast.LENGTH_SHORT).show()
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         // Request permissions if not granted
         if (!arePermissionsGranted()) {
-            RequestPermissionsDialogFragment.newInstance(getString(R.string.permissions_message_starter)).show(childFragmentManager, "StarterInform")
+            RequestPermissionsDialogFragment.newInstance(getString(R.string.permissions_message_starter))
+                .show(childFragmentManager, "StarterInform")
         }
         // if the BatteryOptimization Enabled
         if (isBatteryOptimizationEnabled()) {
@@ -117,7 +118,10 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
     // are the permissions granted ?
     private fun arePermissionsGranted(): Boolean {
         return REQUIRED_PERMISSIONS.all {
-            ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                it
+            ) == PackageManager.PERMISSION_GRANTED
         }
     }
 
@@ -142,12 +146,15 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
             startActivity(intent)
         }
         dialogBuilder.setCancelable(false) // this is to prevent the user from killing the dialog
-        dialogBuilder.setNegativeButton("Cancel"){ _ ,_ ->
-            Toast.makeText(requireContext(),getString(R.string.battery_optimization_still_running),Toast.LENGTH_LONG).show()
+        dialogBuilder.setNegativeButton("Cancel") { _, _ ->
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.battery_optimization_still_running),
+                Toast.LENGTH_LONG
+            ).show()
         }
         dialogBuilder.create().show()
     }
-
 
 
     // Handle the permission request result
@@ -277,19 +284,24 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
     }
 
     override fun onDenyClicked() {
-        Toast.makeText(requireContext(),getString(R.string.permissions_message_sorry_you_can_not), Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            requireContext(),
+            getString(R.string.permissions_message_sorry_you_can_not),
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     companion object {
-        private val REQUIRED_PERMISSIONS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            arrayOf(
-                Manifest.permission.POST_NOTIFICATIONS,
-                Manifest.permission.VIBRATE,
-            )
-        } else {
-            arrayOf(
-                Manifest.permission.VIBRATE,
-            )
-        }
+        private val REQUIRED_PERMISSIONS =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                arrayOf(
+                    Manifest.permission.POST_NOTIFICATIONS,
+                    Manifest.permission.VIBRATE,
+                )
+            } else {
+                arrayOf(
+                    Manifest.permission.VIBRATE,
+                )
+            }
     }
 }

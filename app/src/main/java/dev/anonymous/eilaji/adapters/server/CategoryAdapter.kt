@@ -3,15 +3,19 @@ package dev.anonymous.eilaji.adapters.server
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import dev.anonymous.eilaji.databinding.ItemPharmacyDepartmentBinding
+import dev.anonymous.eilaji.databinding.ItemCategoryBinding
 import dev.anonymous.eilaji.models.server.Category
 import dev.anonymous.eilaji.utils.GeneralUtils
 
-class CategoryAdapter(private var categoryList: ArrayList<Category>) : RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder>() {
+class CategoryAdapter(
+    private var categoryList: ArrayList<Category>,
+    private val navToSubListener: (categoryId: String, categoryTitle: String) -> Unit
+) :
+    RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
         val binding =
-            ItemPharmacyDepartmentBinding.inflate(
+            ItemCategoryBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
                 false
@@ -25,25 +29,35 @@ class CategoryAdapter(private var categoryList: ArrayList<Category>) : RecyclerV
 
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
         val category = categoryList[position]
-        holder.bind(category, position, categoryList.size)
+        holder.bind(category, position, categoryList.size, navToSubListener)
     }
 
-    class CategoryViewHolder(private var binding: ItemPharmacyDepartmentBinding) :
+    class CategoryViewHolder(private var binding: ItemCategoryBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(model: Category?, position: Int, listSize: Int) {
+        fun bind(
+            model: Category,
+            position: Int,
+            listSize: Int,
+            navToSubListener: (categoryId: String, categoryTitle: String) -> Unit
+        ) {
             binding.apply {
                 if (position == 0 || position == 1) {
                     // margin top first tow item
-                    parentPharDep.setPadding(0, 60, 0, 0)
+                    parentCategoryItem.setPadding(0, 60, 0, 0)
                 } else if (position == listSize - 2 || position == listSize - 1) {
                     // margin bottom last tow item
-                    parentPharDep.setPadding(0, 0, 0, 222)
+                    parentCategoryItem.setPadding(0, 0, 0, 222)
                 }
 
-                model?.let {
-                    GeneralUtils.getInstance().loadImage(it.imageUrl).into(ivPharmacyDepartment)
-                    tvPharmacyDepartment.text = it.title
+                GeneralUtils.getInstance()
+                    .loadImage(model.imageUrl)
+                    .into(ivPharmacyDepartment)
+
+                tvPharmacyDepartment.text = model.title
+
+                parentCardCategoryItem.setOnClickListener {
+                    navToSubListener(model.id, model.title)
                 }
             }
         }

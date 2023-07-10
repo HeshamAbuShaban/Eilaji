@@ -1,7 +1,7 @@
 package dev.anonymous.eilaji.utils
 
 import dev.anonymous.eilaji.R
-import dev.anonymous.eilaji.models.CategoriesPharmaceuticalModel
+import dev.anonymous.eilaji.models.SubCategory
 import dev.anonymous.eilaji.models.MedicineModel
 import dev.anonymous.eilaji.models.ModelOnBoarding
 import dev.anonymous.eilaji.models.Pharmacy
@@ -33,55 +33,39 @@ object DummyData {
             return list
         }
 
-    val listCategoriesPharmaceuticalModels: ArrayList<CategoriesPharmaceuticalModel>
+    val listSubCategories: ArrayList<SubCategory>
         get() {
-            val list = ArrayList<CategoriesPharmaceuticalModel>()
+            val list = ArrayList<SubCategory>()
             list.add(
-                CategoriesPharmaceuticalModel(
-                    R.drawable.temp_pharm_1,
-                    "عيون"
+                SubCategory(
+                    "095f3500-6321-4f27-bd33-c39fa9d232b1",
+                   "https://m7et.com/wp-content/uploads/2021/04/%D8%B7%D8%B1%D9%82-%D8%A7%D9%84%D8%B9%D9%86%D8%A7%D9%8A%D8%A9-%D8%A8%D8%A7%D9%84%D8%A7%D8%B3%D9%86%D8%A7%D9%86-%D9%81%D9%8A-%D8%A7%D9%84%D9%85%D9%86%D8%B2%D9%84-780x470.jpg.webp",
+                    "عيون",
+                    "E3RPh39EA3NrLaDMRFdg"
                 )
             )
             list.add(
-                CategoriesPharmaceuticalModel(
-                    R.drawable.temp_pharm_2,
-                    "أذن"
+                SubCategory(
+                    "1412ef0b-b622-45c8-b30c-a3feaa83494b",
+                    "https://www.afdal.best/wp-content/uploads/2020/10/Teaser-BlueHeaven-CDP-Teaser-3080x806-ar.jpg",
+                    "مرطبات الجلد",
+                    "E3RPh39EA3NrLaDMRFdg"
                 )
             )
             list.add(
-                CategoriesPharmaceuticalModel(
-                    R.drawable.temp_pharm_3,
-                    "فطريات"
+                SubCategory(
+                    "095f3500-6321-4f27-bd33-c39fa9d232b1",
+                    "https://m7et.com/wp-content/uploads/2021/04/%D8%B7%D8%B1%D9%82-%D8%A7%D9%84%D8%B9%D9%86%D8%A7%D9%8A%D8%A9-%D8%A8%D8%A7%D9%84%D8%A7%D8%B3%D9%86%D8%A7%D9%86-%D9%81%D9%8A-%D8%A7%D9%84%D9%85%D9%86%D8%B2%D9%84-780x470.jpg.webp",
+                    "أسنان",
+                    "E3RPh39EA3NrLaDMRFdg"
                 )
             )
             list.add(
-                CategoriesPharmaceuticalModel(
-                    R.drawable.temp_pharm_4,
-                    "التهابات"
-                )
-            )
-            list.add(
-                CategoriesPharmaceuticalModel(
-                    R.drawable.temp_pharm_1,
-                    "عيون"
-                )
-            )
-            list.add(
-                CategoriesPharmaceuticalModel(
-                    R.drawable.temp_pharm_2,
-                    "أذن"
-                )
-            )
-            list.add(
-                CategoriesPharmaceuticalModel(
-                    R.drawable.temp_pharm_3,
-                    "فطريات"
-                )
-            )
-            list.add(
-                CategoriesPharmaceuticalModel(
-                    R.drawable.temp_pharm_4,
-                    "التهابات"
+                SubCategory(
+                    "095f3500-6321-4f27-bd33-c39fa9d232b1",
+                    "https://m7et.com/wp-content/uploads/2021/04/%D8%B7%D8%B1%D9%82-%D8%A7%D9%84%D8%B9%D9%86%D8%A7%D9%8A%D8%A9-%D8%A8%D8%A7%D9%84%D8%A7%D8%B3%D9%86%D8%A7%D9%86-%D9%81%D9%8A-%D8%A7%D9%84%D9%85%D9%86%D8%B2%D9%84-780x470.jpg.webp",
+                    "الحنجرة",
+                    "E3RPh39EA3NrLaDMRFdg"
                 )
             )
             return list

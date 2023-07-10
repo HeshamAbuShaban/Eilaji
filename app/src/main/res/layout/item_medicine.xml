@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
 
     <androidx.cardview.widget.CardView
-        android:layout_width="wrap_content"
+        android:layout_width="@dimen/_120sdp"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/_7sdp"
         app:cardCornerRadius="@dimen/_13sdp"
@@ -32,17 +33,17 @@
 
             <TextView
                 android:id="@+id/tvMedicineName"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/_8sdp"
+                android:layout_marginHorizontal="@dimen/_8sdp"
                 android:layout_marginTop="@dimen/_6sdp"
-                android:text="قطرة مسكنة للآلام"
+                android:maxLines="2"
+                android:text=" قطرة مسكنة لآلام الظهر والركب"
                 android:textSize="@dimen/_12ssp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/ivMedicine" />
-
+                app:layout_constraintTop_toBottomOf="@+id/ivMedicine"
+                tools:ignore="HardcodedText" />
 
             <ImageView
                 android:id="@+id/buAddMedicineToFavorite"
@@ -70,7 +71,8 @@
                 app:layout_constraintEnd_toStartOf="@+id/buAddMedicineToFavorite"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/buAddMedicineToFavorite" />
+                app:layout_constraintTop_toTopOf="@+id/buAddMedicineToFavorite"
+                tools:ignore="HardcodedText" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
