@@ -1,12 +1,10 @@
 package dev.anonymous.eilaji.utils
 
 import dev.anonymous.eilaji.R
-import dev.anonymous.eilaji.models.AdModel
 import dev.anonymous.eilaji.models.CategoriesPharmaceuticalModel
 import dev.anonymous.eilaji.models.MedicineModel
 import dev.anonymous.eilaji.models.ModelOnBoarding
-import dev.anonymous.eilaji.models.PharmacyDepartmentModel
-import dev.anonymous.eilaji.models.PharmacyModel
+import dev.anonymous.eilaji.models.Pharmacy
 import dev.anonymous.eilaji.models.RatingsModel
 
 object DummyData {
@@ -34,29 +32,29 @@ object DummyData {
             return list
         }
 
-    val listAdModels: ArrayList<AdModel>
+    /*val listAds: ArrayList<Ad>
         get() {
-            val list = ArrayList<AdModel>()
+            val list = ArrayList<Ad>()
             list.add(
-                AdModel(
+                Ad(
                     R.drawable.temp_ads_image,
                     "حمل الروشتة الآن!"
                 )
             )
             list.add(
-                AdModel(
+                Ad(
                     R.drawable.temp_ads_image,
                     "حمل الروشتة الآن!"
                 )
             )
             list.add(
-                AdModel(
+                Ad(
                     R.drawable.temp_ads_image,
                     "حمل الروشتة الآن!"
                 )
             )
             return list
-        }
+        }*/
 
     val listCategoriesPharmaceuticalModels: ArrayList<CategoriesPharmaceuticalModel>
         get() {
@@ -178,7 +176,7 @@ object DummyData {
             return list
         }
 
-    val listPharmacyDepartmentsModels: ArrayList<PharmacyDepartmentModel>
+    /*val listPharmacyDepartmentsModels: ArrayList<PharmacyDepartmentModel>
         get() {
             val list = ArrayList<PharmacyDepartmentModel>()
             list.add(
@@ -218,14 +216,14 @@ object DummyData {
                 )
             )
             return list
-        }
+        }*/
 
-    val listPharmaciesModels: ArrayList<PharmacyModel>
+    val listPharmaciesModels: ArrayList<Pharmacy>
         get() {
-            val list = ArrayList<PharmacyModel>()
+            val list = ArrayList<Pharmacy>()
             list.add(
-                PharmacyModel(
-                    R.drawable.temp_pharmacy_1,
+                Pharmacy(
+                    "R.drawable.temp_pharmacy_1",
                     "فتيح",
                     arrayListOf("د.محمد محمود فتيح"),
                     "+970597152714",
@@ -235,8 +233,8 @@ object DummyData {
                 )
             )
             list.add(
-                PharmacyModel(
-                    R.drawable.temp_pharmacy_2,
+                Pharmacy(
+                    "R.drawable.temp_pharmacy_2",
                     "تقى عابدين",
                     arrayListOf("د.تقى عابدين"),
                     "+970568856720",
@@ -246,8 +244,8 @@ object DummyData {
                 )
             )
             list.add(
-                PharmacyModel(
-                    R.drawable.temp_pharmacy_3,
+                Pharmacy(
+                    "R.drawable.temp_pharmacy_3",
                     "عبق الشجر",
                     arrayListOf("د.محمد الحمامي"),
                     "+970562005006",
@@ -257,8 +255,8 @@ object DummyData {
                 )
             )
             list.add(
-                PharmacyModel(
-                    R.drawable.temp_pharmacy_4,
+                Pharmacy(
+                    "R.drawable.temp_pharmacy_4",
                     "عبد العزيز محمود حبيب",
                     arrayListOf("د.عبد العزيز محمود حبيب"),
                     "+970598756400",
@@ -268,8 +266,8 @@ object DummyData {
                 )
             )
             list.add(
-                PharmacyModel(
-                    R.drawable.temp_pharmacy_5,
+                Pharmacy(
+                    "R.drawable.temp_pharmacy_5",
                     "الرمادي",
                     arrayListOf("د.خليل الكحلوت"),
                     "+9705993236841",

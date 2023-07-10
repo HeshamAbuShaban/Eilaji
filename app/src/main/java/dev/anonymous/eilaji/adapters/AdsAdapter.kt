@@ -4,9 +4,10 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import dev.anonymous.eilaji.databinding.ItemAdsBinding
-import dev.anonymous.eilaji.models.AdModel
+import dev.anonymous.eilaji.models.server.Ad
+import dev.anonymous.eilaji.utils.GeneralUtils
 
-class AdsAdapter(private var listAds: ArrayList<AdModel>) :
+class AdsAdapter(private var listAds: ArrayList<Ad>) :
     RecyclerView.Adapter<AdsAdapter.AdsViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AdsViewHolder {
         val binding =
@@ -26,10 +27,10 @@ class AdsAdapter(private var listAds: ArrayList<AdModel>) :
     class AdsViewHolder(private var binding: ItemAdsBinding) : RecyclerView.ViewHolder(
         binding.root
     ) {
-        fun bind(model: AdModel?) {
+        fun bind(model: Ad) {
             binding.apply {
-                ivAds.setImageResource(model!!.image)
-                tvAds.text = model.text
+                GeneralUtils.getInstance().loadImage(model.imageUrl).into(ivAds)
+                tvAds.text = model.title
             }
         }
     }

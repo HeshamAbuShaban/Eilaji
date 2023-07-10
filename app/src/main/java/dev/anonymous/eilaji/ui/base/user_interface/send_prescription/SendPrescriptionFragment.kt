@@ -70,7 +70,12 @@ class SendPrescriptionFragment : Fragment(), ImagePickerListener,
     private fun setupInitialedDataInputs() {
         with(binding) {
             edAskAboutPrescription.setText(sendPrescriptionViewModel.prescriptionAdditionalText.value)
-            prescriptionImagePreview.setImageBitmap(sendPrescriptionViewModel.bitmap.value)
+
+            with(sendPrescriptionViewModel.bitmap.value){
+                if(this != null) {
+                    ivAddPrescriptionImage.setImageBitmap(this)
+                }
+            }
         }
     }
     private fun setupClickListeners() {
@@ -213,7 +218,7 @@ class SendPrescriptionFragment : Fragment(), ImagePickerListener,
         //send this to the viewModel
         sendPrescriptionViewModel.setBitmap(collectedBitmap)
         // set a preview from the changed bitmap value within the viewModel If it got changed
-        binding.prescriptionImagePreview.setImageBitmap(sendPrescriptionViewModel.bitmap.value)
+        binding.ivAddPrescriptionImage.setImageBitmap(sendPrescriptionViewModel.bitmap.value)
     }
 
     override fun onImageSelectionCancelled() {

@@ -4,9 +4,10 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import dev.anonymous.eilaji.databinding.ItemPharmacyLocationBinding
-import dev.anonymous.eilaji.models.PharmacyModel
+import dev.anonymous.eilaji.models.Pharmacy
+import dev.anonymous.eilaji.utils.GeneralUtils
 
-class PharmaciesLocationsAdapter(private var listPharmacies: ArrayList<PharmacyModel>) :
+class PharmaciesLocationsAdapter(private var listPharmacies: ArrayList<Pharmacy>) :
     RecyclerView.Adapter<PharmaciesLocationsAdapter.PharmaciesLocationsViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PharmaciesLocationsViewHolder {
         val binding =
@@ -26,9 +27,10 @@ class PharmaciesLocationsAdapter(private var listPharmacies: ArrayList<PharmacyM
     class PharmaciesLocationsViewHolder(private var binding: ItemPharmacyLocationBinding) : RecyclerView.ViewHolder(
         binding.root
     ) {
-        fun bind(model: PharmacyModel?) {
+        fun bind(model: Pharmacy?) {
             binding.apply {
-                ivPharmacyLocation.setImageResource(model!!.image)
+                GeneralUtils.getInstance().loadImage(model!!.pharmacy_image_url).into(ivPharmacyLocation)
+//                ivPharmacyLocation.setImageResource(model!!.image)
                 tvPharmacyNameLocation.text = model.name
                 tvPharmacyDistanceLocation.text = "30k.m"
             }
