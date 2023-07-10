@@ -48,8 +48,10 @@ class SearchFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         //get the medicines and set it into the recV
         fetchMedicinesData()
+        displayMedicines()
         //get the pharmacies and set it into the recV
         fetchPharmaciesData()
+        displayPharmacies()
     }
 
     override fun onStart() {
@@ -59,7 +61,7 @@ class SearchFragment : Fragment() {
     }
 
     private fun medicinesFetcherListener() {
-        medicinesListenerRegistration = medicinesRef.addSnapshotListener() { querySnapshot, e ->
+        medicinesListenerRegistration = medicinesRef.addSnapshotListener { querySnapshot, e ->
             if (e != null) {
                 Log.e("SearchFragment", "fetch: Error", e)
                 return@addSnapshotListener
@@ -80,7 +82,7 @@ class SearchFragment : Fragment() {
     }
 
     private fun pharmaciesFetcherListener() {
-        pharmaciesListenerRegistration = pharmaciesRef.addSnapshotListener() { querySnapshot, e ->
+        pharmaciesListenerRegistration = pharmaciesRef.addSnapshotListener { querySnapshot, e ->
             if (e != null) {
                 Log.e("SearchFragment", "fetch: Error", e)
                 return@addSnapshotListener
@@ -109,7 +111,6 @@ class SearchFragment : Fragment() {
     private fun setupPharmaciesAdapter(pharmacy: ArrayList<Pharmacy>) {
         with(binding.recVSearchPharmacies) {
             adapter = PharmaciesLocationsAdapter(pharmacy){
-
             }
         }
     }
@@ -124,13 +125,16 @@ class SearchFragment : Fragment() {
             }
             // send the data to the container
             searchViewModel.setMedicinesData(medicines)
-            // setup the viewPager with data
-            searchViewModel.medicineData.observe(viewLifecycleOwner) {
-                setupMedicinesAdapter(it)
-            }
+
         }.addOnFailureListener { exception ->
             Log.e("SF", "fetch: exc", exception)
             Log.d("SF", "fetch: massage" + exception.localizedMessage)
+        }
+    }
+    private fun displayMedicines(){
+        // setup the viewPager with data
+        searchViewModel.medicineData.observe(viewLifecycleOwner) {
+            setupMedicinesAdapter(it)
         }
     }
     //.. get pharmacies
@@ -143,13 +147,15 @@ class SearchFragment : Fragment() {
             }
             // send the data to the container
             searchViewModel.setPharmaciesDataData(pharmacies)
-            // setup the viewPager with data
-            searchViewModel.pharmaciesData.observe(viewLifecycleOwner) {
-                setupPharmaciesAdapter(it)
-            }
         }.addOnFailureListener { exception ->
             Log.e("SF", "fetch: exc", exception)
             Log.d("SF", "fetch: massage" + exception.localizedMessage)
+        }
+    }
+    private fun displayPharmacies(){
+        // setup the viewPager with data
+        searchViewModel.pharmaciesData.observe(viewLifecycleOwner) {
+            setupPharmaciesAdapter(it)
         }
     }
 

@@ -177,7 +177,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
                     val action = MapFragmentDirections.actionNavigationMapToNavigationMessaging(
                         null, it.uid, it.pharmacy_name, it.pharmacy_image_url, it.token
                     )
-                    binding.pharmaciesLocationsPager.findNavController().navigate(action)
+                    findNavController().navigate(action)
                 }
             )
 
