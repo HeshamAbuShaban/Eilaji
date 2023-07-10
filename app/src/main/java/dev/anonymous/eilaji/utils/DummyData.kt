@@ -1,12 +1,11 @@
 package dev.anonymous.eilaji.utils
 
 import dev.anonymous.eilaji.R
-import dev.anonymous.eilaji.models.AdModel
 import dev.anonymous.eilaji.models.CategoriesPharmaceuticalModel
 import dev.anonymous.eilaji.models.MedicineModel
 import dev.anonymous.eilaji.models.ModelOnBoarding
+import dev.anonymous.eilaji.models.Pharmacy
 import dev.anonymous.eilaji.models.PharmacyDepartmentModel
-import dev.anonymous.eilaji.models.PharmacyModel
 import dev.anonymous.eilaji.models.RatingsModel
 
 object DummyData {
@@ -29,30 +28,6 @@ object DummyData {
                 ModelOnBoarding(
                     R.drawable.on_boarding_3,
                     "هذا النص هو مثال لنص يمكن أن يستبدل في نفس المساحة، لقد تم توليد هذا النص من مولد النص "
-                )
-            )
-            return list
-        }
-
-    val listAdModels: ArrayList<AdModel>
-        get() {
-            val list = ArrayList<AdModel>()
-            list.add(
-                AdModel(
-                    R.drawable.temp_ads_image,
-                    "حمل الروشتة الآن!"
-                )
-            )
-            list.add(
-                AdModel(
-                    R.drawable.temp_ads_image,
-                    "حمل الروشتة الآن!"
-                )
-            )
-            list.add(
-                AdModel(
-                    R.drawable.temp_ads_image,
-                    "حمل الروشتة الآن!"
                 )
             )
             return list
@@ -220,11 +195,11 @@ object DummyData {
             return list
         }
 
-    val listPharmaciesModels: ArrayList<PharmacyModel>
+    val listPharmaciesModels: ArrayList<Pharmacy>
         get() {
-            val list = ArrayList<PharmacyModel>()
+            val list = ArrayList<Pharmacy>()
             list.add(
-                PharmacyModel(
+                Pharmacy(
                     "adfgdfgfdgg7dsf7g6df",
                     "https://firebasestorage.googleapis.com/v0/b/eilaji-9b01b.appspot.com/o/v9IN7O0myxRoeKfUuaDdgTrJJ1n1%2FPharmaciesImages%2F359d464b-6ea2-4056-bcfe-37cb62512abb.jpg?alt=media&token=be6a8417-b9c4-4d52-b449-86af68c87a2c",
                     "فتيح",
@@ -236,7 +211,7 @@ object DummyData {
                 )
             )
             list.add(
-                PharmacyModel(
+                Pharmacy(
                     "adfgdfg345fdg7dsf7g6df",
                     "https://firebasestorage.googleapis.com/v0/b/eilaji-9b01b.appspot.com/o/v9IN7O0myxRoeKfUuaDdgTrJJ1n1%2FPharmaciesImages%2F359d464b-6ea2-4056-bcfe-37cb62512abb.jpg?alt=media&token=be6a8417-b9c4-4d52-b449-86af68c87a2c",
                     "تقى عابدين",
@@ -248,7 +223,7 @@ object DummyData {
                 )
             )
             list.add(
-                PharmacyModel(
+                Pharmacy(
                     "adfgdfgfdg7dsf34t7g6df",
                     "https://firebasestorage.googleapis.com/v0/b/eilaji-9b01b.appspot.com/o/v9IN7O0myxRoeKfUuaDdgTrJJ1n1%2FPharmaciesImages%2F359d464b-6ea2-4056-bcfe-37cb62512abb.jpg?alt=media&token=be6a8417-b9c4-4d52-b449-86af68c87a2c",
                     "عبق الشجر",
@@ -260,7 +235,7 @@ object DummyData {
                 )
             )
             list.add(
-                PharmacyModel(
+                Pharmacy(
                     "adfgdfgfdg7dsf7g6df",
                     "https://firebasestorage.googleapis.com/v0/b/eilaji-9b01b.appspot.com/o/v9IN7O0myxRoeKfUuaDdgTrJJ1n1%2FPharmaciesImages%2F359d464b-6ea2-4056-bcfe-37cb62512abb.jpg?alt=media&token=be6a8417-b9c4-4d52-b449-86af68c87a2c",
                     "عبد العزيز محمود حبيب",
@@ -272,7 +247,7 @@ object DummyData {
                 )
             )
             list.add(
-                PharmacyModel(
+                Pharmacy(
                     "adfgdfgfdg7d34tsf7g6df",
                     "https://firebasestorage.googleapis.com/v0/b/eilaji-9b01b.appspot.com/o/v9IN7O0myxRoeKfUuaDdgTrJJ1n1%2FPharmaciesImages%2F359d464b-6ea2-4056-bcfe-37cb62512abb.jpg?alt=media&token=be6a8417-b9c4-4d52-b449-86af68c87a2c",
                     "الرمادي",

@@ -18,7 +18,7 @@
         tools:layout="@layout/fragment_map">
         <action
             android:id="@+id/action_navigation_map_to_messagingFragment"
-            app:destination="@id/messagingFragment" />
+            app:destination="@id/navigation_messaging" />
     </fragment>
 
     <fragment
@@ -26,7 +26,6 @@
         android:name="dev.anonymous.eilaji.ui.other.medicine.MedicineFragment"
         android:label="fragment_medicine"
         tools:layout="@layout/fragment_medicine" />
-
     <fragment
         android:id="@+id/navigation_favorites"
         android:name="dev.anonymous.eilaji.ui.other.favorite.FavoritesFragment"
@@ -49,14 +48,10 @@
         android:id="@+id/navigation_reminders_list"
         android:name="dev.anonymous.eilaji.ui.other.reminder.list.RemindersListFragment"
         android:label="fragment_reminders_list"
-        tools:layout="@layout/fragment_reminders_list">
-        <action
-            android:id="@+id/action_navigation_reminders_list_to_navigation_add_reminder"
-            app:destination="@id/navigation_add_reminder" />
-    </fragment>
+        tools:layout="@layout/fragment_reminders_list" />
 
     <fragment
-        android:id="@+id/messagingFragment"
+        android:id="@+id/navigation_messaging"
         android:name="dev.anonymous.eilaji.ui.other.messaging.MessagingFragment"
         android:label="fragment_messaging"
         tools:layout="@layout/fragment_messaging">

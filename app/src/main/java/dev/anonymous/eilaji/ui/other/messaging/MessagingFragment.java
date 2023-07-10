@@ -40,7 +40,7 @@ import retrofit2.Response;
 public class MessagingFragment extends Fragment {
     private static final String TAG = "MessagingFragment";
 
-    FragmentMessagingBinding binding;
+    private FragmentMessagingBinding binding;
 
     private APIService apiService;
 

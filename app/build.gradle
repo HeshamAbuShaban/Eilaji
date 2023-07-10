@@ -101,6 +101,7 @@ dependencies {
     // Horizontal indicator
     implementation project(":Horizontal-indicator-for-pager2-and-recycler")
 
+    // Glide for load image from internet
     implementation 'com.github.bumptech.glide:glide:4.15.1'
 
     // Rounded imageview

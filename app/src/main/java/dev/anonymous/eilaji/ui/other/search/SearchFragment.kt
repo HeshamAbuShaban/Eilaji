@@ -108,7 +108,9 @@ class SearchFragment : Fragment() {
 
     private fun setupPharmaciesAdapter(pharmacy: ArrayList<Pharmacy>) {
         with(binding.recVSearchPharmacies) {
-            adapter = PharmaciesLocationsAdapter(pharmacy)
+            adapter = PharmaciesLocationsAdapter(pharmacy){
+
+            }
         }
     }
 

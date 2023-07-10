@@ -4,12 +4,12 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import dev.anonymous.eilaji.databinding.ItemPharmacyLocationBinding
-import dev.anonymous.eilaji.models.PharmacyModel
+import dev.anonymous.eilaji.models.Pharmacy
 import dev.anonymous.eilaji.utils.GeneralUtils
 
 class PharmaciesLocationsAdapter(
-    private val listPharmacies: ArrayList<PharmacyModel>,
-    private val navigateToChat: (model: PharmacyModel) -> Unit
+    private val listPharmacies: ArrayList<Pharmacy>,
+    private val navigateToChat: (model: Pharmacy) -> Unit
 ) :
     RecyclerView.Adapter<PharmaciesLocationsAdapter.PharmaciesLocationsViewHolder>() {
 
@@ -35,7 +35,7 @@ class PharmaciesLocationsAdapter(
         RecyclerView.ViewHolder(
             binding.root
         ) {
-        fun bind(model: PharmacyModel, navigateToChat: (model: PharmacyModel) -> Unit) {
+        fun bind(model: Pharmacy, navigateToChat: (model: Pharmacy) -> Unit) {
             binding.apply {
 
                 GeneralUtils.getInstance().loadImage(model.imageUrl).into(ivPharmacyLocation)
