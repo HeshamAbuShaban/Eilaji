@@ -103,7 +103,8 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
         // Set the GoogleMap instance in the view model
         mapViewModel.setMap(googleMap)
 
-        mapViewModel.updateLastLocation()
+        // this gets the Location and sends it to the viewModel to be used
+        mapViewModel.getUserLastLocation()
 
         // Hesham:?> Provide Some Context of what dose this block of code do ?
         googleMap.setOnMarkerClickListener { marker ->
@@ -155,13 +156,14 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
     /*locate the user location*/
     private fun observeCurrentLocation() {
         mapViewModel.currentLocation.observe(viewLifecycleOwner) { currentLatLng ->
-            // Move the camera to the current location
-            mapViewModel.animateCameraToPosition(currentLatLng, 17f)
-
-            // Add a marker to the current location
-            mapViewModel.addMarkerToMap(
-                markerOptions(latLng = currentLatLng, title = "Home Location")
-            )
+            currentLatLng?.let {
+                // Move the camera to the current location
+                mapViewModel.animateCameraToPosition(currentLatLng, 17f)
+                // Add a marker to the current location
+                mapViewModel.addMarkerToMap(
+                    markerOptions(latLng = currentLatLng, title = "Home Location")
+                )
+            }
         }
     }
 
@@ -256,5 +258,9 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
         ).show()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        mapViewModel.currentLocation.removeObservers(viewLifecycleOwner)
+    }
 
 }

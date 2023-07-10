@@ -155,10 +155,7 @@ class BaseActivity : AppCompatActivity(){
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"
                 putExtra(Intent.EXTRA_SUBJECT, "Check out this app!")
-                putExtra(
-                    Intent.EXTRA_TEXT,
-                    "I found this amazing app that I wanted to share with you. Download it from [app store link]."
-                )
+                putExtra(Intent.EXTRA_TEXT, "I found this amazing app that I wanted to share with you. Download it from [app store link].")
             }
 
             if (shareIntent.resolveActivity(packageManager) != null) {
