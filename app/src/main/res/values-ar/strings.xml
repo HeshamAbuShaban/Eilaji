@@ -92,4 +92,6 @@
     <string name="permissions_message_sorry_you_can_not">آسف ولكن لا يمكنك استخدام هذه الوظيفة!</string>
     <string name="battery_optimization">لضمان حسن سير التذكيرات ، يرجى استبعاد هذا التطبيق من تحسين البطارية.</string>
     <string name="battery_optimization_still_running">قد لا يظهر تذكيرك في الوقت المناسب !!!</string>
+    <string name="medicines">الأدوية</string>
+    <string name="pharmacies">صيدليات</string>
 </resources>

@@ -56,7 +56,7 @@ class AboutMedicationAdapter(
                             }
                         }
                         binding.progressAlternativeMedicines.visibility = View.GONE
-                        adapter.setListMedicines(list)
+//                        adapter.setListMedicines(list)
                     }
                 }.start()
 
@@ -70,8 +70,7 @@ class AboutMedicationAdapter(
 
                 binding.ratingBarPrice.rating = medicineModel.ratings.priceRate
                 binding.ratingBarSpeedOfRecovery.rating = medicineModel.ratings.speedOfRecoveryRate
-                binding.ratingBarMedicineEfficacy.rating =
-                    medicineModel.ratings.medicineEfficacyRate
+                binding.ratingBarMedicineEfficacy.rating = medicineModel.ratings.medicineEfficacyRate
                 binding.ratingBarTasteOfMedicine.rating = medicineModel.ratings.tasteOfMedicineRate
 
                 container.addView(binding.root)

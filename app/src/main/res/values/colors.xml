@@ -40,4 +40,7 @@
     <color name="c2_reminder_item">#ff87ab</color>
     <color name="c_text_over_pink">#6d23b6</color>
 
+    <!--PlaceHolder-->
+    <color name="place_holder_color">#AAADC4</color>
+
 </resources>

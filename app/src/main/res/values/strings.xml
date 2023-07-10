@@ -103,6 +103,8 @@
     <string name="permissions_message_sorry_you_can_not">Sorry but you can\'t use this functionality!</string>
     <string name="battery_optimization">To ensure proper functioning of reminders, please exclude this app from battery optimization.</string>
     <string name="battery_optimization_still_running">YOUR REMINDER MIGHT NOT SHOW UP IN TIME!!!</string>
-    <string name="the_app_map">The app map</string>
+    <string name="the_app_map" translatable="false">The app map</string>
+    <string name="medicines">Medicines</string>
+    <string name="pharmacies">Pharmacies</string>
 
 </resources>

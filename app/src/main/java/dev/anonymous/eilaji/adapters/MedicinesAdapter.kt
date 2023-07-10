@@ -4,22 +4,17 @@ import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.ItemMedicineBinding
-import dev.anonymous.eilaji.models.MedicineModel
+import dev.anonymous.eilaji.models.server.Medicine
+import dev.anonymous.eilaji.utils.GeneralUtils
 
 class MedicinesAdapter(
-    private var medicineModels: ArrayList<MedicineModel>,
+    private var medicineModels: ArrayList<Medicine>,
     private val isGridLayout: Boolean = false,
     private val halfScreenWidth: Int = 0
 ) :
     RecyclerView.Adapter<MedicinesAdapter.MedicinesViewHolder>() {
 
-    @SuppressLint("NotifyDataSetChanged")
-    fun setListMedicines(medicineModels: ArrayList<MedicineModel>) {
-        this.medicineModels = medicineModels
-        notifyDataSetChanged()
-    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MedicinesViewHolder {
         val binding =
@@ -46,7 +41,8 @@ class MedicinesAdapter(
             binding.root
         ) {
 
-        fun bind(model: MedicineModel, isGridLayout: Boolean, halfScreenWidth: Int, position: Int) {
+        @SuppressLint("SetTextI18n")
+        fun bind(model: Medicine, isGridLayout: Boolean, halfScreenWidth: Int, position: Int) {
             if (isGridLayout) {
                 binding.root.layoutParams.width = halfScreenWidth
 
@@ -57,25 +53,27 @@ class MedicinesAdapter(
             }
 
             binding.apply {
-                ivMedicine.setImageResource(model.image)
-                tvMedicineName.text = model.name
+                GeneralUtils.getInstance().loadImage(model.imageUrl).into(ivMedicine)
+                tvMedicineName.text = model.title
                 tvMedicineSalary.text = "${model.price}$"
 
-                setUpFavoriteIcon(model)
+//                setUpFavoriteIcon(model)
 
+/*
                 buAddMedicineToFavorite.setOnClickListener {
                     model.isFavorite = !model.isFavorite
                     setUpFavoriteIcon(model)
                 }
+*/
             }
         }
 
-        private fun setUpFavoriteIcon(model: MedicineModel) {
+        /*private fun setUpFavoriteIcon(model: Medicine) {
             if (model.isFavorite) {
                 binding.buAddMedicineToFavorite.setImageResource(R.drawable.ic_favorite)
             } else {
                 binding.buAddMedicineToFavorite.setImageResource(R.drawable.ic_favorite_border)
             }
-        }
+        }*/
     }
 }

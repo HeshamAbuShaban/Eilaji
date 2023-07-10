@@ -10,6 +10,7 @@ import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.adapters.MedicinesAdapter
 import dev.anonymous.eilaji.databinding.FragmentFavoritesBinding
 import dev.anonymous.eilaji.models.MedicineModel
+import dev.anonymous.eilaji.models.server.Medicine
 import dev.anonymous.eilaji.utils.DummyData
 import dev.anonymous.eilaji.utils.UtilsScreen
 
@@ -30,10 +31,10 @@ class FavoriteViewModel : ViewModel() {
             adapter = medicinesAdapter
         }
 
-        Thread {
+        /*Thread {
             SystemClock.sleep(1500)
             context.runOnUiThread {
-                val list: ArrayList<MedicineModel> = ArrayList()
+                val list: ArrayList<Medicine> = ArrayList()
                 for (medicine in DummyData.listMedicineModels) {
                     if (medicine.isFavorite) {
                         list.add(medicine)
@@ -42,7 +43,7 @@ class FavoriteViewModel : ViewModel() {
                 binding.progressFavorites.visibility = View.GONE
                 medicinesAdapter.setListMedicines(list)
             }
-        }.start()
+        }.start()*/
     }
 
     fun setToolBarTitle(context: Context) {
