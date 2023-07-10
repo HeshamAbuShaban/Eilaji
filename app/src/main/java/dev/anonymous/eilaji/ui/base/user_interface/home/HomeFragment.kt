@@ -12,7 +12,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
 import dev.anonymous.eilaji.adapters.AdsAdapter
 import dev.anonymous.eilaji.adapters.CategoriesPharmaceuticalsAdapter
 import dev.anonymous.eilaji.adapters.MedicinesAdapter
@@ -24,14 +23,13 @@ import dev.anonymous.eilaji.storage.enums.FragmentsKeys
 import dev.anonymous.eilaji.ui.other.base.AlternativesActivity
 import dev.anonymous.eilaji.utils.DepthPageTransformer
 import dev.anonymous.eilaji.utils.DummyData
-
 class HomeFragment : Fragment() {
     // #-Firebase
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 
     // AdsReference
     private val adsRef = db.collection(CollectionNames.Ad.collection_name)
-    private var adsListenerRegistration: ListenerRegistration? = null
+//    private var adsListenerRegistration: ListenerRegistration? = null
 
 //    // PharmacyReference
 //    private val pharmacyRef = db.collection(CollectionNames.Pharmacy.collection_name)
@@ -59,16 +57,17 @@ class HomeFragment : Fragment() {
         setupListeners()
         /*setupAdsPager()*/
         fetchAds() // now the setup AdpVP works if the data arrived from server
-
+        // display
+        displayAds()
         setupCategoriesPharmaceuticalsRecycler()
 //        setupBestSellerRecycler()
     }
 
-    override fun onStart() {
+    /*override fun onStart() {
         super.onStart()
         // run the ads listeners ,And do not forget to stop it
         adsFetcherListener()
-    }
+    }*/
 
     @SuppressLint("ClickableViewAccessibility")
     private fun setupListeners() {
@@ -92,6 +91,14 @@ class HomeFragment : Fragment() {
 
     }
 
+    private fun displayAds(){
+        homeViewModel.adsList.observe(viewLifecycleOwner) { adsList ->
+            if (adsList != null) {
+                setupAdsPager(adsList)
+            }
+        }
+    }
+
     private fun setupAdsPager(adsList: ArrayList<Ad>) {
         with(binding.pagerAds) {
             adapter = AdsAdapter(adsList)
@@ -102,27 +109,21 @@ class HomeFragment : Fragment() {
 
     //this methods gets the ads from server
     private fun fetchAds() {
-        val adList: ArrayList<Ad> = ArrayList()
         adsRef.get().addOnSuccessListener { querySnapshot ->
+            val adList: ArrayList<Ad> = ArrayList()
             for (documentSnapshot in querySnapshot) {
                 val ad = documentSnapshot.toObject(Ad::class.java)
                 adList.add(ad)
             }
-            // send the data to the container
             homeViewModel.setAdsList(adList)
-            // setup the viewPager with data
-            homeViewModel.adsList.observe(viewLifecycleOwner) {
-                if (it != null) {
-                    setupAdsPager(it)
-                }
-            }
         }.addOnFailureListener { exception ->
             Log.e("HomeFragment", "fetchAds: exc", exception)
             Log.d("HomeFragment", "fetchAds: massage" + exception.localizedMessage)
         }
     }
 
-    private fun adsFetcherListener() {
+
+    /*private fun adsFetcherListener() {
         adsListenerRegistration = adsRef.addSnapshotListener { querySnapshot, e ->
             if (e != null) {
                 Log.e("HomeFragment", "fetchAds: Error", e)
@@ -141,7 +142,7 @@ class HomeFragment : Fragment() {
                 // (e.g., show a message to the user or handle the absence of data)
             }
         }
-    }
+    }*/
 
 
     private fun setupCategoriesPharmaceuticalsRecycler() {
@@ -174,11 +175,8 @@ class HomeFragment : Fragment() {
     }
 
     private fun removeAdsListeners() {
-        adsListenerRegistration?.remove()
-        adsListenerRegistration = null
+        /*adsListenerRegistration?.remove()
+        adsListenerRegistration = null*/
+        homeViewModel.adsList.removeObservers(viewLifecycleOwner)
     }
 }
-
-
-
-

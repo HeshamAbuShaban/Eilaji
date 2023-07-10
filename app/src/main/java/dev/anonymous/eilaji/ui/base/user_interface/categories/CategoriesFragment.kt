@@ -42,7 +42,14 @@ class CategoriesFragment : Fragment() {
 
         /*setupPharmacyDepartmentsRecycler()*/
         fetchCategories() // now its from the server
+        displayCategories()
+    }
 
+    private fun displayCategories(){
+        // setup the viewPager with data
+        categoriesViewModel.categoryList.observe(viewLifecycleOwner) {
+            setupPharmacyDepartmentsRecycler(it)
+        }
     }
 
     private fun setupPharmacyDepartmentsRecycler(categoryList: ArrayList<Category>) {
@@ -62,14 +69,18 @@ class CategoriesFragment : Fragment() {
             }
             // send the data to the container
             categoriesViewModel.setCategoryList(categoryList)
-            // setup the viewPager with data
-            categoriesViewModel.categoryList.observe(viewLifecycleOwner) {
-                setupPharmacyDepartmentsRecycler(it)
-            }
         }.addOnFailureListener { exception ->
             Log.e("CategoriesFragment", "fetchCate: exc", exception)
             Log.d("CategoriesFragment", "fetchCate: massage" + exception.localizedMessage)
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        removeListeners()
+    }
+    private fun removeListeners(){
+        categoriesViewModel.categoryList.removeObservers(viewLifecycleOwner)
     }
 
 }

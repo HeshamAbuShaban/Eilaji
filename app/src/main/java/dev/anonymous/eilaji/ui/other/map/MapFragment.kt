@@ -172,7 +172,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
             adapter = PharmaciesLocationsAdapter(
                 DummyData.listPharmaciesModels,
                 navigateToChat = {
-                    val action = MapFragmentDirections.actionNavigationMapToMessagingFragment(
+                    val action = MapFragmentDirections.actionNavigationMapToNavigationMessaging(
                         null, it.uid, it.name, it.imageUrl, it.token
                     )
                     binding.pharmaciesLocationsPager.findNavController().navigate(action)

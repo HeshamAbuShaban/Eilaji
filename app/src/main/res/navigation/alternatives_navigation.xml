@@ -17,7 +17,7 @@
         android:label="@string/pharmacies_map"
         tools:layout="@layout/fragment_map">
         <action
-            android:id="@+id/action_navigation_map_to_messagingFragment"
+            android:id="@+id/action_navigation_map_to_navigation_messaging"
             app:destination="@id/navigation_messaging" />
     </fragment>
 
@@ -48,7 +48,11 @@
         android:id="@+id/navigation_reminders_list"
         android:name="dev.anonymous.eilaji.ui.other.reminder.list.RemindersListFragment"
         android:label="fragment_reminders_list"
-        tools:layout="@layout/fragment_reminders_list" />
+        tools:layout="@layout/fragment_reminders_list" >
+        <action
+            android:id="@+id/action_navigation_reminders_list_to_navigation_add_reminder"
+            app:destination="@id/navigation_add_reminder" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_messaging"

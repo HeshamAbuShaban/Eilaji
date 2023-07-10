@@ -1,7 +1,6 @@
 package dev.anonymous.eilaji.adapters;
 
 import android.content.Context;
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -18,6 +17,11 @@ import dev.anonymous.eilaji.utils.GeneralUtils;
 
 public class ChatsAdapter extends FirebaseRecyclerAdapter<ChatModel, ChatsAdapter.ChatsViewHolder> {
     private final String userUid;
+    private ChatListCallback chatListCallback;
+
+    public void setChatListCallback(ChatListCallback chatListCallback){
+        this.chatListCallback = chatListCallback;
+    }
 
     public ChatsAdapter(@NonNull FirebaseRecyclerOptions<ChatModel> options, String userUid) {
         super(options);
@@ -35,12 +39,17 @@ public class ChatsAdapter extends FirebaseRecyclerAdapter<ChatModel, ChatsAdapte
     @Override
     protected void onBindViewHolder(@NonNull ChatsViewHolder holder, int position, @NonNull ChatModel model) {
         holder.bind(model, userUid, getSnapshots().getSnapshot(position).getKey());
+        holder.setChatListCallback(chatListCallback);
     }
 
     public static class ChatsViewHolder extends RecyclerView.ViewHolder {
         ItemChatBinding binding;
         Context context;
+        private ChatListCallback chatListCallback;
 
+        protected void setChatListCallback(ChatListCallback chatListCallback){
+            this.chatListCallback = chatListCallback;
+        }
         public ChatsViewHolder(ItemChatBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
@@ -49,6 +58,8 @@ public class ChatsAdapter extends FirebaseRecyclerAdapter<ChatModel, ChatsAdapte
 
         void bind(ChatModel chat, String userUid, String key) {
             binding.parentItemChat.setOnClickListener(v -> {
+                chatListCallback.onChatItemClicked(chat,userUid,key);
+//                var action = ChattingFragmentDirections.actionNavigationChattingToNavigationMessaging();
 //                Intent intent = new Intent(context, MessagingActivity.class);
 //                intent.putExtra("chat_id", chat.getChatId());
 //                intent.putExtra("receiver_uid", key);
@@ -81,5 +92,9 @@ public class ChatsAdapter extends FirebaseRecyclerAdapter<ChatModel, ChatsAdapte
                 );
             }
         }
+    }
+
+    public interface ChatListCallback {
+        void onChatItemClicked(ChatModel chatModel,String userUid, String key);
     }
 }

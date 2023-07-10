@@ -4,7 +4,6 @@ plugins {
     id 'kotlin-kapt'
     id 'com.google.gms.google-services'
     id 'org.jetbrains.kotlin.android'
-
     id 'androidx.navigation.safeargs'
 }
 
@@ -24,7 +23,6 @@ android {
         targetSdk 33
         versionCode 1
         versionName "1.0"
-        multiDexEnabled true //Todo : remove this
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

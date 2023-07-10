@@ -5,16 +5,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.firebase.ui.database.FirebaseRecyclerOptions
 import com.google.firebase.auth.FirebaseUser
 import dev.anonymous.eilaji.adapters.ChatsAdapter
+import dev.anonymous.eilaji.adapters.ChatsAdapter.ChatListCallback
 import dev.anonymous.eilaji.databinding.FragmentChattingBinding
 import dev.anonymous.eilaji.firebase.FirebaseChatManager
 import dev.anonymous.eilaji.firebase.FirebaseController
 import dev.anonymous.eilaji.models.ChatModel
 
-class ChattingFragment : Fragment() {
+class ChattingFragment : Fragment(), ChatListCallback {
     private var _binding: FragmentChattingBinding? = null
     private val binding get() = _binding!!
 
@@ -25,6 +27,13 @@ class ChattingFragment : Fragment() {
     private val firebaseController: FirebaseController = FirebaseController.getInstance()
     private var firebaseChatManager: FirebaseChatManager? = null
 
+
+    // Listener
+
+    /*fun setOnNavigateToMessagingListener(listener: OnNavigateToMessagingListener) {
+        navigateToMessagingListener = listener
+    }*/
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         firebaseUser = firebaseController.getCurrentUser()
@@ -33,7 +42,7 @@ class ChattingFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentChattingBinding.inflate(inflater, container, false)
 
@@ -63,6 +72,7 @@ class ChattingFragment : Fragment() {
                 .build()
 
         chatsAdapter = ChatsAdapter(options, userUid)
+        chatsAdapter?.setChatListCallback(this@ChattingFragment)
         binding.recyclerChats.layoutManager = LinearLayoutManager(activity)
         binding.recyclerChats.adapter = chatsAdapter
         chatsAdapter!!.startListening()
@@ -72,5 +82,12 @@ class ChattingFragment : Fragment() {
         chatsAdapter?.stopListening()
         _binding = null
         super.onDestroyView()
+    }
+    override fun onChatItemClicked(chatModel: ChatModel?, userUid: String?, key: String?) {
+        val action = ChattingFragmentDirections.actionNavigationChattingToNavigationMessaging(
+            chatModel?.chatId, userUid!!, chatModel?.userFullName!!, chatModel.userImageUrl!!,
+            chatModel.userToken!!
+        )
+        findNavController().navigate(action)
     }
 }

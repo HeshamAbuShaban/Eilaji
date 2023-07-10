@@ -6,6 +6,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -14,10 +15,13 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.ActivityBaseBinding
-import dev.anonymous.eilaji.ui.other.base.AlternativesActivity
 import dev.anonymous.eilaji.storage.enums.FragmentsKeys
+import dev.anonymous.eilaji.ui.other.base.AlternativesActivity
 
-class BaseActivity : AppCompatActivity() {
+class BaseActivity : AppCompatActivity(){
+    // to make the navView disappear
+//    private var isMessagingFragmentVisible: Boolean = false
+
 
     private lateinit var binding: ActivityBaseBinding
     private lateinit var baseViewModel: BaseViewModel
@@ -64,12 +68,12 @@ class BaseActivity : AppCompatActivity() {
 
     private fun setupBottomNavigationView() {
         baseViewModel.navController.value?.let { nonNullNavController ->
-                /**
-                 * @author$hesham_abu_shaban
-                 * here, we're linking to the (bottom navigation view) built-in method
-                 * of configuring, to work with the navController that stored in the baseViewModel.
-                 */
-                binding.navView.setupWithNavController(nonNullNavController)
+            /**
+             * @author$hesham_abu_shaban
+             * here, we're linking to the (bottom navigation view) built-in method
+             * of configuring, to work with the navController that stored in the baseViewModel.
+             */
+            binding.navView.setupWithNavController(nonNullNavController)
         }
     }
 
@@ -77,29 +81,34 @@ class BaseActivity : AppCompatActivity() {
     private fun updateToolbarMenu() {
         val toolbar = binding.includeAppBarLayoutBase.toolbarApp
         baseViewModel.navController.value?.let { nonNullNavController ->
-                // Update toolbar menu based on the selected bottom navigation item
-                nonNullNavController.addOnDestinationChangedListener { _, destination, _ ->
-                    val menuResource = when (destination.id) {
-                        R.id.navigation_home -> R.menu.home_menu
-                        R.id.navigation_categories -> R.menu.category_menu
-                        // Add more destinations and their associated menu resources here
-                        else -> 0
-                    }
-                    toolbar.menu.clear()
-                    if (menuResource != 0) {
-                        toolbar.inflateMenu(menuResource)
-                    }
+            // Update toolbar menu based on the selected bottom navigation item
+            nonNullNavController.addOnDestinationChangedListener { _, destination, _ ->
+                val menuResource = when (destination.id) {
+                    R.id.navigation_home -> R.menu.home_menu
+                    R.id.navigation_categories -> R.menu.category_menu
+                    // Add more destinations and their associated menu resources here
+                    else -> 0
+                }
+                toolbar.menu.clear()
+                if (menuResource != 0) {
+                    toolbar.inflateMenu(menuResource)
                 }
 
-                // Handle bottom navigation item selection
-                binding.navView.setOnItemSelectedListener { menuItem ->
-                    val handled =
-                        NavigationUI.onNavDestinationSelected(menuItem, nonNullNavController)
-                    if (handled) {
-                        invalidateOptionsMenu()
-                    }
-                    handled
+                // Hide the bottom navigation view for the MessagingFragment
+                val hideBottomNavView = destination.id == R.id.navigation_messaging
+                binding.navView.isVisible = !hideBottomNavView
+                binding.includeAppBarLayoutBase.toolbarApp.isVisible = !hideBottomNavView
+            }
+
+            // Handle bottom navigation item selection
+            binding.navView.setOnItemSelectedListener { menuItem ->
+                val handled =
+                    NavigationUI.onNavDestinationSelected(menuItem, nonNullNavController)
+                if (handled) {
+                    invalidateOptionsMenu()
                 }
+                handled
+            }
 
 
         }
@@ -146,13 +155,17 @@ class BaseActivity : AppCompatActivity() {
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"
                 putExtra(Intent.EXTRA_SUBJECT, "Check out this app!")
-                putExtra(Intent.EXTRA_TEXT, "I found this amazing app that I wanted to share with you. Download it from [app store link].")
+                putExtra(
+                    Intent.EXTRA_TEXT,
+                    "I found this amazing app that I wanted to share with you. Download it from [app store link]."
+                )
             }
 
             if (shareIntent.resolveActivity(packageManager) != null) {
                 startActivity(Intent.createChooser(shareIntent, "Share the app"))
             } else {
-                Toast.makeText(this@BaseActivity, "No app found to share", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@BaseActivity, "No app found to share", Toast.LENGTH_SHORT)
+                    .show()
             }
             true
         }
