@@ -24,6 +24,9 @@ import dev.anonymous.eilaji.ui.other.base.AlternativesActivity
 import dev.anonymous.eilaji.utils.DepthPageTransformer
 import dev.anonymous.eilaji.utils.DummyData
 class HomeFragment : Fragment() {
+    companion object{
+        private const val TAG = "HomeFragment"
+    }
     // #-Firebase
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 
@@ -76,7 +79,7 @@ class HomeFragment : Fragment() {
             val intent = Intent(requireContext(), AlternativesActivity::class.java)
             intent.putExtra("fragmentType", FragmentsKeys.search.name) // Set the fragment type as "search" or "map"
             startActivity(intent)
-            false
+            return@setOnTouchListener false
         }
 
         // testing for the medicine fragment
@@ -153,8 +156,40 @@ class HomeFragment : Fragment() {
         }
     }
 
+    // get the  ("Medicines") Categories
     private fun fetchPharmaceuticals() {
+        val categoryID = "Y5JJJYQykkCbaxy7ZOa4"
 
+        // Query the SubCategories collection to filter based on the category ID
+        val subCategoriesRef = FirebaseFirestore.getInstance().collection("SubCategories")
+        val subCategoriesQuery = subCategoriesRef.whereEqualTo("idCategory", categoryID)
+
+        subCategoriesQuery.get()
+            .addOnSuccessListener { subCategoriesQuerySnapshot ->
+                // Process the filtered subcategories
+                val subCategoryIDs = subCategoriesQuerySnapshot.documents.map { it.id }
+
+                // Query the Medicines collection to filter based on the filtered subcategory IDs
+                val medicinesRef = FirebaseFirestore.getInstance().collection("Medicines")
+                val medicinesQuery = medicinesRef.whereIn("idSubCategory", subCategoryIDs)
+
+                medicinesQuery.get()
+                    .addOnSuccessListener { medicinesQuerySnapshot ->
+                        // Process the filtered medicines
+                        for (documentSnapshot in medicinesQuerySnapshot) {
+                            val medicine = documentSnapshot.toObject(Medicine::class.java)
+                            // Handle each medicine as needed
+                        }
+                    }
+                    .addOnFailureListener { exception ->
+                        // Handle any errors that occurred during the query for medicines
+                        Log.e(TAG, "fetchPharmaceuticals: e", exception)
+                    }
+            }
+            .addOnFailureListener { exception ->
+                // Handle any errors that occurred during the query for subcategories
+                Log.e(TAG, "fetchPharmaceuticals: ex", exception)
+            }
     }
 
     private fun setupBestSellerRecycler(medicineList: ArrayList<Medicine>) {

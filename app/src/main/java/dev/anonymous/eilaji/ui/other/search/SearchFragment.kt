@@ -162,11 +162,13 @@ class SearchFragment : Fragment() {
     private fun removeMedicinesListener() {
         medicinesListenerRegistration?.remove()
         medicinesListenerRegistration = null
+        searchViewModel.medicineData.removeObservers(viewLifecycleOwner)
     }
 
     private fun removePharmaciesListener() {
         pharmaciesListenerRegistration?.remove()
         pharmaciesListenerRegistration = null
+        searchViewModel.pharmaciesData.removeObservers(viewLifecycleOwner)
     }
 
 }

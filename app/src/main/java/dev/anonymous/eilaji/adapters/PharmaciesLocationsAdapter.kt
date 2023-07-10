@@ -38,9 +38,9 @@ class PharmaciesLocationsAdapter(
         fun bind(model: Pharmacy, navigateToChat: (model: Pharmacy) -> Unit) {
             binding.apply {
 
-                GeneralUtils.getInstance().loadImage(model.imageUrl).into(ivPharmacyLocation)
+                GeneralUtils.getInstance().loadImage(model.pharmacy_image_url).into(ivPharmacyLocation)
 
-                tvPharmacyNameLocation.text = model.name
+                tvPharmacyNameLocation.text = model.pharmacy_name
                 tvPharmacyDistanceLocation.text = "30k.m"
 
                 buPharmacyChatLocation.setOnClickListener {

@@ -137,7 +137,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
             mapViewModel.addMarkerToMap(
                 markerOptions(
                     latLng = LatLng(it.lat, it.lng),
-                    title = it.name,
+                    title = it.pharmacy_name,
                     getMarkerIconFromDrawable(requireContext(), R.drawable.ic_hospital)
                 )
             )
@@ -175,7 +175,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
                 DummyData.listPharmaciesModels,
                 navigateToChat = {
                     val action = MapFragmentDirections.actionNavigationMapToNavigationMessaging(
-                        null, it.uid, it.name, it.imageUrl, it.token
+                        null, it.uid, it.pharmacy_name, it.pharmacy_image_url, it.token
                     )
                     binding.pharmaciesLocationsPager.findNavController().navigate(action)
                 }

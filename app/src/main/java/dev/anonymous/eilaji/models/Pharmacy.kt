@@ -2,8 +2,8 @@ package dev.anonymous.eilaji.models
 
 data class Pharmacy(
     var uid: String,
-    var imageUrl: String,
-    var name: String,
+    var pharmacy_image_url: String,
+    var pharmacy_name: String,
     var phone: String,
     var address: String,
     var lat: Double,
