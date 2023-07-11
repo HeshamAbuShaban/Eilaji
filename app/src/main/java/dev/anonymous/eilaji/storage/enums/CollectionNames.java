@@ -5,6 +5,8 @@ public enum CollectionNames {
     Category("Categories"),
     SubCategory("SubCategories"),
     Medicine("Medicines"),
+
+    Favorite("Favorites"),
     Pharmacy("Pharmacies");
 
     public final String collection_name;

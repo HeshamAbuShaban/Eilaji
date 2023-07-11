@@ -16,10 +16,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.google.firebase.firestore.FirebaseFirestore
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.adapters.AboutMedicationAdapter
 import dev.anonymous.eilaji.databinding.FragmentMedicineBinding
+import dev.anonymous.eilaji.firebase.FirebaseController
+import dev.anonymous.eilaji.storage.enums.CollectionNames
 import dev.anonymous.eilaji.utils.DummyData
+import dev.anonymous.eilaji.utils.GeneralUtils
 import dev.anonymous.eilaji.utils.UtilsScreen
 import net.lucode.hackware.magicindicator.ViewPagerHelper
 import net.lucode.hackware.magicindicator.buildins.UIUtil
@@ -33,8 +37,8 @@ import kotlin.math.abs
 
 
 class MedicineFragment : Fragment() {
-    private var _binding: FragmentMedicineBinding? = null
-    private val binding get() = _binding!!
+    private lateinit var _binding: FragmentMedicineBinding
+    private val binding get() = _binding
 
     private lateinit var viewModel: MedicineViewModel
 
@@ -42,9 +46,11 @@ class MedicineFragment : Fragment() {
     private var isFavorite = false
     private var numMedicines = 1
 
+    // firebase
+    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentMedicineBinding.inflate(inflater, container, false)
 
@@ -52,12 +58,12 @@ class MedicineFragment : Fragment() {
 
         setUpToolbar()
 
-        binding.fabAddToFavorite.setOnClickListener {
+        /*binding.fabAddToFavorite.setOnClickListener {
             isFavorite = !isFavorite
             binding.fabAddToFavorite.setImageResource(
                 if (isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_border
             )
-        }
+        }*/
 
         binding.buIncrement.setOnClickListener {
             if (numMedicines < 9) {
@@ -80,6 +86,12 @@ class MedicineFragment : Fragment() {
         setUpMagicIndicator()
 
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupListeners()
+
     }
 
     @Deprecated("Deprecated in Java")
@@ -179,4 +191,61 @@ class MedicineFragment : Fragment() {
         mDrawable.colorFilter = PorterDuffColorFilter(newColor, PorterDuff.Mode.SRC_IN)
         return mDrawable
     }
+
+    private fun setupListeners(){
+        binding.fabAddToFavorite.setOnClickListener {
+            isFavorite = !isFavorite
+            binding.fabAddToFavorite.setImageResource(if (isFavorite) R.drawable.ic_favorite else R.drawable.ic_favorite_border)
+
+//            DummyData.listMedicineModels[1].id
+            val userUid = FirebaseController.getInstance().getCurrentUser()?.uid // Replace with the actual user ID
+            if (isFavorite){
+                val idMedicine = DummyData.listMedicineModels[1].id // Replace with the actual medicine ID
+                if (idMedicine.isNotEmpty() && userUid!!.isNotEmpty()){ addToFavorites(idMedicine,userUid) }
+            } else {
+                removeFromFavorites(userUid = userUid!!)
+            }
+        }
+    }
+    private fun addToFavorites(idMedicine: String, userUid: String) {
+        val favorite = hashMapOf(
+            "idMedicine" to idMedicine,
+            "userUid" to userUid
+        )
+
+        db.collection(CollectionNames.Favorite.collection_name)
+            .document(userUid)
+            .set(favorite)
+            .addOnSuccessListener {
+                // Document added successfully
+                // Handle any additional logic or UI updates here
+                GeneralUtils.getInstance().showSnackBar(binding.root,"in Favorite")
+            }
+            .addOnFailureListener { e ->
+                // Failed to add document
+                // Handle the error gracefully
+                GeneralUtils.getInstance().showSnackBar(binding.root,e.toString())
+            }
+    }
+    private fun removeFromFavorites(userUid: String) {
+        /*val favorite = hashMapOf(
+            "idMedicine" to null,
+            "userUid" to null
+        )*/
+
+        db.collection(CollectionNames.Favorite.collection_name)
+            .document(userUid)
+            .delete()
+            .addOnSuccessListener {
+                // Document added successfully
+                // Handle any additional logic or UI updates here
+                GeneralUtils.getInstance().showSnackBar(binding.root,"out Favorite")
+            }
+            .addOnFailureListener { e ->
+                // Failed to add document
+                // Handle the error gracefully
+                GeneralUtils.getInstance().showSnackBar(binding.root,e.toString())
+            }
+    }
+
 }
