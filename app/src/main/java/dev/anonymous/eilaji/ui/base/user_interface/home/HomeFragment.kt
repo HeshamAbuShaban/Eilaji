@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.FirebaseFirestore
 import dev.anonymous.eilaji.adapters.AdsAdapter
 import dev.anonymous.eilaji.adapters.MedicinesAdapter
-import dev.anonymous.eilaji.adapters.SubCategoriesAdapter
 import dev.anonymous.eilaji.databinding.FragmentHomeBinding
 import dev.anonymous.eilaji.models.server.Ad
 import dev.anonymous.eilaji.models.server.Medicine
@@ -22,24 +21,21 @@ import dev.anonymous.eilaji.storage.enums.CollectionNames
 import dev.anonymous.eilaji.storage.enums.FragmentsKeys
 import dev.anonymous.eilaji.ui.other.base.AlternativesActivity
 import dev.anonymous.eilaji.utils.DepthPageTransformer
-import dev.anonymous.eilaji.utils.DummyData
+
 class HomeFragment : Fragment() {
-    companion object{
+    companion object {
         private const val TAG = "HomeFragment"
     }
-    // #-Firebase
+
+    // Firebase FireStore
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 
     // AdsReference
     private val adsRef = db.collection(CollectionNames.Ad.collection_name)
 //    private var adsListenerRegistration: ListenerRegistration? = null
 
-//    // PharmacyReference
-//    private val pharmacyRef = db.collection(CollectionNames.Pharmacy.collection_name)
-
     private lateinit var homeViewModel: HomeViewModel
     private lateinit var _binding: FragmentHomeBinding
-    // private late-init var homeViewModel: HomeViewModel
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -81,7 +77,10 @@ class HomeFragment : Fragment() {
 
         binding.editText.setOnTouchListener { _, _ ->
             val intent = Intent(requireContext(), AlternativesActivity::class.java)
-            intent.putExtra("fragmentType", FragmentsKeys.search.name) // Set the fragment type as "search" or "map"
+            intent.putExtra(
+                "fragmentType",
+                FragmentsKeys.search.name
+            ) // Set the fragment type as "search" or "map"
             startActivity(intent)
             return@setOnTouchListener false
         }
@@ -89,16 +88,13 @@ class HomeFragment : Fragment() {
         // testing for the medicine fragment
         binding.buShowAllBestSeller.setOnClickListener {
             val intent = Intent(requireContext(), AlternativesActivity::class.java)
-            intent.putExtra(
-                "fragmentType",
-                FragmentsKeys.medicine.name
-            ) // Set the fragment type as "search" or "map"
+            intent.putExtra("fragmentType", FragmentsKeys.medicine.name)
             startActivity(intent)
         }
 
     }
 
-    private fun displayAds(){
+    private fun displayAds() {
         homeViewModel.adsList.observe(viewLifecycleOwner) { adsList ->
             if (adsList != null) {
                 setupAdsPager(adsList)

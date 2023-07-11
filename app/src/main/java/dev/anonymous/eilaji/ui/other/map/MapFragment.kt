@@ -175,7 +175,13 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
                 DummyData.listPharmaciesModels,
                 navigateToChat = {
                     val action = MapFragmentDirections.actionNavigationMapToNavigationMessaging(
-                        null, it.uid, it.pharmacy_name, it.pharmacy_image_url, it.token
+                        null,
+                        it.uid,
+                        it.pharmacy_name,
+                        it.pharmacy_image_url,
+                        it.token,
+                        null,
+                        null
                     )
                     findNavController().navigate(action)
                 }

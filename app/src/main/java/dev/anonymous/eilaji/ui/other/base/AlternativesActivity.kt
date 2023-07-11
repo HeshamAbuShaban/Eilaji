@@ -39,9 +39,31 @@ class AlternativesActivity : AppCompatActivity() {
                             R.id.navigation_sub_categories_fragment, getArgsSubCategories()
                         )
                     }
+
+                    FragmentsKeys.sendToPharmacy.name -> {
+                        nonNullNavController.navigate(
+                            R.id.navigation_send_to_pharmacy_fragment,
+                            getArgsSendToPharmacy()
+                        )
+                    }
                 }
             }
         }
+    }
+
+    private fun getArgsSendToPharmacy(): Bundle {
+        val lat: Float = intent.getFloatExtra("lat", 0.0F)
+        val lng: Float = intent.getFloatExtra("lng", 0.0F)
+        val stringUri: String = intent.getStringExtra("stringUri")!!
+        val description: String = intent.getStringExtra("description")!!
+
+        val args = Bundle()
+        args.putFloat("lat", lat)
+        args.putFloat("lng", lng)
+        args.putString("stringUri", stringUri)
+        args.putString("description", description)
+
+        return args
     }
 
     private fun getArgsSubCategories(): Bundle {
@@ -68,6 +90,8 @@ class AlternativesActivity : AppCompatActivity() {
         args.putString("receiverFullName", receiverFullName)
         args.putString("receiverUrlImage", receiverUrlImage)
         args.putString("receiverToken", receiverToken);
+        args.putString("stringUri", null);
+        args.putString("description", null);
 
         return args
     }

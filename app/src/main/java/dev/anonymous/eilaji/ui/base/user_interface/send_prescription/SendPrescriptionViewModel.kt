@@ -1,16 +1,17 @@
 package dev.anonymous.eilaji.ui.base.user_interface.send_prescription
 
 import android.graphics.Bitmap
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 class SendPrescriptionViewModel : ViewModel() {
     var imagePickerCallback: ImagePickerResultCallback? = null
     // inputs to be saved
-    private val _bitmap = MutableLiveData<Bitmap?>()
-    val bitmap: LiveData<Bitmap?> = _bitmap
-    fun setBitmap(bitmap: Bitmap) {
-        _bitmap.value = bitmap
+    private val _bitmap = MutableLiveData<Uri?>()
+    val bitmap: LiveData<Uri?> = _bitmap
+    fun setUri(uri: Uri) {
+        _bitmap.value = uri
     }
 
     private val _prescriptionAdditionalText = MutableLiveData<String?>()
@@ -30,7 +31,7 @@ class SendPrescriptionViewModel : ViewModel() {
 
     // FOR THE UI ========================================================================
     interface ImagePickerResultCallback {
-        fun onImageSelected(bitmap: Bitmap)
+        fun onImageSelected(uri: Uri)
         fun onImageSelectionCancelled()
     }
 }

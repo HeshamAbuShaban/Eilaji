@@ -1,6 +1,7 @@
 package dev.anonymous.eilaji.storage.enums;
 
 public enum FragmentsKeys {
+    sendToPharmacy,
     subCategories,
     messaging,
     changePassword,

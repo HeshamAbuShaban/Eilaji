@@ -1,5 +1,6 @@
 package dev.anonymous.eilaji.ui.other.messaging;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -61,6 +62,8 @@ public class MessagingFragment extends Fragment {
             receiverUrlImage,
             receiverToken;
 
+    String stringUri, description;
+
     private ActivityResultLauncher<PickVisualMediaRequest> pickImageLauncher;
 
     @Override
@@ -106,6 +109,9 @@ public class MessagingFragment extends Fragment {
                 receiverUrlImage = args.getReceiverUrlImage();
                 receiverToken = args.getReceiverToken();
 
+                stringUri = args.getStringUri();
+                description = args.getDescription();
+
                 GeneralUtils.getInstance()
                         .loadImage(receiverUrlImage)
                         .circleCrop()
@@ -124,7 +130,7 @@ public class MessagingFragment extends Fragment {
             if (chatId != null && !TextUtils.isEmpty(message)) {
                 binding.edMessage.setText("");
                 if (chatId.isEmpty()) {
-                    createNewChatAndSendMessage(message);
+                    createNewChatAndSendMessage(message, null);
                 } else {
                     sendMessage(message);
                 }
@@ -151,24 +157,32 @@ public class MessagingFragment extends Fragment {
     private void initRegisterForActivityResult() {
         pickImageLauncher = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
             if (chatId != null && uri != null) {
-                Toast.makeText(getActivity(), "جار تحميل الصورة", Toast.LENGTH_SHORT).show();
-                firebaseChatManager.uploadImageMessage(
-                        userUid,
-                        "MessageImage",
-                        uri, (imageUrl, success) -> {
-                            if (success) {
-                                firebaseChatManager.addMessageToChat(
-                                        chatId, getMessageModel(null, imageUrl)
-                                );
-
-                                updateChatListUsers(null, imageUrl);
-
-                                sendNotification(null, imageUrl);
-                            }
-                        }
-                );
+                if (chatId.isEmpty()) {
+                    createNewChatAndSendMessage(null, uri);
+                } else {
+                    sendImage(uri);
+                }
             }
         });
+    }
+
+    private void sendImage(Uri uri) {
+        Toast.makeText(getActivity(), "جار تحميل الصورة", Toast.LENGTH_SHORT).show();
+        firebaseChatManager.uploadImageMessage(
+                userUid,
+                "MessageImage",
+                uri, (imageUrl, success) -> {
+                    if (success) {
+                        firebaseChatManager.addMessageToChat(
+                                chatId, getMessageModel(null, imageUrl)
+                        );
+
+                        updateChatListUsers(null, imageUrl);
+
+                        sendNotification(null, imageUrl);
+                    }
+                }
+        );
     }
 
     void updateChatListUsers(String message, String messageImageUrl) {
@@ -223,12 +237,17 @@ public class MessagingFragment extends Fragment {
         );
     }
 
-    private void createNewChatAndSendMessage(String message) {
+    private void createNewChatAndSendMessage(String message, Uri uri) {
         firebaseChatManager.createChat(userUid, receiverUid, (id, success) -> {
             if (success) {
                 chatId = id;
 
-                sendMessage(message);
+                if (message != null) {
+                    sendMessage(message);
+                }
+                if (uri != null) {
+                    sendImage(uri);
+                }
 
                 setupMessagesAdapter();
             } else {
@@ -280,7 +299,20 @@ public class MessagingFragment extends Fragment {
             if (exists) {
                 setupMessagesAdapter();
             }
+            sendPrescriptionIfExist(exists);
         });
+    }
+
+    private void sendPrescriptionIfExist(boolean chatExists) {
+        if (stringUri != null && !stringUri.isEmpty()
+                && description != null && !description.isEmpty()) {
+            if (chatExists) {
+                sendImage(Uri.parse(stringUri));
+                sendMessage(description);
+            } else {
+                createNewChatAndSendMessage(description, Uri.parse(stringUri));
+            }
+        }
     }
 
     private void setupMessagesAdapter() {

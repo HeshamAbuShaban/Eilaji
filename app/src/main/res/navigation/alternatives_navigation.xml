@@ -81,6 +81,14 @@
         <argument
             android:name="receiverToken"
             app:argType="string" />
+        <argument
+            android:name="stringUri"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="description"
+            app:argType="string"
+            app:nullable="true" />
     </fragment>
 
     <fragment
@@ -94,6 +102,29 @@
         <argument
             android:name="categoryTitle"
             app:argType="string" />
+    </fragment>
+    <fragment
+        android:id="@+id/navigation_send_to_pharmacy_fragment"
+        android:name="dev.anonymous.eilaji.ui.other.send_to_pharmacy.SendToPharmacyFragment"
+        android:label="fragment_send_to_pharmacy"
+        tools:layout="@layout/fragment_send_to_pharmacy" >
+        <argument
+            android:name="lat"
+            app:argType="float" />
+        <argument
+            android:name="lng"
+            app:argType="float" />
+        <argument
+            android:name="stringUri"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="description"
+            app:argType="string"
+            app:nullable="true" />
+        <action
+            android:id="@+id/action_navigation_send_to_pharmacy_fragment_to_navigation_messaging"
+            app:destination="@id/navigation_messaging" />
     </fragment>
 
 </navigation>

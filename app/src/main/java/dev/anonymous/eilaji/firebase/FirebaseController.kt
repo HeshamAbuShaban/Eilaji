@@ -10,12 +10,15 @@ import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
+import dev.anonymous.eilaji.models.Pharmacy
+import dev.anonymous.eilaji.models.server.Medicine
+import dev.anonymous.eilaji.models.server.SubCategory
 import dev.anonymous.eilaji.storage.AppSharedPreferences
 
 
 class FirebaseController private constructor() {
     enum class DatabaseDocuments {
-        Users
+        Users, SubCategories, Medicines, Pharmacies
     }
 
     enum class UsersChildes {
@@ -34,6 +37,63 @@ class FirebaseController private constructor() {
             }
 
         private const val TAG = "FirebaseController"
+    }
+
+    fun getPharmacies(
+        onTaskSuccessful: (arrayPharmacies: ArrayList<Pharmacy>) -> Unit,
+        onTaskFailed: (error: String) -> Unit,
+    ) {
+        fireStore.collection(DatabaseDocuments.Pharmacies.name)
+            .get()
+            .addOnCompleteListener {
+                if (it.isSuccessful) {
+                    onTaskSuccessful(ArrayList(it.result.toObjects(Pharmacy::class.java)))
+                }
+            }.addOnFailureListener {
+                onTaskFailed(it.message.toString())
+            }
+    }
+
+    fun getSubCategoryMedicines(
+        categoryId: String,
+        subCategoryId: String?,
+        onTaskSuccessful: (arrayMedicines: ArrayList<Medicine>) -> Unit,
+        onTaskFailed: (error: String) -> Unit,
+    ) {
+        // لجلب كل الادوية التابعة للقسم
+        var query = fireStore.collection(DatabaseDocuments.Medicines.name)
+            .whereEqualTo("categoryId", categoryId)
+
+        // لجلب كل الادوية التابعة للقسم الفرعي
+        if (subCategoryId != null) {
+            query = query.whereEqualTo("subCategoryId", subCategoryId)
+        }
+
+        query.get()
+            .addOnCompleteListener {
+                if (it.isSuccessful) {
+                    onTaskSuccessful(ArrayList(it.result.toObjects(Medicine::class.java)))
+                }
+            }.addOnFailureListener {
+                onTaskFailed(it.message.toString())
+            }
+    }
+
+    fun getSubCategories(
+        categoryId: String,
+        onTaskSuccessful: (arrayListSubCategories: ArrayList<SubCategory>) -> Unit,
+        onTaskFailed: (error: String) -> Unit,
+    ) {
+        fireStore.collection(DatabaseDocuments.SubCategories.name)
+            .whereEqualTo("categoryId", categoryId)
+            .get()
+            .addOnCompleteListener {
+                if (it.isSuccessful) {
+                    onTaskSuccessful(ArrayList(it.result.toObjects(SubCategory::class.java)))
+                }
+            }.addOnFailureListener {
+                onTaskFailed(it.message.toString())
+            }
     }
 
     fun getToken(

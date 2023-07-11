@@ -1,11 +1,11 @@
 package dev.anonymous.eilaji.ui.base.user_interface.send_prescription
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.ImageDecoder
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.LayoutInflater
@@ -22,8 +22,12 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.snackbar.Snackbar
 import dev.anonymous.eilaji.databinding.FragmentSendPrescriptionBinding
+import dev.anonymous.eilaji.storage.enums.FragmentsKeys
+import dev.anonymous.eilaji.ui.other.base.AlternativesActivity
 import dev.anonymous.eilaji.ui.other.dialogs.ImagePickerDialogFragment
 import dev.anonymous.eilaji.ui.other.dialogs.ImagePickerDialogFragment.ImagePickerListener
+import java.io.ByteArrayOutputStream
+
 
 class SendPrescriptionFragment : Fragment(), ImagePickerListener,
     SendPrescriptionViewModel.ImagePickerResultCallback {
@@ -34,7 +38,7 @@ class SendPrescriptionFragment : Fragment(), ImagePickerListener,
     private lateinit var cameraLauncher: ActivityResultLauncher<Void?>
 
     //----------------------------------
-    private lateinit var collectedBitmap: Bitmap
+    private lateinit var collectedBitmap: Uri
     //----------------------------------
 
 
@@ -51,58 +55,90 @@ class SendPrescriptionFragment : Fragment(), ImagePickerListener,
         savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentSendPrescriptionBinding.inflate(inflater, container, false)
+
         sendPrescriptionViewModel = ViewModelProvider(this)[SendPrescriptionViewModel::class.java]
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         // Set the Callback Value to the ViewModel
         sendPrescriptionViewModel.registerImagePickerCallback(this)
+
         // Setup the Click listeners
         setupClickListeners()
+
         // Setup The Launchers
         setupCameraLauncher()
         setupGalleryLauncher()
+
         // setup the data from the viewModel container
         setupInitialedDataInputs()
     }
+
     private fun setupInitialedDataInputs() {
         with(binding) {
             edAskAboutPrescription.setText(sendPrescriptionViewModel.prescriptionAdditionalText.value)
 
-            with(sendPrescriptionViewModel.bitmap.value){
-                if(this != null) {
-                    ivAddPrescriptionImage.setImageBitmap(this)
+            with(sendPrescriptionViewModel.bitmap.value) {
+                if (this != null) {
+                    ivAddPrescriptionImage.setImageURI(this)
                 }
             }
         }
     }
+
     private fun setupClickListeners() {
         // this to capture the user inputs text
         setEditTextChangeListener()
+
         with(binding) {
             // this to fire up the image selecting functionality
             sendPrescriptionLinearParent.setOnClickListener {
                 // Must BE "*childFragmentManager*"
                 ImagePickerDialogFragment().show(childFragmentManager, "ImagePicking")
             }
+
             // and this is to collect the user data and send them to some where
             fabSendPrescription.setOnClickListener {
                 //get the values from the viewModel
-                val bitmap :Bitmap? = sendPrescriptionViewModel.bitmap.value
-                val text :String = sendPrescriptionViewModel.prescriptionAdditionalText.value.toString()
-                if (bitmap == null || text.isEmpty()) {
-                    Snackbar.make(root,"Please Enter a Prescription Detail",Snackbar.LENGTH_LONG).show()
+                val uri: Uri? = sendPrescriptionViewModel.bitmap.value
+                val text: String =
+                    sendPrescriptionViewModel.prescriptionAdditionalText.value.toString()
+                if (uri == null || text.isEmpty()) {
+                    Snackbar.make(root, "Please Enter a Prescription Detail", Snackbar.LENGTH_LONG)
+                        .show()
                 } else {
-                    Toast.makeText(requireContext(),"Text : $text, Image: $bitmap",Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        requireContext(),
+                        "Text : $text, Image: $uri",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    navToSendToPharmacyFragment(uri.toString(), text, 31.44955F, 34.395092F)
                 }
             }
         }
     }
 
+    private fun navToSendToPharmacyFragment(
+        stringUri: String,
+        description: String,
+        lat: Float,
+        lng: Float
+    ) {
+        val intent = Intent(requireContext(), AlternativesActivity::class.java)
+        intent.putExtra("fragmentType", FragmentsKeys.sendToPharmacy.name)
+        intent.putExtra("stringUri", stringUri)
+        intent.putExtra("description", description)
+        intent.putExtra("lat", lat)
+        intent.putExtra("lng", lng)
+        startActivity(intent)
+    }
+
     // if the user typed any word it will be saved into the view-model to be called later on
-    private fun setEditTextChangeListener(){
+    private fun setEditTextChangeListener() {
         binding.edAskAboutPrescription.addTextChangedListener {
             sendPrescriptionViewModel.setPrescriptionAdditionalText(it.toString())
         }
@@ -116,34 +152,7 @@ class SendPrescriptionFragment : Fragment(), ImagePickerListener,
         pickVisualMediaRequest =
             registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
                 if (uri != null) {
-                    var selectedImageBitmap: Bitmap? = null
-                    try {
-                        selectedImageBitmap = if (Build.VERSION.SDK_INT < 28) {
-                            @Suppress("DEPRECATION")
-                            MediaStore.Images.Media.getBitmap(
-                                requireContext().contentResolver,
-                                uri
-                            )
-                        } else {
-                            val source = ImageDecoder.createSource(
-                                requireContext().contentResolver,
-                                uri
-                            )
-                            ImageDecoder.decodeBitmap(source)
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                    //here use the bitmap object as you wish
-                    if (selectedImageBitmap != null) {
-                        // done successfully
-                        handleGalleryImage(selectedImageBitmap)
-                    } else {
-                        Toast.makeText(requireContext(), "What! No Image!", Toast.LENGTH_SHORT)
-                            .show()
-                    }
-                } else {
-                    Toast.makeText(requireContext(), "Something wrong occurred", Toast.LENGTH_SHORT).show()
+                    handleGalleryImage(uri)
                 }
             }
     }
@@ -154,7 +163,7 @@ class SendPrescriptionFragment : Fragment(), ImagePickerListener,
         { bitmap ->
             if (bitmap != null) {
                 // Handle the captured image
-                handleCameraImage(bitmap)
+                handleCameraImage(getImageUri(requireContext(), bitmap))
             } else {
                 // Handle case when image capture was unsuccessful
                 sendPrescriptionViewModel.imagePickerCallback?.onImageSelectionCancelled()
@@ -162,6 +171,17 @@ class SendPrescriptionFragment : Fragment(), ImagePickerListener,
         }
     }
 
+    private fun getImageUri(inContext: Context, inImage: Bitmap): Uri {
+        val bytes = ByteArrayOutputStream()
+        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
+        val path = MediaStore.Images.Media.insertImage(
+            inContext.contentResolver,
+            inImage,
+            "Title",
+            null
+        )
+        return Uri.parse(path)
+    }
 
     // These methods 2@open... for the Launching
     private fun openGallery() {
@@ -192,12 +212,12 @@ class SendPrescriptionFragment : Fragment(), ImagePickerListener,
     }
 
     // Give the Bitmap to ViewModel
-    private fun handleGalleryImage(bitmap: Bitmap) {
-        sendPrescriptionViewModel.imagePickerCallback?.onImageSelected(bitmap)
+    private fun handleGalleryImage(uri: Uri) {
+        sendPrescriptionViewModel.imagePickerCallback?.onImageSelected(uri)
     }
 
-    private fun handleCameraImage(bitmap: Bitmap) {
-        sendPrescriptionViewModel.imagePickerCallback?.onImageSelected(bitmap)
+    private fun handleCameraImage(uri: Uri) {
+        sendPrescriptionViewModel.imagePickerCallback?.onImageSelected(uri)
     }
 
 
@@ -212,13 +232,13 @@ class SendPrescriptionFragment : Fragment(), ImagePickerListener,
     }
 
     //===========Firebase ,Store, Api , Any way to use the image================================================
-    override fun onImageSelected(bitmap: Bitmap) {
+    override fun onImageSelected(uri: Uri) {
         // save or send or do what ever with the image
-        collectedBitmap = bitmap
+        collectedBitmap = uri
         //send this to the viewModel
-        sendPrescriptionViewModel.setBitmap(collectedBitmap)
+        sendPrescriptionViewModel.setUri(collectedBitmap)
         // set a preview from the changed bitmap value within the viewModel If it got changed
-        binding.ivAddPrescriptionImage.setImageBitmap(sendPrescriptionViewModel.bitmap.value)
+        binding.ivAddPrescriptionImage.setImageURI(uri)
     }
 
     override fun onImageSelectionCancelled() {
