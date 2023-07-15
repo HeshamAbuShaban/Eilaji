@@ -12,6 +12,7 @@
 
         <!-- marginTop _28sdp = _18sdp + shape_toolbar  corners 12dp -->
 
+        <!--searchBar-->
         <EditText
             android:id="@+id/editText"
             android:layout_width="match_parent"
@@ -27,20 +28,40 @@
             android:textAlignment="viewStart"
             android:textColorHint="@color/gray_dark"
             android:textSize="@dimen/_13ssp"
+            app:layout_constraintBottom_toTopOf="@id/adsContainer"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/pagerAds"
+        <!--AdsContainer-->
+        <LinearLayout
+            android:id="@+id/adsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_8sdp"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toTopOf="@id/linearLayout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editText" />
+            app:layout_constraintTop_toBottomOf="@id/editText">
+            <!--ADS Shimmer And A-VP-->
+            <com.facebook.shimmer.ShimmerFrameLayout
+                android:id="@+id/shimmer_ad_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_8sdp">
 
+                <include layout="@layout/placeholder_ad_item" />
 
+            </com.facebook.shimmer.ShimmerFrameLayout>
+            <!--Actual-->
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/pagerAds"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_8sdp" />
+        </LinearLayout>
+
+        <!--Indicator-->
         <dev.anonymous.horizontal_indicator.HorizontalIndicator
             android:id="@+id/indicatorAds"
             android:layout_width="wrap_content"
@@ -52,12 +73,13 @@
             app:indicatorWidthScale="4"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/pagerAds"
+            app:layout_constraintTop_toBottomOf="@id/adsContainer"
             app:selectedIndicatorColor="@color/primary_color"
             app:selectedIndicatorWidthScale="8" />
 
         <!-- marginEnd _15sdp + TextButton paddingStart _5sdp = _20sdp  -->
 
+        <!--DividerTitle-->
         <LinearLayout
             android:id="@+id/linearLayout"
             android:layout_width="match_parent"
@@ -91,19 +113,51 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerCategoriesPharmaceuticals"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="@dimen/_5sdp"
-            tools:orientation="horizontal"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        <!--Categories Medicines -->
+        <LinearLayout
+            android:id="@+id/categoriesPharmaceuticalsContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout"
-            tools:itemCount="4"
-            tools:listitem="@layout/item_sub_category" />
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout">
 
+            <!--Shimmer-->
+            <com.facebook.shimmer.ShimmerFrameLayout
+                android:id="@+id/shimmerCategoriesPharmaceuticalsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <!--PlaceHolder-->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal|center_vertical"
+                    android:orientation="horizontal">
+
+                    <include layout="@layout/placeholder_mh_item" />
+
+                    <include layout="@layout/placeholder_mh_item" />
+
+                    <include layout="@layout/placeholder_mh_item" />
+                </LinearLayout>
+
+            </com.facebook.shimmer.ShimmerFrameLayout>
+
+            <!--Actual-->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerCategoriesPharmaceuticals"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="@dimen/_5sdp"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:itemCount="4"
+                tools:listitem="@layout/item_sub_category"
+                tools:orientation="horizontal" />
+        </LinearLayout>
+
+        <!--DividerTitleTwo-->
         <LinearLayout
             android:id="@+id/linearLayout2"
             android:layout_width="match_parent"
@@ -114,7 +168,7 @@
             android:orientation="horizontal"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/recyclerCategoriesPharmaceuticals">
+            app:layout_constraintTop_toBottomOf="@id/categoriesPharmaceuticalsContainer">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -138,26 +192,57 @@
 
         </LinearLayout>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerBestSeller"
+        <!--Meds-->
+        <LinearLayout
+            android:id="@+id/medContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="@dimen/_5sdp"
-            tools:orientation="horizontal"
-            tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            android:orientation="vertical"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout2"
-            app:spanCount="5"
-            tools:itemCount="3"
-            tools:listitem="@layout/item_medicine" />
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
 
+            <!--Shimmer-->
+            <com.facebook.shimmer.ShimmerFrameLayout
+                android:id="@+id/shimmer_med_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <!--PlaceHolder-->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <include layout="@layout/placeholder_med_item" />
+
+                    <include layout="@layout/placeholder_med_item" />
+
+                    <include layout="@layout/placeholder_med_item" />
+                </LinearLayout>
+
+            </com.facebook.shimmer.ShimmerFrameLayout>
+
+            <!--Actual-->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerBestSeller"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="@dimen/_5sdp"
+                app:spanCount="5"
+                tools:itemCount="3"
+                tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/item_medicine"
+                tools:orientation="horizontal" />
+        </LinearLayout>
+
+        <!--Creating a Space-->
         <View
             android:layout_width="match_parent"
             android:layout_height="@dimen/_60sdp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/recyclerBestSeller" />
+            app:layout_constraintTop_toBottomOf="@+id/medContainer" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

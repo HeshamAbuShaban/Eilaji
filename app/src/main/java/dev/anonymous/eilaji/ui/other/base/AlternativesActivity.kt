@@ -89,9 +89,9 @@ class AlternativesActivity : AppCompatActivity() {
         args.putString("receiverUid", receiverUid)
         args.putString("receiverFullName", receiverFullName)
         args.putString("receiverUrlImage", receiverUrlImage)
-        args.putString("receiverToken", receiverToken);
-        args.putString("stringUri", null);
-        args.putString("description", null);
+        args.putString("receiverToken", receiverToken)
+        args.putString("stringUri", null)
+        args.putString("description", null)
 
         return args
     }

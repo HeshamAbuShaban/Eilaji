@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -66,23 +67,34 @@ class HomeFragment : Fragment() {
 //        setupBestSellerRecycler()
     }
 
-    /*override fun onStart() {
+    override fun onStart() {
         super.onStart()
         // run the ads listeners ,And do not forget to stop it
-        adsFetcherListener()
-    }*/
+//        adsFetcherListener()
+        // to start all the shimmers
+        startShimmers()
+    }
+    private fun startShimmers(){
+        with(binding){
+            shimmerAdContainer.startShimmer()
+            shimmerMedContainer.startShimmer()
+            shimmerCategoriesPharmaceuticalsContainer.startShimmer()
+        }
+    }
 
     @SuppressLint("ClickableViewAccessibility")
     private fun setupListeners() {
 
-        binding.editText.setOnTouchListener { _, _ ->
+        binding.editText.setOnTouchListener { view, motionEvent ->
+            Log.i(TAG, "setupListeners: ${view.rootView}")
+            Log.i(TAG, "setupListeners: ${motionEvent.action}")
             val intent = Intent(requireContext(), AlternativesActivity::class.java)
             intent.putExtra(
                 "fragmentType",
                 FragmentsKeys.search.name
             ) // Set the fragment type as "search" or "map"
             startActivity(intent)
-            return@setOnTouchListener false
+            true
         }
 
         // testing for the medicine fragment
@@ -99,6 +111,29 @@ class HomeFragment : Fragment() {
             if (adsList != null) {
                 setupAdsPager(adsList)
             }
+        }
+    }
+
+    private fun removeAdsShimmer() {
+        with(binding.shimmerAdContainer){
+            stopShimmer()
+            val isVisible = isVisible
+            visibility = if (isVisible) View.GONE else View.VISIBLE
+        }
+    }
+
+    private fun removeMedShimmer() {
+        with(binding.shimmerMedContainer){
+            stopShimmer()
+            val isVisible = isVisible
+            visibility = if (isVisible) View.GONE else View.VISIBLE
+        }
+    }
+    private fun removeCMShimmer() {
+        with(binding.shimmerCategoriesPharmaceuticalsContainer){
+            stopShimmer()
+            val isVisible = isVisible
+            visibility = if (isVisible) View.GONE else View.VISIBLE
         }
     }
 
@@ -119,6 +154,8 @@ class HomeFragment : Fragment() {
                 adList.add(ad)
             }
             homeViewModel.setAdsList(adList)
+            //Todo: Stop the Shimmer
+            removeAdsShimmer()
         }.addOnFailureListener { exception ->
             Log.e("HomeFragment", "fetchAds: exc", exception)
             Log.d("HomeFragment", "fetchAds: massage" + exception.localizedMessage)
@@ -179,6 +216,7 @@ class HomeFragment : Fragment() {
                         for (documentSnapshot in medicinesQuerySnapshot) {
                             val medicine = documentSnapshot.toObject(Medicine::class.java)
                             // Handle each medicine as needed
+                            Log.i(TAG, "fetchPharmaceuticals: Medicine: $medicine")
                         }
                     }
                     .addOnFailureListener { exception ->
