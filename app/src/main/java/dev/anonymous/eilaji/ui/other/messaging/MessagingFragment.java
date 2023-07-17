@@ -83,7 +83,7 @@ public class MessagingFragment extends Fragment {
     }
 
     private void init() {
-        firebaseChatManager = new FirebaseChatManager();
+        firebaseChatManager = FirebaseChatManager.getInstance();
         chatSharedPreferencesManager = AppSharedPreferences.getInstance(getActivity());
 
         apiService = Client.getClient().create(APIService.class);

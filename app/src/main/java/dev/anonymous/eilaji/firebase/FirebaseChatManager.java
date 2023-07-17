@@ -23,17 +23,24 @@ import dev.anonymous.eilaji.models.MessageModel;
 public class FirebaseChatManager {
     private static final String TAG = "FirebaseChatManager";
 
+    private volatile static FirebaseChatManager firebaseChatManager;
     private final FirebaseStorage storage;
     private final DatabaseReference chatListRef;
     private final DatabaseReference chatRef;
 
-    public FirebaseChatManager() {
+    private FirebaseChatManager() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         storage = FirebaseStorage.getInstance();
         chatListRef = database.getReference(Constant.CHAT_LIST_DOCUMENT);
         chatRef = database.getReference(Constant.CHATS_DOCUMENT);
     }
 
+    public static synchronized FirebaseChatManager getInstance() {
+        if (firebaseChatManager == null) {
+            firebaseChatManager = new FirebaseChatManager();
+        }
+        return firebaseChatManager;
+    }
     public FirebaseUser getCurrentUser() {
         return FirebaseAuth.getInstance().getCurrentUser();
     }
@@ -146,9 +153,7 @@ public class FirebaseChatManager {
         chatListRef.child(user1Uid)
                 .child(user2Uid)
                 .setValue(chatModel)
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "updateChatList: " + e.getMessage());
-                });
+                .addOnFailureListener(e -> Log.e(TAG, "updateChatList: " + e.getMessage()));
     }
 
     public FirebaseRecyclerOptions<MessageModel> getMessageModelOptions(DatabaseReference currentChatRef) {

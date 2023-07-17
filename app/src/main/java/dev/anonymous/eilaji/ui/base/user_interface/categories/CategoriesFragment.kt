@@ -16,6 +16,7 @@ import dev.anonymous.eilaji.models.server.Category
 import dev.anonymous.eilaji.storage.enums.CollectionNames
 import dev.anonymous.eilaji.storage.enums.FragmentsKeys
 import dev.anonymous.eilaji.ui.other.base.AlternativesActivity
+import dev.anonymous.eilaji.utils.LoadingDialog
 
 class CategoriesFragment : Fragment() {
     // #-Firebase
@@ -25,6 +26,7 @@ class CategoriesFragment : Fragment() {
     private val categoriesRef = db.collection(CollectionNames.Category.collection_name)
 //    private var adsListenerRegistration: ListenerRegistration? = null
 
+    private val loadingDialog = LoadingDialog()
 
     private lateinit var _binding: FragmentCategoriesBinding
     private val binding get() = _binding
@@ -42,6 +44,8 @@ class CategoriesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // show a Loading dialog
+        loadingDialog.show(requireActivity().supportFragmentManager, "Loading")
 
         /*setupPharmacyDepartmentsRecycler()*/
         fetchCategories() // now its from the server
@@ -51,6 +55,7 @@ class CategoriesFragment : Fragment() {
     private fun displayCategories() {
         // setup the viewPager with data
         categoriesViewModel.categoryList.observe(viewLifecycleOwner) {
+            loadingDialog.dismiss()
             setupPharmacyDepartmentsRecycler(it)
         }
     }
