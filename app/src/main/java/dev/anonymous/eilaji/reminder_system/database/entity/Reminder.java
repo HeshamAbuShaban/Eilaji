@@ -9,7 +9,7 @@ import dev.anonymous.eilaji.storage.AppSharedPreferences;
 import dev.anonymous.eilaji.utils.AppController;
 
 @Entity(tableName = "reminders")
-public class Reminder {
+public class Reminder implements ReminderContract {
 
     @NonNull
     @PrimaryKey
@@ -17,7 +17,7 @@ public class Reminder {
     @ColumnInfo(name = "ReminderText")
     private String text;
     @ColumnInfo(name = "RemainingTime")
-    private String delayedTime;
+    private long delayedTime;
     @ColumnInfo(name = "NotificationId")
     private int notificationId;
     @ColumnInfo(name = "CreationTimestamp")
@@ -27,7 +27,7 @@ public class Reminder {
     private int reminderType;
 
 
-    public Reminder(@NonNull String id, String text, String delayedTime, int reminderType) {
+    public Reminder(@NonNull String id, String text, long delayedTime, int reminderType) {
         this.id = id;
         this.text = text;
         this.delayedTime = delayedTime;
@@ -37,6 +37,7 @@ public class Reminder {
     }
 
     @NonNull
+    @Override
     public String getId() {
         return id;
     }
@@ -44,7 +45,7 @@ public class Reminder {
     public void setId(@NonNull String id) {
         this.id = id;
     }
-
+    @Override
     public String getText() {
         return text;
     }
@@ -53,12 +54,12 @@ public class Reminder {
         this.text = text;
     }
 
-
-    public String getDelayedTime() {
+    @Override
+    public long getDelayedTime() {
         return delayedTime;
     }
 
-    public void setDelayedTime(String delayedTime) {
+    public void setDelayedTime(long delayedTime) {
         this.delayedTime = delayedTime;
     }
 
@@ -79,6 +80,7 @@ public class Reminder {
     }
 
     // Additional Column for the notification Id
+    @Override
     public int getNotificationId() {
         return notificationId;
     }

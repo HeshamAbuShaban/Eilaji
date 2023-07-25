@@ -2,114 +2,119 @@ package dev.anonymous.eilaji.ui.base.user_interface.chatting
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.NavOptions
-import androidx.navigation.fragment.findNavController
 import com.firebase.ui.database.FirebaseRecyclerOptions
-import dev.anonymous.eilaji.R
+import com.google.firebase.auth.FirebaseUser
 import dev.anonymous.eilaji.adapters.ChatsAdapter
 import dev.anonymous.eilaji.adapters.ChatsAdapter.ChatListCallback
 import dev.anonymous.eilaji.databinding.FragmentChattingBinding
 import dev.anonymous.eilaji.firebase.FirebaseChatManager
+import dev.anonymous.eilaji.firebase.FirebaseController
 import dev.anonymous.eilaji.models.ChatModel
 import dev.anonymous.eilaji.storage.enums.FragmentsKeys
+import dev.anonymous.eilaji.ui.main.MainActivity
 import dev.anonymous.eilaji.ui.other.base.AlternativesActivity
 import dev.anonymous.eilaji.ui.other.dialogs.AccountAccessDialogFragment
 import dev.anonymous.eilaji.ui.other.dialogs.AccountAccessDialogFragment.AccountAccessListener
 import dev.anonymous.eilaji.utils.LoadingDialog
+
 class ChattingFragment : Fragment(), ChatListCallback, AccountAccessListener {
-    private lateinit var binding: FragmentChattingBinding
-    private lateinit var firebaseChatManager: FirebaseChatManager
-    private lateinit var chattingViewModel: ChattingViewModel
+    private lateinit var _binding: FragmentChattingBinding
+    private val binding get() = _binding
 
     private var chatsAdapter: ChatsAdapter? = null
-    private var userUid:String? = null
+
+    private lateinit var firebaseUser: FirebaseUser
+    private lateinit var userUid: String
+
+    private lateinit var firebaseChatManager: FirebaseChatManager
+
     private val loadingDialog = LoadingDialog()
+
+
+    // Listener
+
+    /*fun setOnNavigateToMessagingListener(listener: OnNavigateToMessagingListener) {
+        navigateToMessagingListener = listener
+    }*/
+    override fun onStart() {
+        super.onStart()
+        // default placeholder..
+        binding.shimmerChatContainer.startShimmer()
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        initComponent()
+    }
+
+    private fun initComponent() {
+        _binding = FragmentChattingBinding.inflate(layoutInflater)
+
+        firebaseChatManager = FirebaseChatManager.getInstance()
+        val firebaseController: FirebaseController = FirebaseController.getInstance()
+        val currentUser = firebaseController.getCurrentUser()
+        if (currentUser != null) {
+            firebaseUser = currentUser
+            userUid = firebaseUser.uid
+            // now you are all set to display the chat
+            setupChatsAdapter()
+        } else {
+            AccountAccessDialogFragment.newInstance("Please Create an account to use this feature!")
+                .show(childFragmentManager, "CantAccess!")
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
-        binding = FragmentChattingBinding.inflate(inflater, container, false)
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        firebaseChatManager = FirebaseChatManager.getInstance()
-        chattingViewModel = ViewModelProvider(this)[ChattingViewModel::class.java]
-        observeUserData()
+        Log.i("ChattingFragment", "onViewCreated: TODO:More Work need to be done in this class")
+//        loadingDialog.show(childFragmentManager, "Loading")
     }
 
-    private fun observeUserData() {
-        chattingViewModel.getCurrentUser().observe(viewLifecycleOwner) { user ->
-            user?.let {
-                // set the userUID
-                userUid = user.uid
-                // User is logged in, now you are all set to display the chat
-                setupChatsAdapter()
-            } ?: run {
-                // User is not logged in, show account access dialog
-                AccountAccessDialogFragment.newInstance("Please create an account to use this feature!")
-                    .show(childFragmentManager, "CantAccess!")
-                // stop shimmer
-                binding.shimmerChatContainer.stopShimmer()
-            }
-        }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        // Show Shimmer animation while data is loading
-        startChatShimmer()
-    }
 
     private fun setupChatsAdapter() {
         val options: FirebaseRecyclerOptions<ChatModel> = firebaseRecyclerOptions()
 
-        if (options.snapshots.isNotEmpty()){
-            removeChatShimmer()
-        }
-        chatsAdapter = ChatsAdapter(options, chattingViewModel.getUserUid())
+        // TODO :dismiss the dialog IN A PROPER WAY...... it doesn't work like this
+//        loadingDialog.dismiss()
+        chatsAdapter = ChatsAdapter(options, userUid)
         chatsAdapter?.setChatListCallback(this@ChattingFragment)
 
-
-        // Assign the adapter and stop the Shimmer animation when data is loaded
+        //.. remove Shimmer
+        removeChatShimmer()
+        // now assign the values
         binding.recyclerChats.adapter = chatsAdapter
-
-
 
         chatsAdapter?.startListening()
     }
-
-    // .. fetch the data
-    private fun firebaseRecyclerOptions(): FirebaseRecyclerOptions<ChatModel> {
-        val currentChatRef = firebaseChatManager.chatListRef.child(userUid!!)
-        return FirebaseRecyclerOptions.Builder<ChatModel>()
-            .setQuery(currentChatRef, ChatModel::class.java)
-            .build()
-    }
-
-    private fun removeChatShimmer() {
+    private fun removeChatShimmer(){
         with(binding.shimmerChatContainer){
+            // stop the shimmer <temp>
             stopShimmer()
             val isVisible = isVisible
             visibility = if (isVisible) View.GONE else View.VISIBLE
         }
     }
-    private fun startChatShimmer() {
-        with(binding.shimmerChatContainer){
-            startShimmer()
-            val isVisible = isVisible
-            visibility = if (isVisible) View.VISIBLE else View.GONE
-//            visibility = if (isVisible) View.GONE else View.VISIBLE
-        }
+    // .. fetch the data
+    private fun firebaseRecyclerOptions(): FirebaseRecyclerOptions<ChatModel> {
+        val currentChatRef = firebaseChatManager.chatListRef.child(userUid)
+        return FirebaseRecyclerOptions.Builder<ChatModel>()
+            .setQuery(currentChatRef, ChatModel::class.java)
+            .build()
     }
 
     override fun onDestroyView() {
@@ -130,7 +135,7 @@ class ChattingFragment : Fragment(), ChatListCallback, AccountAccessListener {
 
     // AccountAccess ListenersCallback
     override fun onAllowClicked() {
-        // restart the app, let the user create a new account
+        // restart the app , to let the user create a new account
         createAccountLogic()
     }
 
@@ -144,17 +149,21 @@ class ChattingFragment : Fragment(), ChatListCallback, AccountAccessListener {
             startActivity(intent)
             requireActivity().finish()
         } else {
-            // If there's no launch intent, navigate to the login screen
-            val navOptions = NavOptions.Builder()
-                .setPopUpTo(R.id.navigation_chatting, true)
-                .build()
-            findNavController().navigate(R.id.navigation_Login, null, navOptions)
+            // pop the current screen from the back stack
+            requireActivity().finish()
+            // move to the login screen
+            val intent2 = Intent(requireContext(), MainActivity::class.java)
+            intent2.putExtra(
+                "logoutTrigger",
+                FragmentsKeys.logout.name
+            )
+            startActivity(intent2)
         }
     }
-
 
     override fun onDenyClicked() {
         // do something to prevent the user from using the screen
         loadingDialog.show(childFragmentManager, "Load4ever")
     }
+
 }

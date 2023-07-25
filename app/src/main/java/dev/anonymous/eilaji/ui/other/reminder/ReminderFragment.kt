@@ -74,9 +74,7 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
     // TODO(Under Testing)
     override fun onResume() {
         super.onResume()
-        requireActivity().onBackPressedDispatcher.addCallback(this) {
-            findNavController().popBackStack()
-        }
+        requireActivity().onBackPressedDispatcher.addCallback(this) { findNavController().popBackStack() }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -91,23 +89,16 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
                     // All permissions granted, you can proceed with sending notifications
                     Toast.makeText(
                         requireContext(),
-                        "Great Now you are all set to use The Reminder",
-                        Toast.LENGTH_LONG
-                    ).show()
+                        "Great Now you are all set to use The Reminder", Toast.LENGTH_LONG).show()
                 } else {
                     // Permission denied, handle accordingly
                     // At least one permission denied, handle accordingly (e.g., show a message or disable certain features)
-                    Toast.makeText(
-                        requireContext(),
-                        "Permission denied. Cannot create reminder.",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(requireContext(), "Permission denied. Cannot create reminder.", Toast.LENGTH_SHORT).show()
                 }
             }
         // Request permissions if not granted
         if (!arePermissionsGranted()) {
-            RequestPermissionsDialogFragment.newInstance(getString(R.string.permissions_message_starter))
-                .show(childFragmentManager, "StarterInform")
+            RequestPermissionsDialogFragment.newInstance(getString(R.string.permissions_message_starter)).show(childFragmentManager, "StarterInform")
         }
         // if the BatteryOptimization Enabled
         if (isBatteryOptimizationEnabled()) {
@@ -118,10 +109,7 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
     // are the permissions granted ?
     private fun arePermissionsGranted(): Boolean {
         return REQUIRED_PERMISSIONS.all {
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                it
-            ) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
         }
     }
 
@@ -147,11 +135,7 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
         }
         dialogBuilder.setCancelable(false) // this is to prevent the user from killing the dialog
         dialogBuilder.setNegativeButton("Cancel") { _, _ ->
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.battery_optimization_still_running),
-                Toast.LENGTH_LONG
-            ).show()
+            Toast.makeText(requireContext(), getString(R.string.battery_optimization_still_running), Toast.LENGTH_LONG).show()
         }
         dialogBuilder.create().show()
     }
@@ -199,7 +183,7 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
         val reminder = Reminder(
             generatedId,
             reminderText,
-            delayMinutes.toString(),
+            delayMinutes,
             ReminderType.Periodic.reminderType
         )
 
@@ -237,7 +221,7 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
         val reminder = Reminder(
             generatedId,
             reminderText,
-            delayMinutes.toString(),
+            delayMinutes,
             ReminderType.OneTime.reminderType
         )
 
@@ -284,16 +268,11 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
     }
 
     override fun onDenyClicked() {
-        Toast.makeText(
-            requireContext(),
-            getString(R.string.permissions_message_sorry_you_can_not),
-            Toast.LENGTH_SHORT
-        ).show()
+        Toast.makeText(requireContext(), getString(R.string.permissions_message_sorry_you_can_not), Toast.LENGTH_SHORT).show()
     }
 
     companion object {
-        private val REQUIRED_PERMISSIONS =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        private val REQUIRED_PERMISSIONS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 arrayOf(
                     Manifest.permission.POST_NOTIFICATIONS,
                     Manifest.permission.VIBRATE,

@@ -10,11 +10,21 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import dev.anonymous.eilaji.reminder_system.database.entity.Reminder
+import dev.anonymous.eilaji.reminder_system.database.entity.ReminderContract
 import dev.anonymous.eilaji.storage.enums.SoundNumbers
 import java.util.concurrent.TimeUnit
 
 class ReminderScheduler(private val context: Context) {
-    private lateinit var reminder:Reminder
+    /** Update 2023-7-25
+     *  The ReminderScheduler class depends on the @see #ReminderContract,
+     *  which is a higher-level abstraction,
+     *  rather than depending on a concrete class implementation.
+     *
+     *  using interfaces and dependency injection promotes better code organization,
+     *  flexibility, and testability in your application. By adhering to these practices,
+     *  you can improve the maintainability and extensibility of your codebase.
+     *  */
+    private lateinit var reminder:ReminderContract
     private var soundNumber: Int = SoundNumbers.SoundLong.soundNumber
 
     // Must be Called first !
@@ -50,7 +60,7 @@ class ReminderScheduler(private val context: Context) {
 
         val reminderRequest = OneTimeWorkRequestBuilder<ReminderWorker>()
             .addTag(reminder.id) //.. this is important in order to cancel the reminder
-            .setInitialDelay(reminder.delayedTime.toLong(), timeUnit)
+            .setInitialDelay(reminder.delayedTime, timeUnit)
             /*.setConstraints(constraints)*/
             .setInputData(inputData)
             .build()
@@ -74,7 +84,7 @@ class ReminderScheduler(private val context: Context) {
 
         val reminderRequest = PeriodicWorkRequestBuilder<ReminderWorker>(repeatInterval, timeUnit)
             .addTag(reminder.id) //.. this is important in order to cancel the reminder
-            .setInitialDelay(reminder.delayedTime.toLong(), timeUnit)// at first i forgot to put this line that make a delay
+            .setInitialDelay(reminder.delayedTime, timeUnit)// at first i forgot to put this line that make a delay
             /*.setConstraints(constraints)*/
             .setInputData(inputData)
             .build()

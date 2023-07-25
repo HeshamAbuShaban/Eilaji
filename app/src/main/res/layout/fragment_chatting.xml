@@ -6,15 +6,47 @@
     android:layout_height="match_parent"
     tools:context=".ui.base.user_interface.chatting.ChattingFragment">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerChats"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+    <!--Container For ChatList-->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:listitem="@layout/item_chat" />
+        app:layout_constraintTop_toTopOf="parent">
+        <!--Shimmer-->
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:id="@+id/shimmer_chat_container"
+            android:layout_marginTop="@dimen/_12sdp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!--Placeholder-->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <include layout="@layout/placeholder_chat_item" />
+
+                <include layout="@layout/placeholder_chat_item" />
+
+                <include layout="@layout/placeholder_chat_item" />
+
+                <include layout="@layout/placeholder_chat_item" />
+
+            </LinearLayout>
+
+        </com.facebook.shimmer.ShimmerFrameLayout>
+        <!--Actual-->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerChats"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_chat" />
+    </LinearLayout>
 
     <!--    <com.google.android.material.progressindicator.CircularProgressIndicator-->
     <!--        android:id="@+id/progressChats"-->
