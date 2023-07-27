@@ -2,9 +2,9 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/c1_reminder_item" />
+            <solid android:color="@color/night_window_background_color" />
             <corners android:radius="@dimen/_24sdp" />
-            <stroke android:color="@color/c2_reminder_item" android:width="@dimen/_2sdp"/>
+            <stroke android:color="@color/black" android:width="@dimen/_2sdp"/>
         </shape>
     </item>
 </selector>

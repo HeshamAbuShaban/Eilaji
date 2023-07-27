@@ -104,7 +104,9 @@
     <string name="battery_optimization">To ensure proper functioning of reminders, please exclude this app from battery optimization.</string>
     <string name="battery_optimization_still_running">YOUR REMINDER MIGHT NOT SHOW UP IN TIME!!!</string>
     <string name="the_app_map" translatable="false">The app map</string>
+    <string name="map_add_address" translatable="false">Add Your Address</string>
     <string name="medicines">Medicines</string>
     <string name="pharmacies">Pharmacies</string>
+    <string name="like_button" translatable="false">LikeButton</string>
 
 </resources>

@@ -15,9 +15,9 @@
         android:layout_height="match_parent"
         android:layout_margin="@dimen/_10sdp"
         android:padding="@dimen/_2sdp"
-        android:text="@string/pick_a_favorite_sound"
+        tools:text="@string/pick_a_favorite_sound"
         android:textAlignment="center"
-        android:textColor="@color/c_text_over_pink"
+        android:textColor="@color/white"
         android:textSize="@dimen/_17ssp"
         android:textStyle="bold" />
 

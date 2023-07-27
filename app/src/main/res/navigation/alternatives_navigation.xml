@@ -9,7 +9,13 @@
         android:id="@+id/navigation_search"
         android:name="dev.anonymous.eilaji.ui.other.search.SearchFragment"
         android:label="fragment_search"
-        tools:layout="@layout/fragment_search" />
+        tools:layout="@layout/fragment_search" >
+        <action
+            android:id="@+id/action_navigation_search_to_navigation_messaging"
+            app:destination="@id/navigation_messaging"
+            app:enterAnim="@android:anim/slide_in_left"
+            app:exitAnim="@android:anim/slide_out_right"/>
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_map"

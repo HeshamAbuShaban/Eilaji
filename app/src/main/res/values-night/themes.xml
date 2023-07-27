@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
     <style name="Base.Theme.Eilaji" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowBackground">@color/night_window_background_color</item>
@@ -7,17 +7,20 @@
         <item name="android:fontFamily">@font/cairo_medium</item>
         <!-- target android sdk versions < 26 and > 14 if theme other than AppCompat -->
         <item name="fontFamily">@font/cairo_medium</item>
+        <!--  #############################################################  -->
+        <!-- enable window content transitions -->
+        <item name="android:windowActivityTransitions">true</item>
     </style>
 
     <!--  #############################################################  -->
 
     <style name="Theme.Eilaji.MainActivity" parent="Base.Theme.Eilaji">
-        <item name="android:windowLightStatusBar" tools:targetApi="23">false</item>
+        <item name="android:windowLightStatusBar" >false</item>
         <item name="android:statusBarColor">@color/night_window_background_color</item>
     </style>
 
     <style name="Theme.Eilaji.BaseActivity" parent="Base.Theme.Eilaji">
-        <item name="android:windowLightStatusBar" tools:targetApi="23">false</item>
+        <item name="android:windowLightStatusBar" >false</item>
         <item name="android:statusBarColor">@color/primary_color</item>
     </style>
 

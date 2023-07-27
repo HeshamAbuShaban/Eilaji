@@ -86,9 +86,8 @@ class HorizontalIndicator @JvmOverloads constructor(
      * @param viewPager2 A [ViewPager2] which [HorizontalIndicator] refers to.
      * @param startPosition A start position of [ViewPager2].
      */
-    fun setupViewPager2(viewPager2: ViewPager2, startPosition: Int) {
-        val itemCount = viewPager2.adapter?.itemCount ?: 0
-        for (i in 0 until itemCount) addIndicator(i, startPosition)
+    fun setupViewPager2(viewPager2: ViewPager2, itemCount:Int , startPosition: Int) {
+        for (i in startPosition until itemCount) addIndicator(i, startPosition)
 
         viewPager2.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageScrolled(

@@ -64,7 +64,7 @@ class ProfileFragment : Fragment() ,LogoutDialogListener{
             // map temp
             buAppMap.setOnClickListener {
                 val intent = Intent(requireContext(), AlternativesActivity::class.java)
-                intent.putExtra("fragmentType", FragmentsKeys.map.name)
+                intent.putExtra("fragmentType", FragmentsKeys.add_address.name)
                 startActivity(intent)
             }
 

@@ -1,7 +1,9 @@
 package dev.anonymous.eilaji.ui.base
 
+import android.app.ActivityOptions
 import android.content.Intent
 import android.os.Bundle
+import android.transition.Explode
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -114,6 +116,17 @@ class BaseActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
         R.id.search_menu_item -> {
             showToast("search_menu")
+            with(window){
+                enterTransition = Explode()
+                exitTransition = Explode()
+            }
+
+            val intent = Intent(this@BaseActivity, AlternativesActivity::class.java)
+            intent.putExtra(
+                "fragmentType",
+                FragmentsKeys.search.name
+            ) // Set the fragment type as "search" or "map"
+            startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(this@BaseActivity).toBundle())
             true
         }
 
@@ -131,10 +144,14 @@ class BaseActivity : AppCompatActivity() {
         R.id.pharmacies_map_menu_item -> {
             showToast("pharmacies_map_menu")
             val intent = Intent(this, AlternativesActivity::class.java)
-            intent.putExtra(
+            /*intent.putExtra(
                 "fragmentType",
                 FragmentsKeys.add_address.name
-            ) // Set the fragment type as "search" or "map"
+            )*/
+            intent.putExtra(
+                "fragmentType",
+                FragmentsKeys.map.name
+            )
             startActivity(intent)
             true
         }

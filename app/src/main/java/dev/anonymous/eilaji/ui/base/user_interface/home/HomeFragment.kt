@@ -10,24 +10,16 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.FirebaseFirestore
 import dev.anonymous.eilaji.adapters.AdsAdapter
-import dev.anonymous.eilaji.adapters.MedicinesAdapter
 import dev.anonymous.eilaji.databinding.FragmentHomeBinding
 import dev.anonymous.eilaji.models.server.Ad
-import dev.anonymous.eilaji.models.server.Medicine
 import dev.anonymous.eilaji.storage.enums.CollectionNames
 import dev.anonymous.eilaji.storage.enums.FragmentsKeys
 import dev.anonymous.eilaji.ui.other.base.AlternativesActivity
 import dev.anonymous.eilaji.utils.DepthPageTransformer
 
 class HomeFragment : Fragment() {
-    companion object {
-        private const val TAG = "HomeFragment"
-    }
-
     // Firebase FireStore
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 
@@ -63,7 +55,7 @@ class HomeFragment : Fragment() {
 
         // display
         displayAds()
-        setupCategoriesPharmaceuticalsRecycler()
+//        setupCategoriesPharmaceuticalsRecycler()
 //        setupBestSellerRecycler()
     }
 
@@ -74,8 +66,9 @@ class HomeFragment : Fragment() {
         // to start all the shimmers
         startShimmers()
     }
-    private fun startShimmers(){
-        with(binding){
+
+    private fun startShimmers() {
+        with(binding) {
             shimmerAdContainer.startShimmer()
             shimmerMedContainer.startShimmer()
             shimmerCategoriesPharmaceuticalsContainer.startShimmer()
@@ -84,18 +77,20 @@ class HomeFragment : Fragment() {
 
     @SuppressLint("ClickableViewAccessibility")
     private fun setupListeners() {
+        /*binding.searchViewListener.setOnClickListener {
+            @Deprecated
+            /*with(requireActivity().window){
+                enterTransition = Explode()
+                exitTransition = Explode()
+            }
 
-        binding.editText.setOnTouchListener { view, motionEvent ->
-            Log.i(TAG, "setupListeners: ${view.rootView}")
-            Log.i(TAG, "setupListeners: ${motionEvent.action}")
             val intent = Intent(requireContext(), AlternativesActivity::class.java)
             intent.putExtra(
                 "fragmentType",
                 FragmentsKeys.search.name
             ) // Set the fragment type as "search" or "map"
-            startActivity(intent)
-            true
-        }
+            startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(activity).toBundle())*/
+        }*/
 
         // testing for the medicine fragment
         binding.buShowAllBestSeller.setOnClickListener {
@@ -115,33 +110,35 @@ class HomeFragment : Fragment() {
     }
 
     private fun removeAdsShimmer() {
-        with(binding.shimmerAdContainer){
+        with(binding.shimmerAdContainer) {
             stopShimmer()
             val isVisible = isVisible
             visibility = if (isVisible) View.GONE else View.VISIBLE
         }
     }
 
-    private fun removeMedShimmer() {
+    /*private fun removeMedShimmer() {
         with(binding.shimmerMedContainer){
             stopShimmer()
             val isVisible = isVisible
             visibility = if (isVisible) View.GONE else View.VISIBLE
         }
-    }
-    private fun removeCMShimmer() {
+    }*/
+    /*private fun removeCMShimmer() {
         with(binding.shimmerCategoriesPharmaceuticalsContainer){
             stopShimmer()
             val isVisible = isVisible
             visibility = if (isVisible) View.GONE else View.VISIBLE
         }
-    }
+    }*/
 
     private fun setupAdsPager(adsList: ArrayList<Ad>) {
         with(binding.pagerAds) {
-            adapter = AdsAdapter(adsList)
+            val adsAdapter = AdsAdapter(ArrayList())
+            adapter = adsAdapter
             setPageTransformer(DepthPageTransformer())
-            binding.indicatorAds.setupViewPager2(this, 0)
+            adsAdapter.setListAds(adsList)
+            binding.indicatorAds.setupViewPager2(this, adsList.size,0)
         }
     }
 
@@ -185,20 +182,20 @@ class HomeFragment : Fragment() {
     }*/
 
 
-    private fun setupCategoriesPharmaceuticalsRecycler() {
+    /*private fun setupCategoriesPharmaceuticalsRecycler() {
         with(binding.recyclerCategoriesPharmaceuticals) {
 //            setHasFixedSize(false)
 //            layoutManager = LinearLayoutManager(activity, RecyclerView.HORIZONTAL, false)
 //            adapter = SubCategoriesAdapter(DummyData.listCategoriesPharmaceuticalModels)
         }
-    }
+    }*/
 
     // get the  ("Medicines") Categories
-    private fun fetchPharmaceuticals() {
-        val categoryID = "Y5JJJYQykkCbaxy7ZOa4"
+    /*private fun fetchPharmaceuticals() {
+        val categoryID = "Y5JJ*JYQyk*k*C*baxy7ZOa4"
 
         // Query the SubCategories collection to filter based on the category ID
-        val subCategoriesRef = FirebaseFirestore.getInstance().collection("SubCategories")
+        val subCategoriesRef = FirebaseFire-store.getInstance().collection("SubCategories")
         val subCategoriesQuery = subCategoriesRef.whereEqualTo("idCategory", categoryID)
 
         subCategoriesQuery.get()
@@ -207,7 +204,7 @@ class HomeFragment : Fragment() {
                 val subCategoryIDs = subCategoriesQuerySnapshot.documents.map { it.id }
 
                 // Query the Medicines collection to filter based on the filtered subcategory IDs
-                val medicinesRef = FirebaseFirestore.getInstance().collection("Medicines")
+                val medicinesRef = FirebaseFire-store.getInstance().collection("Medicines")
                 val medicinesQuery = medicinesRef.whereIn("idSubCategory", subCategoryIDs)
 
                 medicinesQuery.get()
@@ -228,19 +225,19 @@ class HomeFragment : Fragment() {
                 // Handle any errors that occurred during the query for subcategories
                 Log.e(TAG, "fetchPharmaceuticals: ex", exception)
             }
-    }
+    }*/
 
-    private fun setupBestSellerRecycler(medicineList: ArrayList<Medicine>) {
+    /*private fun setupBestSellerRecycler(medicineList: ArrayList<Medicine>) {
         with(binding.recyclerBestSeller) {
             setHasFixedSize(false)
             layoutManager = LinearLayoutManager(activity, RecyclerView.HORIZONTAL, false)
             adapter = MedicinesAdapter(medicineList)
         }
-    }
+    }*/
 
-    private fun fetchBestSellerMedicines() {
+    /*private fun fetchBestSellerMedicines() {
 
-    }
+    }*/
 
     override fun onStop() {
         super.onStop()

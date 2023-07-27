@@ -41,7 +41,7 @@ class PharmaciesLocationsAdapter(
                 GeneralUtils.getInstance().loadImage(model.pharmacy_image_url).into(ivPharmacyLocation)
 
                 tvPharmacyNameLocation.text = model.pharmacy_name
-                tvPharmacyDistanceLocation.text = "30k.m"
+                tvPharmacyDistanceLocation.text = model.address
 
                 buPharmacyChatLocation.setOnClickListener {
                     navigateToChat(model)

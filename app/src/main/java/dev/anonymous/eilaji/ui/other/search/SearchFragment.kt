@@ -7,8 +7,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.findNavController
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
+//import com.google.firebase.fire-store.ListenerRegistration
 import dev.anonymous.eilaji.adapters.MedicinesAdapter
 import dev.anonymous.eilaji.adapters.PharmaciesLocationsAdapter
 import dev.anonymous.eilaji.databinding.FragmentSearchBinding
@@ -26,9 +27,9 @@ class SearchFragment : Fragment() {
     // PharmacyReference
     private val pharmaciesRef = db.collection(CollectionNames.Pharmacy.collection_name)
 
-    // Listeners
+   /* // Listeners
     private var medicinesListenerRegistration: ListenerRegistration? = null
-    private var pharmaciesListenerRegistration: ListenerRegistration? = null
+    private var pharmaciesListenerRegistration: ListenerRegistration? = null*/
 
     private lateinit var _binding: FragmentSearchBinding
     private val binding get() = _binding
@@ -54,13 +55,13 @@ class SearchFragment : Fragment() {
         displayPharmacies()
     }
 
-    override fun onStart() {
+    /*override fun onStart() {
         super.onStart()
         medicinesFetcherListener()
         pharmaciesFetcherListener()
-    }
+    }*/
 
-    private fun medicinesFetcherListener() {
+    /*private fun medicinesFetcherListener() {
         medicinesListenerRegistration = medicinesRef.addSnapshotListener { querySnapshot, e ->
             if (e != null) {
                 Log.e("SearchFragment", "fetch: Error", e)
@@ -100,7 +101,7 @@ class SearchFragment : Fragment() {
                 // (e.g., show a message to the user or handle the absence of data)
             }
         }
-    }
+    }*/
 
     private fun setupMedicinesAdapter(medicinesList: ArrayList<Medicine>) {
         with(binding.recVSearchMedicines) {
@@ -110,8 +111,19 @@ class SearchFragment : Fragment() {
 
     private fun setupPharmaciesAdapter(pharmacy: ArrayList<Pharmacy>) {
         with(binding.recVSearchPharmacies) {
-            adapter = PharmaciesLocationsAdapter(pharmacy){
-            }
+            adapter = PharmaciesLocationsAdapter(pharmacy,
+                navigateToChat = {
+                    val action = SearchFragmentDirections.actionNavigationSearchToNavigationMessaging(
+                        null,
+                        it.uid,
+                        it.pharmacy_name,
+                        it.pharmacy_image_url,
+                        it.token,
+                        null,
+                        null
+                    )
+                    findNavController().navigate(action)
+            })
         }
     }
 
@@ -140,7 +152,7 @@ class SearchFragment : Fragment() {
     //.. get pharmacies
     private fun fetchPharmaciesData() {
         val pharmacies: ArrayList<Pharmacy> = ArrayList()
-        medicinesRef.get().addOnSuccessListener { querySnapshot ->
+        pharmaciesRef.get().addOnSuccessListener { querySnapshot ->
             for (documentSnapshot in querySnapshot) {
                 val pharmacy = documentSnapshot.toObject(Pharmacy::class.java)
                 pharmacies.add(pharmacy)
@@ -159,7 +171,7 @@ class SearchFragment : Fragment() {
         }
     }
 
-    override fun onStop() {
+    /*override fun onStop() {
         super.onStop()
         removeMedicinesListener()
         removePharmaciesListener()
@@ -175,6 +187,6 @@ class SearchFragment : Fragment() {
         pharmaciesListenerRegistration?.remove()
         pharmaciesListenerRegistration = null
         searchViewModel.pharmaciesData.removeObservers(viewLifecycleOwner)
-    }
+    }*/
 
 }

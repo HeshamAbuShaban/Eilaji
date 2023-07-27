@@ -9,6 +9,11 @@ import dev.anonymous.eilaji.utils.GeneralUtils
 
 class AdsAdapter(private var listAds: ArrayList<Ad>) :
     RecyclerView.Adapter<AdsAdapter.AdsViewHolder>() {
+    fun setListAds(listAds: ArrayList<Ad>) {
+        this.listAds = listAds
+        notifyItemRangeInserted(0, listAds.size)
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AdsViewHolder {
         val binding =
             ItemAdsBinding.inflate(LayoutInflater.from(parent.context), parent, false)
