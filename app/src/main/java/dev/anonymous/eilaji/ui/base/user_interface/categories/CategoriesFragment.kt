@@ -1,5 +1,6 @@
 package dev.anonymous.eilaji.ui.base.user_interface.categories
 
+import android.app.ActivityOptions
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -71,11 +72,15 @@ class CategoriesFragment : Fragment() {
     }
 
     private fun navToSubCategories(argCategoryId: String,argCategoryTitle :String) {
+        activity?.window.apply {
+            enterTransition = androidx.transition.Fade()
+//            exitTransition = androidx.transition.Explode()
+        }
         val intent = Intent(requireContext(), AlternativesActivity::class.java)
         intent.putExtra("fragmentType", FragmentsKeys.subCategories.name)
         intent.putExtra("categoryId", argCategoryId)
         intent.putExtra("categoryTitle", argCategoryTitle)
-        startActivity(intent)
+        startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(activity).toBundle())
     }
 
     private fun fetchCategories() {

@@ -7,7 +7,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.ItemSubCategoryBinding
-import dev.anonymous.eilaji.models.SubCategory
+import dev.anonymous.eilaji.models.server.SubCategory
 import dev.anonymous.eilaji.utils.GeneralUtils
 
 class SubCategoriesAdapter(private var listSubCategoriesAdapter: ArrayList<SubCategory>) :
