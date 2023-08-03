@@ -16,12 +16,12 @@
     <!--  #############################################################  -->
 
     <style name="Theme.Eilaji.MainActivity" parent="Base.Theme.Eilaji">
-        <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
+        <item name="android:windowLightStatusBar">true</item><!--tools:targetApi="23"-->
         <item name="android:statusBarColor">@color/white</item>
     </style>
 
     <style name="Theme.Eilaji.BaseActivity" parent="Base.Theme.Eilaji">
-        <item name="android:windowLightStatusBar" tools:targetApi="23">false</item>
+        <item name="android:windowLightStatusBar">false</item><!--tools:targetApi="23"-->
         <item name="android:statusBarColor">@color/primary_color</item>
     </style>
 
@@ -101,6 +101,21 @@
         <item name="elevation">@dimen/_15sdp</item>
     </style>
 
+    <!--  #############################################################  -->
+
+    <style name="Widget.App.TimePicker" parent="Widget.Material3.MaterialTimePicker">
+        <item name="colorPrimary">@color/shrine_pink_100</item>
+        <item name="colorOnPrimary">@color/shrine_pink_900</item>
+        <item name="colorOnSurface">@color/shrine_pink_100</item>
+        <item name="chipStyle">@style/Widget.App.Chip</item>
+
+        <item name="clockFaceBackgroundColor">@color/shrine_pink_100</item>
+        <item name="clockHandColor">@color/shrine_pink_900</item>
+        <item name="clockNumberTextColor">@color/shrine_pink_100</item>
+    </style>
+    <style name="Widget.App.Chip" parent="Widget.Material3.MaterialTimePicker.Display">
+        <item name="android:textColor">@color/shrine_display_text_color</item>
+    </style>
     <!--  #############################################################  -->
 
     <style name="TextButtonStyle">

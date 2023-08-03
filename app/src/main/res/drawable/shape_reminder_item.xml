@@ -3,7 +3,7 @@
     <item>
         <shape android:shape="rectangle">
             <corners android:radius="@dimen/_25sdp"/>
-            <solid android:color="@color/c2_reminder_item"/>
+            <solid android:color="@color/night_window_background_color"/>
         </shape>
     </item>
 </selector>

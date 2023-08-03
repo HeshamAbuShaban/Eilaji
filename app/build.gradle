@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace 'dev.anonymous.eilaji'
-    compileSdk 33
+    compileSdk 34
 
     buildFeatures {
         viewBinding = true
@@ -20,9 +20,14 @@ android {
         applicationId "dev.anonymous.eilaji"
         // this was 21 and now in order to use the calender i upgraded it
         minSdk 23
-        targetSdk 33
+        targetSdk 34 // ~upgrade to include the new android
         versionCode 1
         versionName "1.0"
+
+        // Version name displayed to users
+        versionName "1.2.0"
+        // Version code used internally by the system
+        versionCode = 1.8
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

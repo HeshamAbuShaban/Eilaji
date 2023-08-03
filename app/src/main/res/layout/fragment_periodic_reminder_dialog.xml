@@ -16,7 +16,7 @@
         android:padding="@dimen/_2sdp"
         android:text="@string/enter_a_valid_repeat_interval_amp_the_time_unit"
         android:textAlignment="center"
-        android:textColor="@color/c_text_over_pink"
+        android:textColor="@color/white"
         android:textSize="@dimen/_17ssp"
         android:textStyle="bold" />
 
@@ -31,7 +31,7 @@
         android:maxLength="3"
         android:minHeight="@dimen/_50sdp"
         android:textAlignment="center"
-        android:textColorHint="@color/c_text_over_pink"
+        android:textColorHint="@color/light_gray"
         tools:ignore="VisualLintTextFieldSize" />
 
     <!--Second Field-->
@@ -52,7 +52,7 @@
             android:layout_weight="1"
             android:text="@string/minutes"
             android:textAlignment="center"
-            android:textColor="#4E00DE"
+            android:textColor="@color/white"
             tools:ignore="VisualLintButtonSize" />
 
         <RadioButton
@@ -63,7 +63,7 @@
             android:layout_weight="1"
             android:text="@string/hours"
             android:textAlignment="center"
-            android:textColor="#4E00DE"
+            android:textColor="@color/white"
             tools:ignore="VisualLintButtonSize" />
 
         <RadioButton
@@ -74,7 +74,7 @@
             android:layout_weight="1"
             android:text="@string/days"
             android:textAlignment="center"
-            android:textColor="#4E00DE"
+            android:textColor="@color/white"
             tools:ignore="VisualLintButtonSize" />
 
     </RadioGroup>

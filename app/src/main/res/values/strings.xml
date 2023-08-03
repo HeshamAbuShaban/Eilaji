@@ -108,5 +108,7 @@
     <string name="medicines">Medicines</string>
     <string name="pharmacies">Pharmacies</string>
     <string name="like_button" translatable="false">LikeButton</string>
+    <string name="reminder_type_image" translatable="false">Reminder Type Image</string>
+    <string name="do_you_really_want_to_delete">Do you really want to delete!?</string>
 
 </resources>

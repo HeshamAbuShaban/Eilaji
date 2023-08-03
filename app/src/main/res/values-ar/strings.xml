@@ -94,4 +94,5 @@
     <string name="battery_optimization_still_running">قد لا يظهر تذكيرك في الوقت المناسب !!!</string>
     <string name="medicines">الأدوية</string>
     <string name="pharmacies">صيدليات</string>
+    <string name="do_you_really_want_to_delete">هل تريد حقا الحذف !؟</string>
 </resources>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,137 +7,161 @@
     android:background="@drawable/bg_day"
     tools:context=".ui.other.reminder.ReminderFragment">
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-    <!--Guidelines-->
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guide_top"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_begin="20dp" />
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guide_begin"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_begin="20dp" />
+        <!--Guidelines-->
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guide_top"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_begin="20dp" />
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guide_end"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_end="20dp" />
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guide_begin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_begin="20dp" />
 
-    <!--***************************************************-->
-    <!--fabChangeSound-->
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/fabChangeSound"
-        style="@style/PrimaryButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:importantForAccessibility="no"
-        app:icon="@drawable/ic_library_music"
-        app:layout_constraintStart_toStartOf="@id/guide_begin"
-        app:layout_constraintTop_toTopOf="@id/guide_top"
-        tools:ignore="ImageContrastCheck,VisualLintLocaleText,VisualLintOverlap" />
-    <!--TextClock-->
-    <TextClock
-        android:id="@+id/remainingTimeTextView"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_15sdp"
-        android:textAlignment="center"
-        android:textColor="@color/white"
-        android:textSize="@dimen/_35sdp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="@id/guide_end"
-        app:layout_constraintStart_toStartOf="@id/guide_begin"
-        app:layout_constraintTop_toTopOf="@id/guide_top"
-        tools:ignore="TextContrastCheck"
-        tools:text="@string/_00_00_00" />
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guide_end"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_end="20dp" />
 
-    <!--Title-->
-    <TextView
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_5sdp"
-        android:gravity="center"
-        android:text="@string/enter_a_reminder_text_e_g_medicine_name"
-        android:textColor="@color/white"
-        android:textSize="@dimen/_13sdp"
-        app:layout_constraintBottom_toTopOf="@id/reminderNameEditText"
-        app:layout_constraintEnd_toEndOf="@id/guide_end"
-        app:layout_constraintStart_toStartOf="@id/guide_begin"
-        app:layout_constraintTop_toBottomOf="@id/remainingTimeTextView"
-        tools:ignore="TextSizeCheck,TextContrastCheck" />
+        <!--***************************************************-->
+        <!--fabChangeSound-->
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/fabChangeSound"
+            style="@style/PrimaryButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:importantForAccessibility="no"
+            app:icon="@drawable/ic_library_music"
+            app:layout_constraintStart_toStartOf="@id/guide_begin"
+            app:layout_constraintTop_toTopOf="@id/guide_top"
+            tools:ignore="ImageContrastCheck,VisualLintLocaleText,VisualLintOverlap" />
+        <!--TextClock-->
+        <TextClock
+            android:id="@+id/remainingTimeTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_15sdp"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="@dimen/_35sdp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="@id/guide_end"
+            app:layout_constraintStart_toStartOf="@id/guide_begin"
+            app:layout_constraintTop_toTopOf="@id/guide_top"
+            tools:ignore="TextContrastCheck"
+            tools:text="@string/_00_00_00" />
 
-    <!--TextField-->
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/reminderNameEditText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_15sdp"
-        android:autofillHints="name"
-        android:gravity="center"
-        android:hint="@string/remind_me_something"
-        android:inputType="text"
-        android:minHeight="@dimen/_50sdp"
-        android:textAlignment="center"
-        android:textColor="@color/white"
-        android:textColorHint="@color/white"
-        android:textSize="@dimen/_18ssp"
-        app:layout_constraintEnd_toEndOf="@id/guide_end"
-        app:layout_constraintStart_toStartOf="@id/guide_begin"
-        app:layout_constraintTop_toBottomOf="@id/remainingTimeTextView"
-        tools:ignore="TextContrastCheck,VisualLintTextFieldSize,DuplicateSpeakableTextCheck" />
+        <!--Title-->
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_5sdp"
+            android:gravity="center"
+            android:text="@string/enter_a_reminder_text_e_g_medicine_name"
+            android:textColor="@color/white"
+            android:textSize="@dimen/_13sdp"
+            app:layout_constraintBottom_toTopOf="@id/reminderNameEditText"
+            app:layout_constraintEnd_toEndOf="@id/guide_end"
+            app:layout_constraintStart_toStartOf="@id/guide_begin"
+            app:layout_constraintTop_toBottomOf="@id/remainingTimeTextView"
+            tools:ignore="TextSizeCheck,TextContrastCheck" />
 
-    <!--TimePicker-->
-    <TimePicker
-        android:id="@+id/reminder_timePicker"
-        android:layout_width="@dimen/_260sdp"
-        android:layout_height="@dimen/_300sdp"
-        android:layout_marginTop="@dimen/_5sdp"
-        app:layout_constraintEnd_toEndOf="@id/guide_end"
-        app:layout_constraintStart_toStartOf="@id/guide_begin"
-        app:layout_constraintTop_toBottomOf="@id/reminderNameEditText"
-        tools:ignore="VisualLintBounds" />
+        <!--TextField-->
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/reminderNameEditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_15sdp"
+            android:autofillHints="name"
+            android:gravity="center"
+            android:hint="@string/remind_me_something"
+            android:inputType="text"
+            android:minHeight="@dimen/_50sdp"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textColorHint="@color/white"
+            android:textSize="@dimen/_18ssp"
+            app:layout_constraintEnd_toEndOf="@id/guide_end"
+            app:layout_constraintStart_toStartOf="@id/guide_begin"
+            app:layout_constraintTop_toBottomOf="@id/remainingTimeTextView"
+            tools:ignore="TextContrastCheck,VisualLintTextFieldSize,DuplicateSpeakableTextCheck" />
 
-    <!--Button OneTime-->
-    <Button
-        android:id="@+id/remindOneTimeButton"
-        style="@style/PrimaryButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/_15sdp"
-        android:layout_marginEnd="@dimen/_15sdp"
-        android:elevation="@dimen/_15sdp"
-        android:minHeight="@dimen/_20sdp"
-        android:text="@string/remind_me_one_time"
-        android:textColor="@color/otp_item_color"
-        app:layout_constraintBottom_toTopOf="@id/remindRepeatedlyButton"
-        app:layout_constraintEnd_toEndOf="@id/guide_end"
-        app:layout_constraintStart_toStartOf="@id/guide_begin"
-        app:layout_constraintTop_toBottomOf="@id/reminder_timePicker"
-        tools:ignore="VisualLintBounds,TextContrastCheck,VisualLintButtonSize,VisualLintOverlap" />
+        <!--TimePicker-->
+        <TimePicker
+            android:id="@+id/reminder_timePicker"
+            style="@style/Widget.App.TimePicker"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_5sdp"
+            android:headerBackground="@color/primary_color"
+            android:numbersBackgroundColor="@color/night_window_background_color"
+            android:numbersInnerTextColor="@color/white"
+            android:numbersSelectorColor="@color/primary_color"
+            android:numbersTextColor="@color/white"
+            android:soundEffectsEnabled="true"
+            android:timePickerMode="clock"
+            app:layout_constraintBottom_toTopOf="@id/reminderButtonsContainer"
+            app:layout_constraintEnd_toEndOf="@id/guide_end"
+            app:layout_constraintStart_toStartOf="@id/guide_begin"
+            app:layout_constraintTop_toBottomOf="@id/reminderNameEditText" />
+        <!--android:timePickerMode="clock" This one right here,
+         what i spent time looking for a
+          library displaying this widget-->
 
-    <Button
-        android:id="@+id/remindRepeatedlyButton"
-        style="@style/PrimaryButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/_15sdp"
-        android:layout_marginTop="@dimen/_5sdp"
-        android:layout_marginEnd="@dimen/_15sdp"
-        android:elevation="@dimen/_15sdp"
-        android:minHeight="@dimen/_20sdp"
-        android:text="@string/remind_me_repeatedly"
-        android:textColor="@color/otp_item_color"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@id/guide_end"
-        app:layout_constraintStart_toStartOf="@id/guide_begin"
-        app:layout_constraintTop_toBottomOf="@id/remindOneTimeButton"
-        tools:ignore="VisualLintBounds,TextContrastCheck,VisualLintButtonSize" />
+        <!--ContainerForRemindersButtons-->
+        <LinearLayout
+            android:id="@+id/reminderButtonsContainer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_15sdp"
+            android:layout_marginTop="@dimen/_5sdp"
+            android:layout_marginEnd="@dimen/_15sdp"
+            android:gravity="center"
+            android:maxWidth="320dp"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@id/guide_end"
+            app:layout_constraintStart_toStartOf="@id/guide_begin"
+            app:layout_constraintTop_toBottomOf="@id/reminder_timePicker">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <!--Button OneTime-->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/remindOneTimeButton"
+                style="@style/PrimaryButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:elevation="@dimen/_15sdp"
+                android:minHeight="@dimen/_20sdp"
+                android:text="@string/remind_me_one_time"
+                android:textColor="@color/otp_item_color"
+                app:icon="@drawable/ic_one"
+                tools:ignore="VisualLintButtonSize" />
+            <!--Button Repeatedly-->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/remindRepeatedlyButton"
+                style="@style/PrimaryButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:elevation="@dimen/_15sdp"
+                android:minHeight="@dimen/_20sdp"
+                android:text="@string/remind_me_repeatedly"
+                android:textColor="@color/otp_item_color"
+                app:icon="@drawable/ic_repeat"
+                tools:ignore="VisualLintButtonSize" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</ScrollView>

@@ -15,8 +15,10 @@ import dev.anonymous.eilaji.databinding.FragmentRemindersListBinding
 import dev.anonymous.eilaji.reminder_system.database.entity.Reminder
 import dev.anonymous.eilaji.reminder_system.database.viewModel.ReminderDatabaseViewModel
 import dev.anonymous.eilaji.reminder_system.worker.ReminderScheduler
+import dev.anonymous.eilaji.ui.other.dialogs.DeleteItemDialogFragment
+import dev.anonymous.eilaji.ui.other.dialogs.DeleteItemDialogFragment.DeleteItemDialogListener
 
-class RemindersListFragment : Fragment(), RemindersAdapter.RemindersListCallback {
+class RemindersListFragment : Fragment(), RemindersAdapter.RemindersListCallback ,DeleteItemDialogListener{
     private lateinit var binding: FragmentRemindersListBinding
     private lateinit var remindersListViewModel: RemindersListViewModel
     private lateinit var reminderScheduler: ReminderScheduler
@@ -112,8 +114,18 @@ class RemindersListFragment : Fragment(), RemindersAdapter.RemindersListCallback
         }
     }
 
+    private lateinit var selectedReminderTDelete :Reminder
     override fun onDeleteClicked(reminder: Reminder) {
-        remindersListViewModel.deleteReminder(reminder)
+        selectedReminderTDelete = reminder
+        DeleteItemDialogFragment().show(childFragmentManager,"DeleteItemTriggered")
+    }
+
+    override fun onDialogDeleteClicked() {
+        remindersListViewModel.deleteReminder(selectedReminderTDelete)
+        itemRemovedDelegate(selectedReminderTDelete)
+    }
+
+    private fun itemRemovedDelegate(reminder: Reminder) {
         val position = remindersAdapter.remindersList.indexOf(reminder)
         if (position != -1) {
             with(remindersAdapter) {

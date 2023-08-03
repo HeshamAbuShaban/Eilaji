@@ -6,18 +6,19 @@
     android:layout_height="wrap_content"
     android:layout_margin="@dimen/_5sdp"
     android:background="@drawable/shape_reminder_item"
+    android:elevation="@dimen/_25sdp"
     android:padding="@dimen/_5sdp">
 
+    <!--ReminderType-->
     <ImageView
         android:id="@+id/reminder_type"
         android:layout_width="@dimen/_35sdp"
         android:layout_height="@dimen/_35sdp"
         android:layout_marginEnd="@dimen/_15sdp"
-        android:textColor="@color/white"
+        android:contentDescription="@string/reminder_type_image"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="ContentDescription" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!--ReminderText-->
     <TextView
@@ -30,53 +31,56 @@
         android:textColor="@color/white"
         android:textSize="@dimen/_18ssp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@id/reminder_delayTime"
+        app:layout_constraintBottom_toTopOf="@id/reminderTimesContainer"
         app:layout_constraintEnd_toStartOf="@id/reminder_type"
         app:layout_constraintStart_toEndOf="@id/delete_reminder"
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="TextContrastCheck" />
 
-    <!--ReminderTime-->
-    <TextView
-        android:id="@+id/reminder_delayTime"
-        android:layout_width="wrap_content"
+    <!--ContainerForTimeDetails-->
+    <LinearLayout
+        android:id="@+id/reminderTimesContainer"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_4sdp"
         android:layout_marginBottom="@dimen/_4sdp"
-        android:text="@string/remind_me_one_time"
-        android:textAlignment="center"
-        android:textColor="@color/gray_light"
-        android:textSize="@dimen/_15ssp"
-        app:layout_constraintBottom_toTopOf="@id/reminder_creationTimestamp"
-        app:layout_constraintEnd_toStartOf="@id/reminder_type"
-        app:layout_constraintStart_toEndOf="@id/delete_reminder"
-        app:layout_constraintTop_toBottomOf="@id/reminder_name"
-        tools:ignore="TextContrastCheck" />
-
-    <!--ReminderTime-->
-    <TextView
-        android:id="@+id/reminder_creationTimestamp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_4sdp"
-        android:layout_marginBottom="@dimen/_4sdp"
-        android:text="@string/remind_me_one_time"
-        android:textAlignment="center"
-        android:textColor="@color/gray_light"
-        android:textSize="@dimen/_15ssp"
+        android:gravity="center"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/reminder_type"
         app:layout_constraintStart_toEndOf="@id/delete_reminder"
-        app:layout_constraintTop_toBottomOf="@id/reminder_delayTime"
-        tools:ignore="TextContrastCheck" />
+        app:layout_constraintTop_toBottomOf="@id/reminder_name">
 
+        <!--ReminderTime-->
+        <TextView
+            android:id="@+id/reminder_delayTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/remind_me_one_time"
+            android:textAlignment="center"
+            android:textColor="@color/gray_light"
+            android:textSize="@dimen/_15ssp" />
+
+        <!--ReminderTime-->
+        <TextView
+            android:id="@+id/reminder_creationTimestamp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/remind_me_one_time"
+            android:textAlignment="center"
+            android:textColor="@color/gray_light"
+            android:textSize="@dimen/_15ssp" />
+
+    </LinearLayout>
+
+    <!--DeleteButton-->
     <ImageButton
         android:id="@+id/delete_reminder"
         android:layout_width="@dimen/_35sdp"
         android:layout_height="@dimen/_35sdp"
         android:layout_marginStart="@dimen/_15sdp"
         android:background="@drawable/ic_delete_reminder"
-        android:backgroundTint="@color/red"
+        android:backgroundTint="@color/primary_color"
         android:filterTouchesWhenObscured="true"
         android:text="@string/delete"
         android:textColor="@color/white"

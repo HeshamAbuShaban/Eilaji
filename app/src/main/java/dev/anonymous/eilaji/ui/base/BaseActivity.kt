@@ -116,7 +116,7 @@ class BaseActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
         R.id.search_menu_item -> {
             showToast("search_menu")
-            with(window){
+            with(window) {
                 enterTransition = Explode()
                 exitTransition = Explode()
             }
@@ -143,16 +143,10 @@ class BaseActivity : AppCompatActivity() {
 
         R.id.pharmacies_map_menu_item -> {
             showToast("pharmacies_map_menu")
-            val intent = Intent(this, AlternativesActivity::class.java)
-            /*intent.putExtra(
-                "fragmentType",
-                FragmentsKeys.add_address.name
-            )*/
-            intent.putExtra(
-                "fragmentType",
-                FragmentsKeys.map.name
-            )
-            startActivity(intent)
+            Intent(this@BaseActivity, AlternativesActivity::class.java).apply {
+                putExtra("fragmentType", FragmentsKeys.map.name)
+                startActivity(this)
+            }
             true
         }
 
@@ -161,7 +155,7 @@ class BaseActivity : AppCompatActivity() {
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"
                 putExtra(Intent.EXTRA_SUBJECT, "Check out this app!")
-                putExtra(Intent.EXTRA_TEXT, "I found this amazing app that I wanted to share with you. Download it from [app store link].")
+                putExtra(Intent.EXTRA_TEXT,"I found this amazing app that I wanted to share with you. Download it from [app store link].")
             }
 
             if (shareIntent.resolveActivity(packageManager) != null) {
