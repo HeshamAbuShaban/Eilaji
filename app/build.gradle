@@ -5,6 +5,8 @@ plugins {
     id 'com.google.gms.google-services'
     id 'org.jetbrains.kotlin.android'
     id 'androidx.navigation.safeargs'
+    // the recommended new way to use java annotation with kotlin better than (id 'kotlin-kapt')
+    id 'com.google.devtools.ksp'
 }
 
 android {
@@ -68,8 +70,9 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1'
 
     // Navigation Component
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.6.0'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.6.0'
+    def nav_version = "2.7.0"
+    implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
+    implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
 
     // sdp ssp
     implementation 'com.intuit.sdp:sdp-android:1.1.0'
@@ -82,7 +85,7 @@ dependencies {
     implementation 'androidx.core:core-splashscreen:1.0.1'
 
     // Firebase
-    implementation platform('com.google.firebase:firebase-bom:32.1.1')
+    implementation platform('com.google.firebase:firebase-bom:32.2.2')
     implementation 'com.google.firebase:firebase-analytics-ktx'
     implementation 'com.google.firebase:firebase-auth-ktx'
     implementation 'com.google.firebase:firebase-firestore-ktx'
@@ -113,7 +116,7 @@ dependencies {
     // room database
     var room_version = "2.5.2"
     implementation("androidx.room:room-runtime:$room_version")
-    kapt("androidx.room:room-compiler:$room_version")
+    ksp("androidx.room:room-compiler:$room_version")
 
     // Magic Indicator
     implementation 'com.github.hackware1993:MagicIndicator:1.7.0'
