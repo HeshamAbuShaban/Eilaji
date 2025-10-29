@@ -87,10 +87,14 @@ Eilaji is more than an app, it’s a **foundation for digital health access** in
 
 ---
 
-## 📄 License
+## 🤝 Contributors
 
-**Private project** ,  shared for **portfolio, mentorship, and learning purposes only**.  
-© Hesham AbuShaban, Omar, Faras 2025. All rights reserved.
+This project was developed in collaboration with:
+
+- [Omar Abu Shanab](https://github.com/OmarAbuShanb)
+- [Fares Fatooh](https://github.com/faresFatooh)
+
+Special thanks for their support in early development and testing.
 
 ---
 
