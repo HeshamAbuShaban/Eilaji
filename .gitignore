@@ -1,64 +1,32 @@
 ```
-# Build artifacts
-build/
-.apk
-.dex
-# Dependencies
+# Gradle
 .gradle/
-local.properties
-# Logs
-*.log
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.vscode/
+.idea/
+
 # Environment
 .env
-# IDE files
-.idea/
-*.iml
-*.iws
+.env.local
+*.env.*
+
+# Logs
+*.log
+
+# Dependencies
+node_modules/
+vendor/bundle
+.libs/
+
+# OS
 .DS_Store
 Thumbs.db
-# Coverage reports
-coverage/
-htmlcov/
-.coverage
+
 # Temporary files
 *.tmp
 *.swp
-*.swo
-# Python specific
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-# Compiled files
-*.class
-*.o
-*.so
-*.dll
-*.exe
-*.out
-*.obj
-# Compressed files
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
+*~
 ```
