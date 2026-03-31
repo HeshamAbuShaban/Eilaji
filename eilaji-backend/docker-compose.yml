@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database with PostGIS extension for geospatial queries
+  postgres:
+    image: postgres:16-alpine
+    container_name: eilaji-postgres
+    environment:
+      POSTGRES_USER: eilaji
+      POSTGRES_PASSWORD: eilaji_password_change_in_production
+      POSTGRES_DB: eilaji_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eilaji -d eilaji_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - eilaji-network
+
+  # Redis for caching, sessions, and pub/sub messaging
+  redis:
+    image: redis:7-alpine
+    container_name: eilaji-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - eilaji-network
+
+  # MinIO for S3-compatible file storage (prescriptions, images, etc.)
+  minio:
+    image: minio/minio:latest
+    container_name: eilaji-minio
+    environment:
+      MINIO_ROOT_USER: eilaji_minio_admin
+      MINIO_ROOT_PASSWORD: eilaji_minio_password_change_in_production
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"   # API port
+      - "9001:9001"   # Console port
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - eilaji-network
+
+  # Create MinIO buckets on startup
+  createbuckets:
+    image: minio/mc:latest
+    container_name: eilaji-minio-create-buckets
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      mc alias set myminio http://minio:9000 eilaji_minio_admin eilaji_minio_password_change_in_production;
+      mc mb myminio/prescriptions --ignore-existing;
+      mc mb myminio/medicine-images --ignore-existing;
+      mc mb myminio/pharmacy-images --ignore-existing;
+      mc mb myminio/user-avatars --ignore-existing;
+      mc anonymous set download myminio/medicine-images;
+      mc anonymous set download myminio/pharmacy-images;
+      exit 0;
+      "
+    networks:
+      - eilaji-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local
+
+networks:
+  eilaji-network:
+    driver: bridge
