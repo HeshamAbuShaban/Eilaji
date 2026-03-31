@@ -16,6 +16,7 @@ android {
     buildFeatures {
         viewBinding = true
         dataBinding = true
+        buildConfig = true
     }
 
     defaultConfig {
@@ -32,6 +33,9 @@ android {
         versionCode = 1.8
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        
+        // Build config fields for sensitive data (replace with actual values in production)
+        buildConfigField "String", "FCM_SERVER_KEY", "\"AAAAUelekwo:APA91bEVSD7LASB29h85n5dA2Jhepv-M3rkCAcRV1WEqPv0bf9rYAS-V7UxfZwCcnVDC9BR5_tmklmZyOCTM93oV8Q6S3b17jRDFgnKCW8f9ERDEf6RasfYxc9Urc80xsYm1HFZjJdv9\""
     }
 
 
