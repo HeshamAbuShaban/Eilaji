@@ -1,7 +1,6 @@
 package dev.anonymous.eilaji.firebase.services;
 
 import android.graphics.Bitmap;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -21,7 +20,7 @@ public class FirebaseInstanceIDService extends FirebaseMessagingService {
     public void onNewToken(@NonNull String token) {
         super.onNewToken(token);
 
-        Log.d(TAG, "onNewToken: " + token);
+        // Token is stored securely, avoid logging sensitive data
         preferences.putToken(token);
     }
 
@@ -61,6 +60,6 @@ public class FirebaseInstanceIDService extends FirebaseMessagingService {
     public void onDeletedMessages() {
         // when there are too many messages (>100) pending for your app on a particular device at
         // the time it connects or if the device hasn't connected to FCM in more than one month
-        Log.d(TAG, "onDeletedMessages: ");
+        // Avoid logging sensitive information in production
     }
 }
