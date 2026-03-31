@@ -21,7 +21,7 @@
 
     <application
         android:name=".utils.AppController"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -29,6 +29,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Eilaji.MainActivity"
+        android:networkSecurityConfig="@xml/network_security_config"
         tools:targetApi="31">
         <activity
             android:name=".ui.other.base.AlternativesActivity"
@@ -57,7 +58,7 @@
 
         <service
             android:name=".firebase.services.FirebaseInstanceIDService"
-            android:exported="true"
+            android:exported="false"
             android:permission="com.google.android.c2dm.permission.SEND">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
