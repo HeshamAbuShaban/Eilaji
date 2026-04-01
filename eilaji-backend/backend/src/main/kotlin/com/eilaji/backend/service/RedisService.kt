@@ -1,178 +1,181 @@
 package com.eilaji.backend.service
 
-import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisPubSub
-import com.typesafe.config.ConfigFactory
+import io.lettuce.core.RedisClient
+import io.lettuce.core.api.async.RedisAsyncCommands
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
+import org.slf4j.LoggerFactory
+import java.time.Duration
 
-@Serializable
-data class ChatMessage(
-    val chatId: String,
-    val senderId: String,
-    val messageText: String?,
-    val messageImageUrl: String?,
-    val timestamp: Long = System.currentTimeMillis()
-)
-
-@Serializable
-data class PresenceUpdate(
-    val userId: String,
-    val isOnline: Boolean,
-    val timestamp: Long = System.currentTimeMillis()
-)
-
-class RedisService {
-    private val config = ConfigFactory.load()
-    
-    private val host: String = config.getString("redis.host")
-    private val port: Int = config.getInt("redis.port")
-    private val password: String? = config.getString("redis.password").takeIf { it.isNotEmpty() }
-    private val database: Int = config.getInt("redis.database")
-    
-    private val jedis: Jedis
-    
-    init {
-        jedis = if (password != null && password.isNotEmpty()) {
-            Jedis(host, port).apply {
-                auth(password)
-                select(database)
-            }
-        } else {
-            Jedis(host, port).apply {
-                select(database)
-            }
-        }
-        
-        println("✅ Redis connection initialized: $host:$port")
+class RedisService(
+    private val redisUrl: String = "redis://localhost:6379"
+) {
+    companion object {
+        private val logger = LoggerFactory.getLogger(RedisService::class.java)
+        private const val PRESENCE_KEY_PREFIX = "user:online:"
+        private const val PRESENCE_TTL_SECONDS = 30L
+        private const val HEARTBEAT_INTERVAL_MS = 10000L // 10 seconds
     }
     
-    // ===== Pub/Sub for Real-time Messaging =====
+    private val redisClient: RedisClient = RedisClient.create(redisUrl)
     
-    suspend fun publishMessage(channel: String, message: ChatMessage): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            val jsonMessage = Json.encodeToString(ChatMessage.serializer(), message)
-            jedis.publish(channel, jsonMessage)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-    
-    suspend fun subscribeToChannel(channel: String, callback: (ChatMessage) -> Unit): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            jedis.subscribe(object : JedisPubSub() {
-                override fun onMessage(channel: String?, message: String?) {
-                    message?.let {
-                        try {
-                            val chatMessage = Json.decodeFromString(ChatMessage.serializer(), it)
-                            callback(chatMessage)
-                        } catch (e: Exception) {
-                            println("❌ Error parsing message: ${e.message}")
-                        }
-                    }
+    suspend fun setOnlineStatus(userId: String, isOnline: Boolean) {
+        withContext(Dispatchers.IO) {
+            try {
+                val connection = redisClient.connect().async()
+                val key = "$PRESENCE_KEY_PREFIX$userId"
+                
+                if (isOnline) {
+                    // Set with TTL - will auto-expire if heartbeat stops
+                    connection.setex(key, PRESENCE_TTL_SECONDS, "true").get()
+                    logger.debug("Set user $userId as online")
+                } else {
+                    // Remove the key immediately
+                    connection.del(key).get()
+                    logger.debug("Set user $userId as offline")
                 }
-            }, channel)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+                
+                connection.close()
+            } catch (e: Exception) {
+                logger.error("Error updating presence for user $userId: ${e.message}", e)
+            }
         }
     }
     
-    // ===== Presence Management (Online/Offline Status) =====
-    
-    suspend fun setUserOnline(userId: String): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            val presence = PresenceUpdate(userId, true)
-            val jsonPresence = Json.encodeToString(PresenceUpdate.serializer(), presence)
-            jedis.setex("presence:$userId", 300, jsonPresence) // 5 minutes TTL
-            jedis.publish("presence:updates", jsonPresence)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+    suspend fun refreshOnlineStatus(userId: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                val connection = redisClient.connect().async()
+                val key = "$PRESENCE_KEY_PREFIX$userId"
+                
+                // Refresh TTL only if key exists (user is online)
+                val exists = connection.exists(key).get()
+                if (exists > 0) {
+                    connection.expire(key, PRESENCE_TTL_SECONDS).get()
+                    logger.trace("Refreshed presence TTL for user $userId")
+                }
+                
+                connection.close()
+            } catch (e: Exception) {
+                logger.debug("Could not refresh presence for user $userId (may be offline): ${e.message}")
+            }
         }
     }
     
-    suspend fun setUserOffline(userId: String): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            val presence = PresenceUpdate(userId, false)
-            val jsonPresence = Json.encodeToString(PresenceUpdate.serializer(), presence)
-            jedis.del("presence:$userId")
-            jedis.publish("presence:updates", jsonPresence)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+    suspend fun isUserOnline(userId: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                val connection = redisClient.connect().async()
+                val key = "$PRESENCE_KEY_PREFIX$userId"
+                val exists = connection.exists(key).get()
+                connection.close()
+                exists > 0
+            } catch (e: Exception) {
+                logger.error("Error checking presence for user $userId: ${e.message}", e)
+                false
+            }
         }
     }
     
-    suspend fun isUserOnline(userId: String): Boolean = withContext(Dispatchers.IO) {
-        jedis.exists("presence:$userId")
-    }
-    
-    // ===== Caching =====
-    
-    suspend fun cacheValue(key: String, value: String, ttlSeconds: Int = 3600): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            jedis.setex(key, ttlSeconds, value)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+    suspend fun getOnlineUsers(): Set<String> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val connection = redisClient.connect().async()
+                val keys = connection.keys("$PRESENCE_KEY_PREFIX*").get()
+                connection.close()
+                
+                keys.mapNotNull { key ->
+                    key.removePrefix(PRESENCE_KEY_PREFIX)
+                }.toSet()
+            } catch (e: Exception) {
+                logger.error("Error getting online users: ${e.message}", e)
+                emptySet()
+            }
         }
     }
     
-    suspend fun getCachedValue(key: String): String? = withContext(Dispatchers.IO) {
-        jedis.get(key)
-    }
-    
-    suspend fun deleteCache(key: String): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            jedis.del(key)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+    suspend fun storeInCache(key: String, value: String, ttlSeconds: Long = 3600) {
+        withContext(Dispatchers.IO) {
+            try {
+                val connection = redisClient.connect().async()
+                connection.setex(key, ttlSeconds, value).get()
+                connection.close()
+            } catch (e: Exception) {
+                logger.error("Error storing in cache: ${e.message}", e)
+            }
         }
     }
     
-    // ===== Rate Limiting =====
-    
-    suspend fun checkRateLimit(key: String, maxRequests: Int = 10, windowSeconds: Int = 1): Boolean = withContext(Dispatchers.IO) {
-        val currentCount = jedis.incr(key)
-        if (currentCount == 1L) {
-            jedis.expire(key, windowSeconds)
-        }
-        currentCount <= maxRequests
-    }
-    
-    // ===== Session Management =====
-    
-    suspend fun storeSession(sessionId: String, userId: String, ttlSeconds: Int = 86400): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            jedis.setex("session:$sessionId", ttlSeconds, userId)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+    suspend fun getFromCache(key: String): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val connection = redisClient.connect().async()
+                val value = connection.get(key).get()
+                connection.close()
+                value
+            } catch (e: Exception) {
+                logger.error("Error getting from cache: ${e.message}", e)
+                null
+            }
         }
     }
     
-    suspend fun getSessionUserId(sessionId: String): String? = withContext(Dispatchers.IO) {
-        jedis.get("session:$sessionId")
-    }
-    
-    suspend fun invalidateSession(sessionId: String): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            jedis.del("session:$sessionId")
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+    suspend fun deleteFromCache(key: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                val connection = redisClient.connect().async()
+                connection.del(key).get()
+                connection.close()
+            } catch (e: Exception) {
+                logger.error("Error deleting from cache: ${e.message}", e)
+            }
         }
     }
     
-    // ===== Close Connection =====
+    // Retry queue operations using Redis lists
+    suspend fun addToRetryQueue(queueName: String, itemId: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                val connection = redisClient.connect().async()
+                connection.lpush("retry:$queueName", itemId).get()
+                connection.close()
+            } catch (e: Exception) {
+                logger.error("Error adding to retry queue: ${e.message}", e)
+            }
+        }
+    }
+    
+    suspend fun getFromRetryQueue(queueName: String, count: Int = 10): List<String> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val connection = redisClient.connect().async()
+                val items = connection.lrange("retry:$queueName", 0, (count - 1).toLong()).get()
+                connection.close()
+                items.toList()
+            } catch (e: Exception) {
+                logger.error("Error getting from retry queue: ${e.message}", e)
+                emptyList()
+            }
+        }
+    }
+    
+    suspend fun removeFromRetryQueue(queueName: String, itemId: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                val connection = redisClient.connect().async()
+                connection.lrem("retry:$queueName", 1, itemId).get()
+                connection.close()
+            } catch (e: Exception) {
+                logger.error("Error removing from retry queue: ${e.message}", e)
+            }
+        }
+    }
     
     fun close() {
-        jedis.close()
-        println("Redis connection closed")
+        try {
+            redisClient.shutdown()
+        } catch (e: Exception) {
+            logger.error("Error shutting down Redis client: ${e.message}", e)
+        }
     }
 }

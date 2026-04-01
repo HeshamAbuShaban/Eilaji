@@ -2,17 +2,25 @@ package com.eilaji.backend.dto
 
 import kotlinx.serialization.Serializable
 import java.time.Instant
-import java.util.UUID
 
-// ===== Auth DTOs =====
+// User DTOs
+@Serializable
+data class UserDto(
+    val id: String,
+    val email: String,
+    val fullName: String,
+    val phone: String?,
+    val role: String,
+    val createdAt: Instant
+)
 
 @Serializable
-data class RegisterRequest(
+data class CreateUserRequest(
     val email: String,
     val password: String,
     val fullName: String,
     val phone: String? = null,
-    val role: String = "PATIENT"
+    val role: String = "USER"
 )
 
 @Serializable
@@ -22,117 +30,125 @@ data class LoginRequest(
 )
 
 @Serializable
-data class AuthResponse(
-    val accessToken: String,
-    val refreshToken: String,
-    val expiresIn: Long,
+data class LoginResponse(
+    val token: String,
     val user: UserDto
 )
 
+// Category DTOs
 @Serializable
-data class RefreshTokenRequest(
-    val refreshToken: String
-)
-
-@Serializable
-data class UserDto(
-    val id: UUID,
-    val email: String,
-    val fullName: String,
-    val phone: String?,
-    val avatarUrl: String?,
-    val role: String,
-    val isVerified: Boolean,
+data class CategoryDto(
+    val id: Int,
+    val nameEn: String,
+    val nameAr: String,
+    val description: String?,
+    val parentId: Int?,
+    val subcategories: List<CategoryDto> = emptyList(),
     val createdAt: Instant
 )
 
-// ===== Medicine DTOs =====
+@Serializable
+data class CreateCategoryRequest(
+    val nameEn: String,
+    val nameAr: String,
+    val description: String? = null,
+    val parentId: Int? = null
+)
 
+// Medicine DTOs
 @Serializable
 data class MedicineDto(
-    val id: UUID,
-    val titleAr: String,
+    val id: Int,
     val titleEn: String,
-    val descriptionAr: String?,
-    val descriptionEn: String?,
-    val imageUrl: String?,
-    val price: Double?,
+    val titleAr: String,
+    val description: String?,
+    val categoryId: Int,
+    val categoryName: String?,
+    val subcategoryId: Int?,
+    val subcategoryName: String?,
     val manufacturer: String?,
     val requiresPrescription: Boolean,
+    val price: Double?,
+    val imageUrl: String?,
     val isActive: Boolean,
-    val subcategoryNameAr: String? = null,
-    val subcategoryNameEn: String? = null
+    val createdAt: Instant
 )
 
 @Serializable
-data class CategoryDto(
-    val id: UUID,
-    val nameAr: String,
-    val nameEn: String,
-    val iconUrl: String?,
-    val subcategories: List<SubcategoryDto> = emptyList()
+data class CreateMedicineRequest(
+    val titleEn: String,
+    val titleAr: String,
+    val description: String? = null,
+    val categoryId: Int,
+    val subcategoryId: Int? = null,
+    val manufacturer: String? = null,
+    val requiresPrescription: Boolean = false,
+    val price: Double? = null,
+    val imageUrl: String? = null
 )
 
-@Serializable
-data class SubcategoryDto(
-    val id: UUID,
-    val nameAr: String,
-    val nameEn: String,
-    val iconUrl: String?
-)
-
-// ===== Pharmacy DTOs =====
-
+// Pharmacy DTOs
 @Serializable
 data class PharmacyDto(
-    val id: UUID,
+    val id: Int,
+    val ownerId: String,
+    val ownerName: String?,
     val name: String,
-    val description: String?,
-    val imageUrl: String?,
     val address: String,
-    val city: String?,
+    val city: String,
     val latitude: Double,
     val longitude: Double,
     val phone: String,
-    val isOpen: Boolean,
-    val ratingAvg: Double,
-    val totalRatings: Int,
     val isVerified: Boolean,
-    val distanceKm: Double? = null
+    val isOpen: Boolean,
+    val openingHours: String?,
+    val licenseNumber: String?,
+    val distanceKm: Double? = null,
+    val isOnline: Boolean = false,
+    val createdAt: Instant
 )
 
 @Serializable
 data class CreatePharmacyRequest(
     val name: String,
-    val description: String?,
     val address: String,
-    val city: String?,
+    val city: String,
     val latitude: Double,
     val longitude: Double,
     val phone: String,
-    val licenseNumber: String?
+    val openingHours: String? = null,
+    val licenseNumber: String? = null
 )
 
-// ===== Prescription DTOs =====
+@Serializable
+data class NearbyPharmaciesRequest(
+    val latitude: Double,
+    val longitude: Double,
+    val radiusKm: Double = 10.0
+)
 
+// Prescription DTOs
 @Serializable
 data class PrescriptionDto(
-    val id: UUID,
+    val id: Int,
+    val userId: String,
+    val pharmacyId: Int?,
+    val pharmacyName: String?,
     val imageUrl: String,
     val notes: String?,
     val status: String,
-    val selectedPharmacyId: UUID?,
-    val pharmacyName: String? = null,
     val quotedPrice: Double?,
     val pharmacistNotes: String?,
-    val sentToEilajiPlus: Boolean,
-    val createdAt: Instant
+    val eilajiPlusRef: String?,
+    val eilajiPlusStatus: String?,
+    val createdAt: Instant,
+    val updatedAt: Instant
 )
 
 @Serializable
 data class CreatePrescriptionRequest(
     val notes: String? = null,
-    val selectedPharmacyId: UUID? = null
+    val selectedPharmacyId: Int? = null
 )
 
 @Serializable
@@ -142,114 +158,110 @@ data class UpdatePrescriptionStatusRequest(
     val pharmacistNotes: String? = null
 )
 
-// ===== Chat DTOs =====
-
+// Chat DTOs
 @Serializable
 data class ChatDto(
-    val id: UUID,
-    val otherUserId: UUID,
-    val otherUserName: String,
-    val otherUserAvatar: String?,
-    val lastMessageText: String?,
-    val lastMessageImageUrl: String?,
+    val id: Long,
+    val prescriptionId: Int?,
+    val pharmacyId: Int?,
+    val pharmacyName: String?,
+    val userId: String,
+    val userName: String?,
     val lastMessageAt: Instant?,
-    val unreadCount: Int
+    val lastMessage: String?,
+    val unreadCount: Int = 0,
+    val createdAt: Instant
 )
 
 @Serializable
+data class CreateChatRequest(
+    val prescriptionId: Int? = null,
+    val pharmacyId: Int? = null,
+    val userId: String? = null
+)
+
+// Message DTOs
+@Serializable
 data class MessageDto(
-    val id: UUID,
-    val senderId: UUID,
-    val messageText: String?,
-    val messageImageUrl: String?,
+    val id: Long,
+    val chatId: Long,
+    val senderId: String,
+    val senderName: String?,
+    val content: String,
+    val messageType: String,
+    val attachmentUrl: String?,
     val isRead: Boolean,
+    val readAt: Instant?,
     val createdAt: Instant
 )
 
 @Serializable
 data class SendMessageRequest(
-    val chatId: UUID,
-    val messageText: String? = null,
-    val messageImageUrl: String? = null
+    val content: String,
+    val messageType: String = "TEXT",
+    val attachmentUrl: String? = null
 )
 
-// ===== Favorites DTOs =====
-
 @Serializable
-data class FavoriteDto(
-    val id: UUID,
-    val type: String, // MEDICINE or PHARMACY
-    val medicineId: UUID? = null,
-    val medicineTitleAr: String? = null,
-    val medicineTitleEn: String? = null,
-    val pharmacyId: UUID? = null,
-    val pharmacyName: String? = null,
-    val createdAt: Instant
+data class MarkAsReadRequest(
+    val messageIds: List<Long>? = null,
+    val chatId: Long? = null
 )
 
-// ===== Reminder DTOs =====
-
+// WebSocket messages
 @Serializable
-data class MedicationReminderDto(
-    val id: UUID,
-    val medicineName: String,
-    val dosage: String?,
-    val frequency: String,
-    val scheduleTime: String,
-    val customDays: List<Int>?,
+data class WebSocketMessage(
+    val type: String, // JOIN, LEAVE, MESSAGE, READ, PRESENCE, ERROR
+    val chatId: Long? = null,
+    val userId: String? = null,
+    val content: String? = null,
+    val message: MessageDto? = null,
+    val isOnline: Boolean? = null,
+    val timestamp: Instant = Instant.now()
+)
+
+// EilajiPlus DTOs
+@Serializable
+data class EilajiPlusPrescriptionRequest(
+    val prescriptionId: Int,
+    val userId: String,
+    val imageUrl: String,
     val notes: String?,
-    val isActive: Boolean,
-    val startDate: String,
-    val endDate: String?
+    val patientName: String,
+    val patientPhone: String?
 )
 
 @Serializable
-data class CreateReminderRequest(
-    val medicineName: String,
-    val dosage: String? = null,
-    val frequency: String,
-    val scheduleTime: String,
-    val customDays: List<Int>? = null,
-    val notes: String? = null,
-    val startDate: String? = null,
-    val endDate: String? = null
-)
-
-// ===== Rating DTOs =====
-
-@Serializable
-data class RatingDto(
-    val id: UUID,
-    val userId: UUID,
-    val userName: String,
-    val rating: Int,
-    val comment: String?,
-    val createdAt: Instant
+data class EilajiPlusPrescriptionResponse(
+    val success: Boolean,
+    val eilajiPlusRef: String?,
+    val message: String?
 )
 
 @Serializable
-data class CreateRatingRequest(
-    val pharmacyId: UUID,
-    val rating: Int,
-    val comment: String? = null
+data class EilajiPlusWebhookRequest(
+    val eilajiPlusRef: String,
+    val status: String,
+    val message: String? = null,
+    val quotedPrice: Double? = null,
+    val timestamp: Instant = Instant.now()
 )
 
-// ===== Generic Response =====
+// Paginated response
+@Serializable
+data class PaginatedResult<T>(
+    val items: List<T>,
+    val total: Long,
+    val page: Int,
+    val pageSize: Int,
+    val totalPages: Int
+)
 
+// Generic response
 @Serializable
 data class ApiResponse<T>(
     val success: Boolean,
     val data: T? = null,
-    val error: String? = null,
-    val message: String? = null
-) {
-    companion object {
-        fun <T> success(data: T, message: String? = null): ApiResponse<T> {
-            return ApiResponse(success = true, data = data, message = message)
-        }
-        
-        fun <T> error(error: String, message: String? = null): ApiResponse<T> {
-            return ApiResponse(success = false, error = error, message = message)
-        }
-    }
-}
+    val message: String? = null,
+    val error: String? = null
+)
