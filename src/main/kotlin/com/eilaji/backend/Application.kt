@@ -153,30 +153,8 @@ fun Application.mainModule(
         }
     }
     
-    // Configure Status Pages (Error Handling)
-    install(io.ktor.server.plugins.statuspages.StatusPages) {
-        exception<Throwable> { call, cause ->
-            when (cause) {
-                is IllegalArgumentException -> {
-                    call.respond(io.ktor.http.HttpStatusCode.BadRequest, mapOf("error" to cause.message ?: "Bad Request"))
-                }
-                is java.util.NoSuchElementException -> {
-                    call.respond(io.ktor.http.HttpStatusCode.NotFound, mapOf("error" to "Resource not found"))
-                }
-                else -> {
-                    call.respond(io.ktor.http.HttpStatusCode.InternalServerError, mapOf("error" to "Internal Server Error"))
-                }
-            }
-        }
-    }
-    
     // Setup routes
     routing {
-        // Health check endpoint
-        get("/health") {
-            call.respond(mapOf("status" to "UP", "timestamp" to System.currentTimeMillis()))
-        }
-        
         apiRoutes(
             jwtIssuer = jwtIssuer,
             jwtAudience = jwtAudience,
