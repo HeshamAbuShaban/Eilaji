@@ -1,0 +1,155 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database with PostGIS extension for geospatial queries
+  postgres:
+    image: postgres:16-alpine
+    container_name: eilaji-postgres
+    environment:
+      POSTGRES_USER: eilaji
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-eilaji_secure_password_prod}
+      POSTGRES_DB: eilaji_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eilaji -d eilaji_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - eilaji-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+
+  # Redis for caching, sessions, and pub/sub messaging
+  redis:
+    image: redis:7-alpine
+    container_name: eilaji-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-eilaji_redis_secure}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - eilaji-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+
+  # MinIO for S3-compatible file storage (prescriptions, images, etc.)
+  minio:
+    image: minio/minio:latest
+    container_name: eilaji-minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-eilaji_minio_admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-eilaji_minio_secure_prod}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - eilaji-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+
+  # Create MinIO buckets on startup
+  createbuckets:
+    image: minio/mc:latest
+    container_name: eilaji-minio-create-buckets
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      mc alias set myminio http://minio:9000 ${MINIO_ACCESS_KEY:-eilaji_minio_admin} ${MINIO_SECRET_KEY:-eilaji_minio_secure_prod};
+      mc mb myminio/prescriptions --ignore-existing;
+      mc mb myminio/medicine-images --ignore-existing;
+      mc mb myminio/pharmacy-images --ignore-existing;
+      mc mb myminio/user-avatars --ignore-existing;
+      mc anonymous set download myminio/medicine-images;
+      mc anonymous set download myminio/pharmacy-images;
+      exit 0;
+      "
+    networks:
+      - eilaji-network
+
+  # Eilaji Backend Application
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: eilaji-backend
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/eilaji_db
+      DATABASE_USER: eilaji
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-eilaji_secure_password_prod}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-eilaji_redis_secure}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ISSUER: eilaji
+      JWT_EXPIRATION: 86400
+      JWT_REFRESH_EXPIRATION: 604800
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-eilaji_minio_admin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-eilaji_minio_secure_prod}
+      MINIO_BUCKET_PRESCRIPTIONS: prescriptions
+      SERVER_PORT: 8080
+      ENV: production
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - eilaji-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local
+
+networks:
+  eilaji-network:
+    driver: bridge

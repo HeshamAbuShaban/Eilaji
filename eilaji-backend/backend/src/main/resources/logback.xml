@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <!-- JSON Console Appender for structured logging (ELK compatible) -->
+    <appender name="STDOUT_JSON" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeMdc>true</includeMdc>
+            <includeContext>true</includeContext>
+            <customFields>{"application":"eilaji-backend","environment":"${ENV:-development}"}</customFields>
+        </encoder>
+    </appender>
+
+    <!-- Human-readable Console Appender for development -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{YYYY-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
@@ -21,7 +31,8 @@
         <appender-ref ref="STDOUT"/>
     </logger>
 
+    <!-- Use JSON in production, human-readable in development -->
     <root level="INFO">
-        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="STDOUT_JSON"/>
     </root>
 </configuration>

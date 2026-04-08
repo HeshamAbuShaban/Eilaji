@@ -171,6 +171,32 @@ class RedisService(
         }
     }
     
+    suspend fun incrementKey(key: String): Long {
+        return withContext(Dispatchers.IO) {
+            try {
+                val connection = redisClient.connect().async()
+                val count = connection.incr(key).get()
+                connection.close()
+                count
+            } catch (e: Exception) {
+                logger.error("Error incrementing key: ${e.message}", e)
+                0L
+            }
+        }
+    }
+    
+    suspend fun expireKey(key: String, seconds: Long) {
+        withContext(Dispatchers.IO) {
+            try {
+                val connection = redisClient.connect().async()
+                connection.expire(key, seconds).get()
+                connection.close()
+            } catch (e: Exception) {
+                logger.error("Error setting expiration on key: ${e.message}", e)
+            }
+        }
+    }
+    
     fun close() {
         try {
             redisClient.shutdown()

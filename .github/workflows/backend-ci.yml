@@ -1,0 +1,85 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: eilaji_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: testpass
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: gradle
+    
+    - name: Grant execute permission for gradlew
+      run: chmod +x eilaji-backend/gradlew
+      working-directory: .
+    
+    - name: Build with Gradle
+      run: ./gradlew :backend:build
+      working-directory: eilaji-backend
+      env:
+        DATABASE_URL: jdbc:postgresql://localhost:5432/eilaji_test
+        DATABASE_USER: test
+        DATABASE_PASSWORD: testpass
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379
+        JWT_SECRET: test-secret-key-for-ci-pipeline-only
+        MINIO_ENDPOINT: localhost:9000
+        MINIO_ACCESS_KEY: test
+        MINIO_SECRET_KEY: testsecret
+    
+    - name: Run tests
+      run: ./gradlew :backend:test
+      working-directory: eilaji-backend
+      env:
+        DATABASE_URL: jdbc:postgresql://localhost:5432/eilaji_test
+        DATABASE_USER: test
+        DATABASE_PASSWORD: testpass
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379
+        JWT_SECRET: test-secret-key-for-ci-pipeline-only
+        MINIO_ENDPOINT: localhost:9000
+        MINIO_ACCESS_KEY: test
+        MINIO_SECRET_KEY: testsecret
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: eilaji-backend/backend/build/test-results/
