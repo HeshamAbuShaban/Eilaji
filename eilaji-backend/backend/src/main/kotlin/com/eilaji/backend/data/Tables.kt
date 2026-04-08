@@ -119,3 +119,22 @@ object EilajiPlusSync : IdTable<Long>("eilaji_plus_sync") {
     val eilajiPlusRef = varchar("eilaji_plus_ref", 255).nullable()
     val createdAt = timestamp("created_at").clientDefault { java.time.Instant.now() }
 }
+
+// Orders table for order management
+object Orders : IdTable<Int>("orders") {
+    override val id: EntityID<Int> = integer("id").autoIncrement().entityId()
+    val prescriptionId = reference("prescription_id", Prescriptions)
+    val patientId = reference("patient_id", Users)
+    val pharmacyId = reference("pharmacy_id", Pharmacies)
+    val status = enumeration("status", OrderStatus::class)
+    val totalAmount = decimal("total_amount", 12, 2)
+    val paymentMethod = varchar("payment_method", 50).nullable()
+    val paymentStatus = enumeration("payment_status", PaymentStatus::class)
+    val deliveryAddress = text("delivery_address").nullable()
+    val deliveryNotes = text("delivery_notes").nullable()
+    val createdAt = timestamp("created_at").clientDefault { java.time.Instant.now() }
+    val updatedAt = timestamp("updated_at").clientDefault { java.time.Instant.now() }
+}
+
+enum class OrderStatus { PENDING, PAID, PROCESSING, SHIPPED, DELIVERED, CANCELLED }
+enum class PaymentStatus { PENDING, PAID, FAILED, REFUNDED }

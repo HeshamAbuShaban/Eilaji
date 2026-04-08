@@ -1,5 +1,6 @@
 package com.eilaji.backend.routes
 
+import com.eilaji.backend.config.RateLimitPlugin
 import com.eilaji.backend.dto.*
 import com.eilaji.backend.model.*
 import com.eilaji.backend.service.*
@@ -31,6 +32,7 @@ fun Route.apiRoutes(
     val prescriptionService = PrescriptionService(minioService, eilajiPlusService)
     val chatService = ChatService()
     val messageService = MessageService()
+    val orderService = OrderService()
     val sessionManager = WebSocketSessionManager(messageService, chatService, redisService)
     val webSocketController = WebSocketController(sessionManager, redisService, messageService)
     
@@ -42,6 +44,9 @@ fun Route.apiRoutes(
         get("/health") {
             call.respond(ApiResponse(success = true, message = "OK"))
         }
+        
+        // Install rate limiting
+        RateLimitPlugin(redisService).install(application)
         
         // Public routes (no auth required)
         route("/api/v1") {
@@ -624,6 +629,11 @@ fun Route.apiRoutes(
                 }
             }
         }
+        
+        // Order routes
+        authentication {
+            orderRoutes(orderService)
+        }
     }
 }
 
@@ -649,5 +659,94 @@ private inline fun <T> Transaction.execSQL(sql: String, params: List<Any?>, tran
         }
         val rs = statement.executeQuery()
         transform(rs)
+    }
+}
+
+// Order routes extension
+fun Route.orderRoutes(orderService: OrderService) {
+    route("/orders") {
+        post {
+            val principal = call.principal<JWTPrincipal>()
+            val userId = principal!!.payload.getSubject()
+
+            try {
+                val request = call.receive<OrderService.OrderCreateRequest>()
+                val order = orderService.createOrder(request, userId)
+
+                if (order != null) {
+                    call.respond(HttpStatusCode.Created, ApiResponse(success = true, data = order))
+                } else {
+                    call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Failed to create order. Ensure prescription is accepted."))
+                }
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
+            }
+        }
+
+        get {
+            val principal = call.principal<JWTPrincipal>()
+            val userId = principal!!.payload.getSubject()
+            val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
+
+            try {
+                val orders = orderService.getUserOrders(userId, userRole)
+                call.respond(ApiResponse(success = true, data = orders))
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
+            }
+        }
+
+        get("/{id}") {
+            val principal = call.principal<JWTPrincipal>()
+            val userId = principal!!.payload.getSubject()
+            val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
+            val orderId = call.parameters["id"]?.toIntOrNull()
+
+            if (orderId == null) {
+                call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid order ID"))
+                return@get
+            }
+
+            try {
+                val order = orderService.getOrderById(orderId, userId, userRole)
+                if (order != null) {
+                    call.respond(ApiResponse(success = true, data = order))
+                } else {
+                    call.respond(HttpStatusCode.NotFound, ApiResponse<Map<String, Any>?>(success = false, error = "Order not found or access denied"))
+                }
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
+            }
+        }
+
+        put("/{id}/status") {
+            val principal = call.principal<JWTPrincipal>()
+            val userId = principal!!.payload.getSubject()
+            val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
+            val orderId = call.parameters["id"]?.toIntOrNull()
+
+            if (orderId == null) {
+                call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid order ID"))
+                return@put
+            }
+
+            if (userRole != UserRole.PHARMACIST && userRole != UserRole.ADMIN) {
+                call.respond(HttpStatusCode.Forbidden, ApiResponse<Map<String, Any>?>(success = false, error = "Only pharmacists and admins can update order status"))
+                return@put
+            }
+
+            try {
+                val request = call.receive<OrderService.OrderUpdateStatusRequest>()
+                val order = orderService.updateOrderStatus(orderId, request.status, request.paymentStatus, userId, userRole)
+
+                if (order != null) {
+                    call.respond(ApiResponse(success = true, data = order))
+                } else {
+                    call.respond(HttpStatusCode.NotFound, ApiResponse<Map<String, Any>?>(success = false, error = "Order not found or access denied"))
+                }
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
+            }
+        }
     }
 }

@@ -1,5 +1,7 @@
 package com.eilaji.backend
 
+import com.eilaji.backend.config.RateLimitPlugin
+import com.eilaji.backend.controller.adminRoutes
 import com.eilaji.backend.model.*
 import com.eilaji.backend.routes.apiRoutes
 import com.eilaji.backend.service.*
@@ -65,7 +67,8 @@ fun main() {
             Prescriptions,
             Chats,
             Messages,
-            EilajiPlusSync
+            EilajiPlusSync,
+            Orders
         )
     }
     
@@ -177,6 +180,9 @@ fun Application.mainModule(
             call.respond(mapOf("status" to "UP", "timestamp" to System.currentTimeMillis()))
         }
         
+        // Install rate limiting plugin
+        RateLimitPlugin(redisService).install(this@mainModule)
+        
         apiRoutes(
             jwtIssuer = jwtIssuer,
             jwtAudience = jwtAudience,
@@ -186,5 +192,8 @@ fun Application.mainModule(
             redisService = redisService,
             eilajiPlusService = eilajiPlusService
         )
+        
+        // Admin routes
+        adminRoutes()
     }
 }
