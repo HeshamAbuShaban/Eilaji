@@ -22,14 +22,14 @@ class ChatService {
                 .map { row ->
                     ChatDto(
                         id = row[Chats.id],
-                        prescriptionId = row[Chats.prescriptionId],
-                        pharmacyId = row[Chats.pharmacyId],
+                        prescriptionId = row[Chats.prescriptionId].value,
+                        pharmacyId = row[Chats.pharmacyId].value,
                         pharmacyName = row[Pharmacies.name],
-                        userId = row[Chats.userId],
+                        userId = row[Chats.userId].value,
                         userName = row[Users.fullName],
                         lastMessageAt = row[Chats.lastMessageAt],
                         lastMessage = row[Chats.lastMessage],
-                        unreadCount = getUnreadCount(row[Chats.id], userId),
+                        unreadCount = getUnreadCount(row[Chats.id].value, userId),
                         createdAt = row[Chats.createdAt]
                     )
                 }
@@ -65,10 +65,10 @@ class ChatService {
                 .map { row ->
                     ChatDto(
                         id = row[Chats.id],
-                        prescriptionId = row[Chats.prescriptionId],
-                        pharmacyId = row[Chats.pharmacyId],
+                        prescriptionId = row[Chats.prescriptionId].value,
+                        pharmacyId = row[Chats.pharmacyId].value,
                         pharmacyName = row[Pharmacies.name],
-                        userId = row[Chats.userId],
+                        userId = row[Chats.userId].value,
                         userName = row[Users.fullName],
                         lastMessageAt = row[Chats.lastMessageAt],
                         lastMessage = row[Chats.lastMessage],
@@ -86,10 +86,10 @@ class ChatService {
                 .map { row ->
                     ChatDto(
                         id = row[Chats.id],
-                        prescriptionId = row[Chats.prescriptionId],
-                        pharmacyId = row[Chats.pharmacyId],
+                        prescriptionId = row[Chats.prescriptionId].value,
+                        pharmacyId = row[Chats.pharmacyId].value,
                         pharmacyName = row[Pharmacies.name],
-                        userId = row[Chats.userId],
+                        userId = row[Chats.userId].value,
                         userName = row[Users.fullName],
                         lastMessageAt = row[Chats.lastMessageAt],
                         lastMessage = row[Chats.lastMessage],

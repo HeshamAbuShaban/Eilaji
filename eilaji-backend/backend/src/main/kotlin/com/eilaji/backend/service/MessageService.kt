@@ -19,8 +19,8 @@ class MessageService {
                 .limit(pageSize, (page * pageSize).toLong())
                 .map { row ->
                     MessageDto(
-                        id = row[Messages.id],
-                        chatId = row[Messages.chatId],
+                        id = row[Messages.id].value,
+                        chatId = row[Messages.chatId].value,
                         senderId = row[Messages.senderId],
                         senderName = row[Users.fullName],
                         content = row[Messages.content],
@@ -48,7 +48,7 @@ class MessageService {
                 it[chatId] = chatId
                 it[senderId] = senderId
                 it[content] = request.content
-                it[messageType] = request.messageType
+                it[messageType] = request.messageType.name
                 it[attachmentUrl] = request.attachmentUrl
             }
             
@@ -56,8 +56,8 @@ class MessageService {
                 .select { Messages.id eq messageId.value }
                 .map { row ->
                     MessageDto(
-                        id = row[Messages.id],
-                        chatId = row[Messages.chatId],
+                        id = row[Messages.id].value,
+                        chatId = row[Messages.chatId].value,
                         senderId = row[Messages.senderId],
                         senderName = row[Users.fullName],
                         content = row[Messages.content],
@@ -84,8 +84,8 @@ class MessageService {
                 .select { Messages.id inList messageIds }
                 .map { row ->
                     MessageDto(
-                        id = row[Messages.id],
-                        chatId = row[Messages.chatId],
+                        id = row[Messages.id].value,
+                        chatId = row[Messages.chatId].value,
                         senderId = row[Messages.senderId],
                         senderName = row[Users.fullName],
                         content = row[Messages.content],
@@ -116,8 +116,8 @@ class MessageService {
                 .select { Messages.id eq messageId }
                 .map { row ->
                     MessageDto(
-                        id = row[Messages.id],
-                        chatId = row[Messages.chatId],
+                        id = row[Messages.id].value,
+                        chatId = row[Messages.chatId].value,
                         senderId = row[Messages.senderId],
                         senderName = row[Users.fullName],
                         content = row[Messages.content],

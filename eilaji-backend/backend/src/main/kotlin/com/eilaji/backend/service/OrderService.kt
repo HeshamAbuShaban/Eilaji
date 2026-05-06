@@ -59,10 +59,10 @@ class OrderService {
                 it[prescriptionId] = request.prescriptionId
                 it[patientId] = userId
                 it[pharmacyId] = pharmacyId
-                it[status] = OrderStatus.PENDING
+                it[status] = OrderStatus.PENDING.name
                 it[totalAmount] = request.totalAmount.toBigDecimal()
                 it[paymentMethod] = request.paymentMethod
-                it[paymentStatus] = PaymentStatus.PENDING
+                it[paymentStatus] = PaymentStatus.PENDING.name
                 it[deliveryAddress] = request.deliveryAddress
                 it[deliveryNotes] = request.deliveryNotes
                 it[createdAt] = Instant.now()
