@@ -48,7 +48,7 @@ object AuditService {
                     it[AuditLogs.resourceId] = resourceId
                     it[AuditLogs.description] = description
                     it[AuditLogs.metadata] = metadata?.toString() ?: ""
-                    it[createdAt] = java.sql.Timestamp.from(Instant.now())
+                    it[AuditLogs.createdAt] = Instant.now()
                 }
             }
         } catch (e: Exception) {

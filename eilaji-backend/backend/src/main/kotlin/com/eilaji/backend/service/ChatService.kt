@@ -1,112 +1,94 @@
 package com.eilaji.backend.service
 
+import com.eilaji.backend.data.*
 import com.eilaji.backend.dto.*
-import com.eilaji.backend.model.*
-import io.ktor.server.auth.*
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 
 class ChatService {
-    
+
     fun getChatsForUser(userId: String, page: Int = 0, pageSize: Int = 20): PaginatedResult<ChatDto> {
         return transaction {
-            val total = Chats.select { Chats.userId eq userId }.count()
-            
-            val chats = Chats.leftJoin(Pharmacies)
-                .leftJoin(Users)
-                .select { Chats.userId eq userId }
-                .orderBy(Chats.lastMessageAt.desc())
+            val query = Chats.join(Pharmacies, JoinType.LEFT, Chats.pharmacyId, Pharmacies.id)
+                .selectAll()
+                .where { Chats.userId eq userId }
+
+            val total = query.count()
+
+            val chats = query
+                .orderBy(Chats.lastMessageAt, SortOrder.DESC_NULLS_LAST)
                 .limit(pageSize, (page * pageSize).toLong())
                 .map { row ->
                     ChatDto(
                         id = row[Chats.id],
-                        prescriptionId = row[Chats.prescriptionId].value,
-                        pharmacyId = row[Chats.pharmacyId].value,
-                        pharmacyName = row[Pharmacies.name],
-                        userId = row[Chats.userId].value,
-                        userName = row[Users.fullName],
-                        lastMessageAt = row[Chats.lastMessageAt],
+                        prescriptionId = row[Chats.prescriptionId],
+                        pharmacyId = row[Chats.pharmacyId],
+                        pharmacyName = row.getOrNull(Pharmacies.name),
+                        userId = row[Chats.userId],
                         lastMessage = row[Chats.lastMessage],
-                        unreadCount = getUnreadCount(row[Chats.id].value, userId),
+                        lastMessageAt = row[Chats.lastMessageAt],
                         createdAt = row[Chats.createdAt]
                     )
                 }
-            
+
             PaginatedResult(
                 items = chats,
                 total = total,
                 page = page,
                 pageSize = pageSize,
-                totalPages = (total + pageSize - 1) / pageSize
+                totalPages = if (total > 0) ((total + pageSize - 1) / pageSize).toInt() else 0
             )
         }
     }
-    
-    private fun getUnreadCount(chatId: Long, userId: String): Int {
-        return Messages.select { 
-            Messages.chatId eq chatId and (Messages.senderId neq userId) and (Messages.isRead eq false)
-        }.count().toInt()
-    }
-    
-    fun createChat(request: CreateChatRequest, currentUserId: String): ChatDto {
-        return transaction {
-            val chatId = Chats.insertAndGetId {
-                it[prescriptionId] = request.prescriptionId
-                it[pharmacyId] = request.pharmacyId
-                it[userId] = request.userId ?: currentUserId
-                it[lastMessageAt] = Instant.now()
-            }
-            
-            Chats.leftJoin(Pharmacies)
-                .leftJoin(Users)
-                .select { Chats.id eq chatId.value }
-                .map { row ->
-                    ChatDto(
-                        id = row[Chats.id],
-                        prescriptionId = row[Chats.prescriptionId].value,
-                        pharmacyId = row[Chats.pharmacyId].value,
-                        pharmacyName = row[Pharmacies.name],
-                        userId = row[Chats.userId].value,
-                        userName = row[Users.fullName],
-                        lastMessageAt = row[Chats.lastMessageAt],
-                        lastMessage = row[Chats.lastMessage],
-                        createdAt = row[Chats.createdAt]
-                    )
-                }.first()
-        }
-    }
-    
+
     fun getChatById(chatId: Long, userId: String): ChatDto? {
         return transaction {
-            Chats.leftJoin(Pharmacies)
-                .leftJoin(Users)
-                .select { Chats.id eq chatId }
+            Chats.join(Pharmacies, JoinType.LEFT, Chats.pharmacyId, Pharmacies.id)
+                .selectAll()
+                .where { (Chats.id eq chatId) and (Chats.userId eq userId) }
                 .map { row ->
                     ChatDto(
                         id = row[Chats.id],
-                        prescriptionId = row[Chats.prescriptionId].value,
-                        pharmacyId = row[Chats.pharmacyId].value,
-                        pharmacyName = row[Pharmacies.name],
-                        userId = row[Chats.userId].value,
-                        userName = row[Users.fullName],
-                        lastMessageAt = row[Chats.lastMessageAt],
+                        prescriptionId = row[Chats.prescriptionId],
+                        pharmacyId = row[Chats.pharmacyId],
+                        pharmacyName = row.getOrNull(Pharmacies.name),
+                        userId = row[Chats.userId],
                         lastMessage = row[Chats.lastMessage],
-                        unreadCount = getUnreadCount(chatId, userId),
+                        lastMessageAt = row[Chats.lastMessageAt],
                         createdAt = row[Chats.createdAt]
                     )
                 }.firstOrNull()
         }
     }
-    
-    fun updateLastMessage(chatId: Long, message: String) {
-        transaction {
-            Chats.update({ Chats.id eq chatId }) {
-                it[lastMessage] = message
-                it[lastMessageAt] = Instant.now()
-                it[updatedAt] = Instant.now()
-            }
+
+    fun createChat(userId: String, prescriptionId: Int?, pharmacyId: Int?): ChatDto {
+        return transaction {
+            val chatId = Chats.insert {
+                it[Chats.prescriptionId] = prescriptionId
+                it[Chats.pharmacyId] = pharmacyId
+                it[Chats.userId] = userId
+                it[Chats.lastMessage] = null
+                it[Chats.lastMessageAt] = Instant.now()
+                it[Chats.createdAt] = Instant.now()
+                it[Chats.updatedAt] = Instant.now()
+            } get Chats.id
+
+            Chats.join(Pharmacies, JoinType.LEFT, Chats.pharmacyId, Pharmacies.id)
+                .selectAll()
+                .where { Chats.id eq chatId }
+                .map { row ->
+                    ChatDto(
+                        id = row[Chats.id],
+                        prescriptionId = row[Chats.prescriptionId],
+                        pharmacyId = row[Chats.pharmacyId],
+                        pharmacyName = row.getOrNull(Pharmacies.name),
+                        userId = row[Chats.userId],
+                        lastMessage = row[Chats.lastMessage],
+                        lastMessageAt = row[Chats.lastMessageAt],
+                        createdAt = row[Chats.createdAt]
+                    )
+                }.first()
         }
     }
 }

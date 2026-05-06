@@ -8,12 +8,12 @@ services:
     environment:
       POSTGRES_USER: eilaji
       POSTGRES_PASSWORD: eilaji_password_change_in_production
+      POSTGRES_HOST_AUTH_METHOD: trust
       POSTGRES_DB: eilaji_db
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/init-db.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U eilaji -d eilaji_db"]
       interval: 5s

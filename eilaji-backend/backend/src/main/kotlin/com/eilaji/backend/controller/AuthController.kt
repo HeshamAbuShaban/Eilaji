@@ -16,49 +16,42 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import org.bouncycastle.crypto.generators.BCrypt
+import org.mindrot.jbcrypt.BCrypt
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 
 fun Route.registerAuthRoutes(redisService: RedisService) {
-    // Register new user
     post("/auth/register") {
         try {
             val request = call.receive<RegisterRequest>()
 
-            // Validate input with comprehensive checks
             if (request.email.isBlank() || request.password.isBlank() || request.fullName.isBlank()) {
                 call.respond(HttpStatusCode.BadRequest, ApiResponse.error<String>("Email, password, and full name are required"))
                 return@post
             }
 
-            // Validate email format
             if (!SecurityUtils.validateEmail(request.email)) {
                 call.respond(HttpStatusCode.BadRequest, ApiResponse.error<String>("Invalid email format"))
                 return@post
             }
 
-            // Validate password strength
             val passwordErrors = SecurityUtils.validatePasswordStrength(request.password)
             if (passwordErrors.isNotEmpty()) {
-                call.respond(HttpStatusCode.BadRequest, ApiResponse.error<List<String>>(passwordErrors))
+                call.respond(HttpStatusCode.BadRequest, ApiResponse.error<String>(passwordErrors.joinToString(", ")))
                 return@post
             }
 
-            // Check for common passwords
             if (SecurityUtils.isCommonPassword(request.password)) {
                 call.respond(HttpStatusCode.BadRequest, ApiResponse.error<String>("Password is too common. Please choose a stronger password"))
                 return@post
             }
 
-            // Sanitize and limit input lengths
             val sanitizedEmail = SecurityUtils.limitLength(request.email.lowercase().trim(), 255, "email")
             val sanitizedFullName = SecurityUtils.limitLength(request.fullName.trim(), 100, "full name")
 
-            // Check if user already exists
             val existingUser = transaction {
-                Users.select { Users.email eq sanitizedEmail }.firstOrNull()
+                Users.selectAll().where { Users.email eq sanitizedEmail }.firstOrNull()
             }
 
             if (existingUser != null) {
@@ -66,52 +59,46 @@ fun Route.registerAuthRoutes(redisService: RedisService) {
                 return@post
             }
 
-            // Hash password with BCrypt (cost factor 12 for better security)
-            val salt = BCrypt.gensalt(12)
-            val passwordHash = String(BCrypt.hashpw(request.password.toByteArray(), salt))
-            
-            // Parse role
+            val salt = BCrypt.gensalt()
+            val passwordHash = BCrypt.hashpw(request.password, salt)
+
             val role = try {
                 UserRole.valueOf(request.role.uppercase())
             } catch (e: IllegalArgumentException) {
                 UserRole.PATIENT
             }
-            
-            // Create user
+
             val userId = transaction {
                 Users.insert {
-                    it[email] = request.email.lowercase().trim()
-                    it[passwordHash] = passwordHash
-                    it[fullName] = request.fullName.trim()
-                    it[phone] = request.phone?.trim()
-                    it[this.role] = role
-                    it[isVerified] = false
+                    it[Users.email] = request.email.lowercase().trim()
+                    it[Users.passwordHash] = passwordHash
+                    it[Users.fullName] = request.fullName.trim()
+                    it[Users.phone] = request.phone?.trim()
+                    it[Users.role] = role.name
+                    it[Users.isVerified] = false
                 } get Users.id
             }
-            
-            // Generate tokens
+
             val accessToken = generateAccessToken(userId.toString(), role.name)
             val refreshToken = generateRefreshToken(userId.toString())
 
-            // Store refresh token in Redis
-            redisService.storeSession("refresh:$refreshToken", userId.toString(), JwtConfig.refreshExpiresIn.toInt())
+            redisService.storeInCache("refresh:$refreshToken", userId.toString(), JwtConfig.refreshExpiresIn)
 
             val userDto = transaction {
-                Users.select { Users.id eq userId }.firstOrNull()?.let { row ->
+                Users.selectAll().where { Users.id eq userId }.firstOrNull()?.let { row ->
                     UserDto(
                         id = row[Users.id],
                         email = row[Users.email],
                         fullName = row[Users.fullName],
                         phone = row[Users.phone],
                         avatarUrl = row[Users.avatarUrl],
-                        role = row[Users.role].name,
+                        role = row[Users.role],
                         isVerified = row[Users.isVerified],
                         createdAt = row[Users.createdAt]
                     )
                 }
             }
 
-            // Log successful registration
             AuditService.logEvent(
                 eventType = AuditService.EventType.USER_CREATED,
                 userId = userId.toString(),
@@ -130,86 +117,73 @@ fun Route.registerAuthRoutes(redisService: RedisService) {
                 ),
                 "User registered successfully"
             ))
-            
+
         } catch (e: Exception) {
             call.respond(HttpStatusCode.InternalServerError, ApiResponse.error<String>("Registration failed: ${e.message}"))
         }
     }
-    
-    // Login
+
     post("/auth/login") {
         try {
             val request = call.receive<LoginRequest>()
 
-            // Validate input
             if (request.email.isBlank() || request.password.isBlank()) {
                 call.respond(HttpStatusCode.BadRequest, ApiResponse.error<String>("Email and password are required"))
                 return@post
             }
 
-            // Validate email format
             if (!SecurityUtils.validateEmail(request.email)) {
                 call.respond(HttpStatusCode.BadRequest, ApiResponse.error<String>("Invalid email format"))
                 return@post
             }
 
-            // Sanitize email
             val sanitizedEmail = SecurityUtils.limitLength(request.email.lowercase().trim(), 255, "email")
 
-            // Find user by email
             val user = transaction {
-                Users.select { Users.email eq sanitizedEmail }.firstOrNull()
+                Users.selectAll().where { Users.email eq sanitizedEmail }.firstOrNull()
             }
 
             if (user == null) {
-                // Log failed attempt but don't reveal user doesn't exist
                 println("WARNING: Failed login attempt for non-existent email: $sanitizedEmail from IP: ${call.request.local.remoteHost}")
                 call.respond(HttpStatusCode.Unauthorized, ApiResponse.error<String>("Invalid credentials"))
                 return@post
             }
 
-            // Verify password
             val passwordHash = user[Users.passwordHash]
-            if (!BCrypt.checkpw(request.password.toByteArray(), passwordHash.toByteArray())) {
-                // Log failed login attempt
+            if (!BCrypt.checkpw(request.password, passwordHash)) {
                 AuditService.logLoginFailure(request.email, call.request.local.remoteHost, "Wrong password")
                 call.respond(HttpStatusCode.Unauthorized, ApiResponse.error<String>("Invalid credentials"))
                 return@post
             }
 
-            // Check if user is active
             if (!user[Users.isActive]) {
                 AuditService.logLoginFailure(request.email, call.request.local.remoteHost, "Account deactivated")
                 call.respond(HttpStatusCode.Forbidden, ApiResponse.error<String>("Account is deactivated"))
                 return@post
             }
-            
+
             val userId = user[Users.id].toString()
-            val role = user[Users.role].name
-            
-            // Generate tokens
+            val role = user[Users.role]
+
             val accessToken = generateAccessToken(userId, role)
             val refreshToken = generateRefreshToken(userId)
-            
-            // Store refresh token in Redis
-            redisService.storeSession("refresh:$refreshToken", userId, JwtConfig.refreshExpiresIn.toInt())
-            
-            // Log successful login
+
+            redisService.storeInCache("refresh:$refreshToken", userId, JwtConfig.refreshExpiresIn)
+
             AuditService.logLoginSuccess(userId, call.request.local.remoteHost, call.request.headers["User-Agent"])
-            // Set user online
-            redisService.setUserOnline(userId)
-            
+            redisService.setOnlineStatus(userId, true)
+
             val userDto = UserDto(
                 id = user[Users.id],
                 email = user[Users.email],
                 fullName = user[Users.fullName],
                 phone = user[Users.phone],
                 avatarUrl = user[Users.avatarUrl],
-                role = user[Users.role].name,
+                role = user[Users.role],
                 isVerified = user[Users.isVerified],
                 createdAt = user[Users.createdAt]
             )
-            
+
             call.respond(ApiResponse.success(
                 AuthResponse(
                     accessToken = accessToken,
@@ -219,66 +193,57 @@ fun Route.registerAuthRoutes(redisService: RedisService) {
                 ),
                 "Login successful"
             ))
-            
+
         } catch (e: Exception) {
             call.respond(HttpStatusCode.InternalServerError, ApiResponse.error<String>("Login failed: ${e.message}"))
         }
     }
-    
-    // Refresh token
+
     post("/auth/refresh") {
         try {
             val request = call.receive<RefreshTokenRequest>()
-            
-            // Verify refresh token from Redis
-            val userId = redisService.getSessionUserId("refresh:${request.refreshToken}")
-            
+
+            val userId = redisService.getFromCache("refresh:${request.refreshToken}")
+
             if (userId == null) {
                 call.respond(HttpStatusCode.Unauthorized, ApiResponse.error<String>("Invalid or expired refresh token"))
                 return@post
             }
-            
-            // Get user from database
+
             val user = transaction {
-                Users.select { Users.id eq UUID.fromString(userId) }.firstOrNull()
+                Users.selectAll().where { Users.id eq userId }.firstOrNull()
             }
-            
+
             if (user == null || !user[Users.isActive]) {
                 call.respond(HttpStatusCode.Unauthorized, ApiResponse.error<String>("User not found or inactive"))
                 return@post
             }
-            
-            val role = user[Users.role].name
-            
-            // Generate new access token
+
+            val role = user[Users.role]
+
             val newAccessToken = generateAccessToken(userId, role)
-            
+
             call.respond(ApiResponse.success(
                 mapOf("accessToken" to newAccessToken, "expiresIn" to JwtConfig.expiresIn),
                 "Token refreshed successfully"
             ))
-            
+
         } catch (e: Exception) {
             call.respond(HttpStatusCode.InternalServerError, ApiResponse.error<String>("Token refresh failed: ${e.message}"))
         }
     }
-    
-    // Logout
+
     post("/auth/logout") {
         try {
             val principal = call.principal<JWTPrincipal>()
             val userId = principal?.payload?.getClaim("user_id")?.asString()
-            
+
             if (userId != null) {
-                // Set user offline
-                redisService.setUserOffline(userId)
-                
-                // Invalidate all sessions for this user (optional - you might want to keep a blacklist)
-                // For now, we'll just set the user offline
+                redisService.setOnlineStatus(userId, false)
             }
-            
+
             call.respond(ApiResponse.success(mapOf("message" to "Logout successful")))
-            
+
         } catch (e: Exception) {
             call.respond(HttpStatusCode.InternalServerError, ApiResponse.error<String>("Logout failed: ${e.message}"))
         }

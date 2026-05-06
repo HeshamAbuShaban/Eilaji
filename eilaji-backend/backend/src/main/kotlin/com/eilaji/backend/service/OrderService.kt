@@ -1,172 +1,118 @@
 package com.eilaji.backend.service
 
 import com.eilaji.backend.data.*
+import com.eilaji.backend.dto.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import java.time.Instant
-import java.util.UUID
 
 class OrderService {
-    
+
+    @Serializable
     data class OrderCreateRequest(
         val prescriptionId: Int,
+        val pharmacyId: Int,
         val totalAmount: Double,
         val paymentMethod: String? = null,
         val deliveryAddress: String? = null,
         val deliveryNotes: String? = null
     )
-    
+
+    @Serializable
     data class OrderUpdateStatusRequest(
-        val status: OrderStatus,
-        val paymentStatus: PaymentStatus? = null
+        val status: String,
+        val paymentStatus: String? = null
     )
-    
-    data class OrderDto(
+
+    @Serializable
+    data class OrderResult(
         val id: Int,
         val prescriptionId: Int,
         val patientId: String,
         val pharmacyId: Int,
-        val status: OrderStatus,
+        val pharmacyName: String?,
+        val status: String,
         val totalAmount: Double,
         val paymentMethod: String?,
-        val paymentStatus: PaymentStatus,
+        val paymentStatus: String,
         val deliveryAddress: String?,
         val deliveryNotes: String?,
-        val createdAt: Instant,
-        val updatedAt: Instant
+        @Contextual val createdAt: Instant,
+        @Contextual val updatedAt: Instant
     )
-    
-    fun createOrder(request: OrderCreateRequest, userId: String): OrderDto? {
+
+    fun createOrder(request: OrderCreateRequest, userId: String): OrderResult? {
         return transaction {
-            // Verify prescription exists and belongs to user
-            val prescription = Prescriptions.select { Prescriptions.id eq request.prescriptionId }
-                .singleOrNull() ?: return@transaction null
-            
-            if (prescription[Prescriptions.userId] != userId) {
+            val prescription = Prescriptions.selectAll()
+                .where { Prescriptions.id eq request.prescriptionId }
+                .firstOrNull()
+
+            if (prescription == null || prescription[Prescriptions.status] != "ACCEPTED") {
                 return@transaction null
             }
-            
-            // Check if prescription is accepted
-            if (prescription[Prescriptions.status] != "ACCEPTED") {
-                return@transaction null
-            }
-            
-            val pharmacyId = prescription[Prescriptions.pharmacyId] ?: return@transaction null
-            
-            // Create order
+
             val orderId = Orders.insert {
-                it[prescriptionId] = request.prescriptionId
-                it[patientId] = userId
-                it[pharmacyId] = pharmacyId
-                it[status] = OrderStatus.PENDING.name
-                it[totalAmount] = request.totalAmount.toBigDecimal()
-                it[paymentMethod] = request.paymentMethod
-                it[paymentStatus] = PaymentStatus.PENDING.name
-                it[deliveryAddress] = request.deliveryAddress
-                it[deliveryNotes] = request.deliveryNotes
-                it[createdAt] = Instant.now()
-                it[updatedAt] = Instant.now()
+                it[Orders.prescriptionId] = request.prescriptionId
+                it[Orders.patientId] = userId
+                it[Orders.pharmacyId] = request.pharmacyId
+                it[Orders.status] = "PENDING"
+                it[Orders.totalAmount] = request.totalAmount.toBigDecimal()
+                it[Orders.paymentMethod] = request.paymentMethod
+                it[Orders.paymentStatus] = "PENDING"
+                it[Orders.deliveryAddress] = request.deliveryAddress
+                it[Orders.deliveryNotes] = request.deliveryNotes
+                it[Orders.createdAt] = Instant.now()
+                it[Orders.updatedAt] = Instant.now()
             } get Orders.id
-            
-            Orders.select { Orders.id eq orderId }.map { row ->
-                OrderDto(
-                    id = row[Orders.id],
-                    prescriptionId = row[Orders.prescriptionId],
-                    patientId = row[Orders.patientId],
-                    pharmacyId = row[Orders.pharmacyId],
-                    status = row[Orders.status],
-                    totalAmount = row[Orders.totalAmount].toDouble(),
-                    paymentMethod = row[Orders.paymentMethod],
-                    paymentStatus = row[Orders.paymentStatus],
-                    deliveryAddress = row[Orders.deliveryAddress],
-                    deliveryNotes = row[Orders.deliveryNotes],
-                    createdAt = row[Orders.createdAt],
-                    updatedAt = row[Orders.updatedAt]
-                )
-            }.firstOrNull()
+
+            getOrderById(orderId, userId, null)
         }
     }
-    
-    fun getUserOrders(userId: String, role: UserRole): List<OrderDto> {
+
+    fun getUserOrders(userId: String, userRole: com.eilaji.backend.data.UserRole): List<OrderResult> {
         return transaction {
-            val query = if (role == UserRole.ADMIN) {
-                Orders.selectAll()
-            } else if (role == UserRole.PHARMACIST) {
-                Orders.join(Pharmacies, JoinType.INNER, Orders.pharmacyId, Pharmacies.id)
-                    .select { Pharmacies.ownerId eq userId }
+            val query = if (userRole == com.eilaji.backend.data.UserRole.PHARMACIST || userRole == com.eilaji.backend.data.UserRole.ADMIN) {
+                Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id).selectAll()
             } else {
-                Orders.select { Orders.patientId eq userId }
+                Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id)
+                    .selectAll()
+                    .where { Orders.patientId eq userId }
             }
-            
-            query.orderBy(Orders.createdAt.desc()).map { row ->
-                OrderDto(
-                    id = row[Orders.id],
-                    prescriptionId = row[Orders.prescriptionId],
-                    patientId = row[Orders.patientId],
-                    pharmacyId = row[Orders.pharmacyId],
-                    status = row[Orders.status],
-                    totalAmount = row[Orders.totalAmount].toDouble(),
-                    paymentMethod = row[Orders.paymentMethod],
-                    paymentStatus = row[Orders.paymentStatus],
-                    deliveryAddress = row[Orders.deliveryAddress],
-                    deliveryNotes = row[Orders.deliveryNotes],
-                    createdAt = row[Orders.createdAt],
-                    updatedAt = row[Orders.updatedAt]
-                )
+
+            query.orderBy(Orders.createdAt, SortOrder.DESC).map { row ->
+                mapRowToOrder(row)
             }
         }
     }
-    
-    fun getOrderById(orderId: Int, userId: String, role: UserRole): OrderDto? {
+
+    fun getOrderById(orderId: Int, userId: String, userRole: com.eilaji.backend.data.UserRole?): OrderResult? {
         return transaction {
-            val order = Orders.select { Orders.id eq orderId }.singleOrNull() ?: return@transaction null
-            
-            // Check access rights
-            val canAccess = when (role) {
-                UserRole.ADMIN -> true
-                UserRole.PHARMACIST -> {
-                    val pharmacy = Pharmacies.select { Pharmacies.id eq order[Orders.pharmacyId] }.singleOrNull()
-                    pharmacy?.get(Pharmacies.ownerId) == userId
-                }
-                else -> order[Orders.patientId] == userId
+            val query = Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id)
+                .selectAll()
+                .where { Orders.id eq orderId }
+
+            val order = query.firstOrNull() ?: return@transaction null
+
+            if (userRole == null || userRole == com.eilaji.backend.data.UserRole.PATIENT) {
+                if (order[Orders.patientId] != userId) return@transaction null
             }
-            
-            if (!canAccess) return@transaction null
-            
-            OrderDto(
-                id = order[Orders.id],
-                prescriptionId = order[Orders.prescriptionId],
-                patientId = order[Orders.patientId],
-                pharmacyId = order[Orders.pharmacyId],
-                status = order[Orders.status],
-                totalAmount = order[Orders.totalAmount].toDouble(),
-                paymentMethod = order[Orders.paymentMethod],
-                paymentStatus = order[Orders.paymentStatus],
-                deliveryAddress = order[Orders.deliveryAddress],
-                deliveryNotes = order[Orders.deliveryNotes],
-                createdAt = order[Orders.createdAt],
-                updatedAt = order[Orders.updatedAt]
-            )
+
+            mapRowToOrder(order)
         }
     }
-    
-    fun updateOrderStatus(orderId: Int, status: OrderStatus, paymentStatus: PaymentStatus?, userId: String, role: UserRole): OrderDto? {
+
+    fun updateOrderStatus(orderId: Int, status: String, paymentStatus: String?, userId: String, userRole: com.eilaji.backend.data.UserRole): OrderResult? {
         return transaction {
-            val order = Orders.select { Orders.id eq orderId }.singleOrNull() ?: return@transaction null
-            
-            // Check if user can update this order
-            val canUpdate = when (role) {
-                UserRole.ADMIN -> true
-                UserRole.PHARMACIST -> {
-                    val pharmacy = Pharmacies.select { Pharmacies.id eq order[Orders.pharmacyId] }.singleOrNull()
-                    pharmacy?.get(Pharmacies.ownerId) == userId
-                }
-                else -> false
+            val existingOrder = Orders.selectAll().where { Orders.id eq orderId }.firstOrNull()
+                ?: return@transaction null
+
+            if (userRole != com.eilaji.backend.data.UserRole.PHARMACIST && userRole != com.eilaji.backend.data.UserRole.ADMIN) {
+                return@transaction null
             }
-            
-            if (!canUpdate) return@transaction null
-            
+
             Orders.update({ Orders.id eq orderId }) {
                 it[Orders.status] = status
                 if (paymentStatus != null) {
@@ -174,73 +120,98 @@ class OrderService {
                 }
                 it[Orders.updatedAt] = Instant.now()
             }
-            
-            Orders.select { Orders.id eq orderId }.map { row ->
-                OrderDto(
-                    id = row[Orders.id],
-                    prescriptionId = row[Orders.prescriptionId],
-                    patientId = row[Orders.patientId],
-                    pharmacyId = row[Orders.pharmacyId],
-                    status = row[Orders.status],
-                    totalAmount = row[Orders.totalAmount].toDouble(),
-                    paymentMethod = row[Orders.paymentMethod],
-                    paymentStatus = row[Orders.paymentStatus],
-                    deliveryAddress = row[Orders.deliveryAddress],
-                    deliveryNotes = row[Orders.deliveryNotes],
-                    createdAt = row[Orders.createdAt],
-                    updatedAt = row[Orders.updatedAt]
-                )
-            }.firstOrNull()
+
+            getOrderById(orderId, userId, userRole)
         }
     }
-    
-    fun createOrderFromAcceptedPrescription(prescriptionId: Int, quotedPrice: Double): OrderDto? {
+
+    fun getOrdersForPharmacy(pharmacyId: Int, status: String? = null, page: Int = 0, pageSize: Int = 20): PaginatedResult<OrderResult> {
         return transaction {
-            val prescription = Prescriptions.select { Prescriptions.id eq prescriptionId }.singleOrNull() ?: return@transaction null
-            
-            if (prescription[Prescriptions.status] != "ACCEPTED") {
-                return@transaction null
+            val query = if (status != null) {
+                Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id)
+                    .selectAll()
+                    .where { (Orders.pharmacyId eq pharmacyId) and (Orders.status eq status) }
+            } else {
+                Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id)
+                    .selectAll()
+                    .where { Orders.pharmacyId eq pharmacyId }
             }
-            
-            val pharmacyId = prescription[Prescriptions.pharmacyId] ?: return@transaction null
-            val patientId = prescription[Prescriptions.userId]
-            
-            // Check if order already exists
-            val existingOrder = Orders.select { 
-                Orders.prescriptionId eq prescriptionId 
-            }.singleOrNull()
-            
-            if (existingOrder != null) {
-                return@transaction null
-            }
-            
-            val orderId = Orders.insert {
-                it[Orders.prescriptionId] = prescriptionId
-                it[Orders.patientId] = patientId
-                it[Orders.pharmacyId] = pharmacyId
-                it[Orders.status] = OrderStatus.PENDING
-                it[Orders.totalAmount] = quotedPrice.toBigDecimal()
-                it[Orders.paymentStatus] = PaymentStatus.PENDING
-                it[Orders.createdAt] = Instant.now()
-                it[Orders.updatedAt] = Instant.now()
-            } get Orders.id
-            
-            Orders.select { Orders.id eq orderId }.map { row ->
-                OrderDto(
-                    id = row[Orders.id],
-                    prescriptionId = row[Orders.prescriptionId],
-                    patientId = row[Orders.patientId],
-                    pharmacyId = row[Orders.pharmacyId],
-                    status = row[Orders.status],
-                    totalAmount = row[Orders.totalAmount].toDouble(),
-                    paymentMethod = row[Orders.paymentMethod],
-                    paymentStatus = row[Orders.paymentStatus],
-                    deliveryAddress = row[Orders.deliveryAddress],
-                    deliveryNotes = row[Orders.deliveryNotes],
-                    createdAt = row[Orders.createdAt],
-                    updatedAt = row[Orders.updatedAt]
-                )
-            }.firstOrNull()
+
+            val total = query.count()
+
+            val orders = query
+                .orderBy(Orders.createdAt, SortOrder.DESC)
+                .limit(pageSize, (page * pageSize).toLong())
+                .map { row -> mapRowToOrder(row) }
+
+            PaginatedResult(
+                items = orders,
+                total = total,
+                page = page,
+                pageSize = pageSize,
+                totalPages = if (total > 0) ((total + pageSize - 1) / pageSize).toInt() else 0
+            )
         }
+    }
+
+    fun getOrdersForUser(userId: String, status: String? = null, page: Int = 0, pageSize: Int = 20): PaginatedResult<OrderResult> {
+        return transaction {
+            val query = if (status != null) {
+                Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id)
+                    .selectAll()
+                    .where { (Orders.patientId eq userId) and (Orders.status eq status) }
+            } else {
+                Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id)
+                    .selectAll()
+                    .where { Orders.patientId eq userId }
+            }
+
+            val total = query.count()
+
+            val orders = query
+                .orderBy(Orders.createdAt, SortOrder.DESC)
+                .limit(pageSize, (page * pageSize).toLong())
+                .map { row -> mapRowToOrder(row) }
+
+            PaginatedResult(
+                items = orders,
+                total = total,
+                page = page,
+                pageSize = pageSize,
+                totalPages = if (total > 0) ((total + pageSize - 1) / pageSize).toInt() else 0
+            )
+        }
+    }
+
+    fun deleteOrder(orderId: Int, userId: String): Boolean {
+        return transaction {
+            val order = Orders.selectAll().where { Orders.id eq orderId }.firstOrNull()
+                ?: return@transaction false
+
+            if (order[Orders.patientId] != userId) {
+                return@transaction false
+            }
+
+            Orders.deleteWhere { Orders.id eq orderId }
+            true
+        }
+    }
+
+    private fun mapRowToOrder(row: ResultRow): OrderResult {
+        return OrderResult(
+            id = row[Orders.id],
+            prescriptionId = row[Orders.prescriptionId],
+            patientId = row[Orders.patientId],
+            pharmacyId = row[Orders.pharmacyId],
+            pharmacyName = row.getOrNull(Pharmacies.name),
+            status = row[Orders.status],
+            totalAmount = row[Orders.totalAmount].toDouble(),
+            paymentMethod = row[Orders.paymentMethod],
+            paymentStatus = row[Orders.paymentStatus],
+            deliveryAddress = row[Orders.deliveryAddress],
+            deliveryNotes = row[Orders.deliveryNotes],
+            createdAt = row[Orders.createdAt],
+            updatedAt = row[Orders.updatedAt]
+        )
     }
 }

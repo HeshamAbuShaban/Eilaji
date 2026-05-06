@@ -10,6 +10,7 @@ group = "com.eilaji"
 version = "1.0.0"
 
 repositories {
+    google()
     mavenCentral()
 }
 
@@ -51,6 +52,8 @@ dependencies {
     
     // Security
     implementation("org.bouncycastle:bcprov-jdk18on:1.79")
+    implementation("com.auth0:java-jwt:4.4.0")
+    implementation("de.svenkubiak:jBCrypt:0.4.3")
     
     // Logging
     implementation("ch.qos.logback:logback-classic:1.5.12")
@@ -69,7 +72,7 @@ dependencies {
     implementation("io.ktor:ktor-server-request-validation-jvm")
     
     // OpenAPI Documentation
-    implementation("io.ktor:ktor-swagger-ui-jvm:3.0.1")
+    // implementation("io.ktor:ktor-swagger-ui-jvm:3.0.1")
     
     // Testing
     testImplementation("io.ktor:ktor-server-tests-jvm")

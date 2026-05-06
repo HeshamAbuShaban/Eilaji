@@ -1,15 +1,15 @@
 package com.eilaji.backend.routes
 
-import com.eilaji.backend.config.RateLimitPlugin
 import com.eilaji.backend.data.*
 import com.eilaji.backend.dto.*
-import com.eilaji.backend.model.*
 import com.eilaji.backend.security.AuditService
 import com.eilaji.backend.security.JwtConfig
 import com.eilaji.backend.security.SecurityUtils
 import com.eilaji.backend.service.*
-import com.eilaji.backend.websocket.WebSocketController
+import com.eilaji.backend.controller.registerAuthRoutes
 import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.utils.io.readRemaining
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -17,7 +17,8 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
-import io.ktor.util.pipeline.*
+import io.ktor.websocket.*
+import kotlinx.serialization.json.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -38,11 +39,8 @@ fun Route.apiRoutes(
     val chatService = ChatService()
     val messageService = MessageService()
     val orderService = OrderService()
-    val sessionManager = WebSocketSessionManager(messageService, chatService, redisService)
-    val webSocketController = WebSocketController(sessionManager, redisService, messageService)
 
-    // Helper function to get authenticated user ID from JWT
-    fun getAuthenticatedUserId(call: io.ktor.server.application.ApplicationCall): String? {
+    fun getAuthenticatedUserId(call: ApplicationCall): String? {
         return try {
             val principal = call.principal<JWTPrincipal>()
             principal?.payload?.subject
@@ -51,682 +49,657 @@ fun Route.apiRoutes(
         }
     }
 
-    // Helper function to check if user owns a resource
-    fun checkOwnership(call: io.ktor.server.application.ApplicationCall, resourceUserId: String): Boolean {
-        val authenticatedUserId = getAuthenticatedUserId(call)
-        return authenticatedUserId != null && authenticatedUserId == resourceUserId
-    }
-
-    // Helper function to verify UUID format
     fun validateUuid(uuid: String): Boolean {
         return SecurityUtils.isValidUuid(uuid)
     }
 
-    // Helper function to get user ID from JWT with validation
-    fun getUserIdFromCall(call: io.ktor.server.application.ApplicationCall): String? {
-        val token = call.request.headers["Authorization"]?.removePrefix("Bearer ")?.trim()
-        return if (token != null) {
-            JwtConfig.getUserIdFromToken(token)
-        } else {
-            null
-        }
-    }
-    
-    // Authentication configuration
-    val authentication = authenticate("jwt-auth")
-    
-    routes {
-        // Health check
-        get("/health") {
-            call.respond(ApiResponse(success = true, message = "OK"))
-        }
-        
-        // Install rate limiting
-        RateLimitPlugin(redisService).install(application)
-        
-        // Public routes (no auth required)
-        route("/api/v1") {
-            // Medicine catalog - public read access
-            route("/medicines") {
-                get {
-                    val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
-                    val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20
-                    val categoryId = call.request.queryParameters["categoryId"]?.toIntOrNull()
-                    val subcategoryId = call.request.queryParameters["subcategoryId"]?.toIntOrNull()
-                    val requiresPrescription = call.request.queryParameters["requiresPrescription"]?.toBooleanStrictOrNull()
-                    
-                    try {
-                        val result = transaction {
-                            val baseQuery = if (categoryId != null) {
-                                if (subcategoryId != null) {
-                                    Medicines.leftJoin(Categories, "category_join", Medicines.categoryId, Categories.id)
-                                        .leftJoin(Categories, "subcategory_join", Medicines.subcategoryId, Categories.id)
-                                        .select { Medicines.categoryId eq categoryId and (Medicines.subcategoryId eq subcategoryId) }
-                                } else {
-                                    Medicines.leftJoin(Categories, "category_join", Medicines.categoryId, Categories.id)
-                                        .leftJoin(Categories, "subcategory_join", Medicines.subcategoryId, Categories.id)
-                                        .select { Medicines.categoryId eq categoryId }
-                                }
-                            } else {
-                                Medicines.leftJoin(Categories, "category_join", Medicines.categoryId, Categories.id)
-                                    .leftJoin(Categories, "subcategory_join", Medicines.subcategoryId, Categories.id)
-                                    .selectAll()
-                            }
-                            
-                            val total = baseQuery.count()
-                            val medicines = baseQuery
-                                .orderBy(Medicines.titleEn.asc())
-                                .limit(pageSize, (page * pageSize).toLong())
-                                .map { row ->
-                                    MedicineDto(
-                                        id = row[Medicines.id],
-                                        titleEn = row[Medicines.titleEn],
-                                        titleAr = row[Medicines.titleAr],
-                                        description = row[Medicines.description],
-                                        categoryId = row[Medicines.categoryId],
-                                        categoryName = row[Categories, "category_join"].nameEn,
-                                        subcategoryId = row[Medicines.subcategoryId],
-                                        subcategoryName = row[Categories, "subcategory_join"]?.nameEn,
-                                        manufacturer = row[Medicines.manufacturer],
-                                        requiresPrescription = row[Medicines.requiresPrescription],
-                                        price = row[Medicines.price]?.toDouble(),
-                                        imageUrl = row[Medicines.imageUrl],
-                                        isActive = row[Medicines.isActive],
-                                        createdAt = row[Medicines.createdAt]
-                                    )
-                                }
-                            
-                            PaginatedResult(
-                                items = medicines,
-                                total = total,
-                                page = page,
-                                pageSize = pageSize,
-                                totalPages = (total + pageSize - 1) / pageSize
-                            )
-                        }
-                        call.respond(ApiResponse(success = true, data = result))
-                    } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
-                    }
-                }
-                
-                get("/search") {
-                    val query = call.request.queryParameters["q"] ?: ""
-                    val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
-                    val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20
-                    
-                    if (query.isBlank()) {
-                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Search query required"))
-                        return@get
-                    }
-                    
-                    try {
-                        val result = transaction {
-                            val searchPattern = "%$query%"
-                            val baseQuery = Medicines.leftJoin(Categories, "category_join", Medicines.categoryId, Categories.id)
-                                .leftJoin(Categories, "subcategory_join", Medicines.subcategoryId, Categories.id)
-                                .select {
-                                    Medicines.titleEn.like(searchPattern) or
-                                    Medicines.titleAr.like(searchPattern) or
-                                    (Medicines.description like searchPattern) or
-                                    (Medicines.manufacturer like searchPattern)
-                                }
-                            
-                            val total = baseQuery.count()
-                            val medicines = baseQuery
-                                .orderBy(Medicines.titleEn.asc())
-                                .limit(pageSize, (page * pageSize).toLong())
-                                .map { row ->
-                                    MedicineDto(
-                                        id = row[Medicines.id],
-                                        titleEn = row[Medicines.titleEn],
-                                        titleAr = row[Medicines.titleAr],
-                                        description = row[Medicines.description],
-                                        categoryId = row[Medicines.categoryId],
-                                        categoryName = row[Categories, "category_join"].nameEn,
-                                        subcategoryId = row[Medicines.subcategoryId],
-                                        subcategoryName = row[Categories, "subcategory_join"]?.nameEn,
-                                        manufacturer = row[Medicines.manufacturer],
-                                        requiresPrescription = row[Medicines.requiresPrescription],
-                                        price = row[Medicines.price]?.toDouble(),
-                                        imageUrl = row[Medicines.imageUrl],
-                                        isActive = row[Medicines.isActive],
-                                        createdAt = row[Medicines.createdAt]
-                                    )
-                                }
-                            
-                            PaginatedResult(
-                                items = medicines,
-                                total = total,
-                                page = page,
-                                pageSize = pageSize,
-                                totalPages = (total + pageSize - 1) / pageSize
-                            )
-                        }
-                        call.respond(ApiResponse(success = true, data = result))
-                    } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
-                    }
-                }
-                
-                get("/{id}") {
-                    val id = call.parameters["id"]?.toIntOrNull()
-                    if (id == null) {
-                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid ID"))
-                        return@get
-                    }
-                    
-                    try {
-                        val medicine = transaction {
-                            Medicines.leftJoin(Categories, "category_join", Medicines.categoryId, Categories.id)
-                                .leftJoin(Categories, "subcategory_join", Medicines.subcategoryId, Categories.id)
-                                .select { Medicines.id eq id }
-                                .map { row ->
-                                    MedicineDto(
-                                        id = row[Medicines.id],
-                                        titleEn = row[Medicines.titleEn],
-                                        titleAr = row[Medicines.titleAr],
-                                        description = row[Medicines.description],
-                                        categoryId = row[Medicines.categoryId],
-                                        categoryName = row[Categories, "category_join"].nameEn,
-                                        subcategoryId = row[Medicines.subcategoryId],
-                                        subcategoryName = row[Categories, "subcategory_join"]?.nameEn,
-                                        manufacturer = row[Medicines.manufacturer],
-                                        requiresPrescription = row[Medicines.requiresPrescription],
-                                        price = row[Medicines.price]?.toDouble(),
-                                        imageUrl = row[Medicines.imageUrl],
-                                        isActive = row[Medicines.isActive],
-                                        createdAt = row[Medicines.createdAt]
-                                    )
-                                }.firstOrNull()
-                        }
-                        
-                        if (medicine != null) {
-                            call.respond(ApiResponse(success = true, data = medicine))
+    // Auth routes (public)
+    registerAuthRoutes(redisService)
+
+    // Public routes
+    route("/api/v1") {
+        route("/medicines") {
+            get {
+                val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
+                val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20
+                val categoryId = call.request.queryParameters["categoryId"]?.toIntOrNull()
+
+                try {
+                    val result = transaction {
+                        val baseQuery = if (categoryId != null) {
+                            Medicines.join(Categories, JoinType.LEFT, Medicines.categoryId, Categories.id)
+                                .selectAll()
+                                .where { Medicines.categoryId eq categoryId }
                         } else {
-                            call.respond(HttpStatusCode.NotFound, ApiResponse<Map<String, Any>?>(success = false, error = "Medicine not found"))
+                            Medicines.selectAll()
                         }
-                    } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
+
+                        val total = baseQuery.count()
+                        val medicines = baseQuery
+                            .orderBy(Medicines.titleEn)
+                            .limit(pageSize, (page * pageSize).toLong())
+                            .map { row ->
+                                MedicineDto(
+                                    id = row[Medicines.id],
+                                    titleEn = row[Medicines.titleEn],
+                                    titleAr = row[Medicines.titleAr],
+                                    descriptionAr = null,
+                                    descriptionEn = row[Medicines.description],
+                                    imageUrl = row[Medicines.imageUrl],
+                                    price = row[Medicines.price]?.toDouble(),
+                                    manufacturer = row[Medicines.manufacturer],
+                                    requiresPrescription = row[Medicines.requiresPrescription],
+                                    isActive = row[Medicines.isActive],
+                                    subcategoryNameAr = null,
+                                    subcategoryNameEn = null
+                                )
+                            }
+
+                        PaginatedResult(
+                            items = medicines,
+                            total = total,
+                            page = page,
+                            pageSize = pageSize,
+                            totalPages = ((total + pageSize - 1) / pageSize).toInt()
+                        )
                     }
+                    call.respond(ApiResponse(success = true, data = result))
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
                 }
             }
-            
-            // Categories - public read access
-            route("/medicines/categories") {
+
+            get("/search") {
+                val query = call.request.queryParameters["q"] ?: ""
+                val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
+                val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20
+
+                if (query.isBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Search query required"))
+                    return@get
+                }
+
+                try {
+                    val result = transaction {
+                        val searchPattern = "%$query%"
+                        val baseQuery = Medicines.selectAll().where {
+                            Medicines.titleEn.like(searchPattern) or
+                            Medicines.titleAr.like(searchPattern) or
+                            (Medicines.description like searchPattern) or
+                            (Medicines.manufacturer like searchPattern)
+                        }
+
+                        val total = baseQuery.count()
+                        val medicines = baseQuery
+                            .orderBy(Medicines.titleEn)
+                            .limit(pageSize, (page * pageSize).toLong())
+                            .map { row ->
+                                MedicineDto(
+                                    id = row[Medicines.id],
+                                    titleEn = row[Medicines.titleEn],
+                                    titleAr = row[Medicines.titleAr],
+                                    descriptionAr = null,
+                                    descriptionEn = row[Medicines.description],
+                                    imageUrl = row[Medicines.imageUrl],
+                                    price = row[Medicines.price]?.toDouble(),
+                                    manufacturer = row[Medicines.manufacturer],
+                                    requiresPrescription = row[Medicines.requiresPrescription],
+                                    isActive = row[Medicines.isActive],
+                                    subcategoryNameAr = null,
+                                    subcategoryNameEn = null
+                                )
+                            }
+
+                        PaginatedResult(
+                            items = medicines,
+                            total = total,
+                            page = page,
+                            pageSize = pageSize,
+                            totalPages = ((total + pageSize - 1) / pageSize).toInt()
+                        )
+                    }
+                    call.respond(ApiResponse(success = true, data = result))
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                }
+            }
+
+            get("/{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                if (id == null) {
+                    call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid ID"))
+                    return@get
+                }
+
+                try {
+                    val medicine = transaction {
+                        Medicines.selectAll().where { Medicines.id eq id }
+                            .map { row ->
+                                MedicineDto(
+                                    id = row[Medicines.id],
+                                    titleEn = row[Medicines.titleEn],
+                                    titleAr = row[Medicines.titleAr],
+                                    descriptionAr = null,
+                                    descriptionEn = row[Medicines.description],
+                                    imageUrl = row[Medicines.imageUrl],
+                                    price = row[Medicines.price]?.toDouble(),
+                                    manufacturer = row[Medicines.manufacturer],
+                                    requiresPrescription = row[Medicines.requiresPrescription],
+                                    isActive = row[Medicines.isActive],
+                                    subcategoryNameAr = null,
+                                    subcategoryNameEn = null
+                                )
+                            }.firstOrNull()
+                    }
+
+                        if (medicine != null) {
+                         call.respond(ApiResponse(success = true, data = medicine))
+                     } else {
+                         call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Medicine not found"))
+                     }
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                }
+            }
+        }
+
+        route("/medicines/categories") {
+            get {
+                try {
+                    val categories = transaction {
+                        Categories.selectAll().orderBy(Categories.nameEn).map { row ->
+                            CategoryDto(
+                                id = row[Categories.id],
+                                nameEn = row[Categories.nameEn],
+                                nameAr = row[Categories.nameAr],
+                                iconUrl = null,
+                                subcategories = emptyList()
+                            )
+                        }
+                    }
+                    call.respond(ApiResponse(success = true, data = categories))
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                }
+            }
+        }
+
+        route("/pharmacies") {
+            get("/nearby") {
+                val lat = call.request.queryParameters["lat"]?.toDoubleOrNull()
+                val lng = call.request.queryParameters["lng"]?.toDoubleOrNull()
+                val radius = call.request.queryParameters["radius"]?.toDoubleOrNull() ?: 10.0
+
+                if (lat == null || lng == null) {
+                    call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Latitude and longitude required"))
+                    return@get
+                }
+
+                try {
+                    val pharmacies = transaction {
+                        Pharmacies.selectAll().map { row ->
+                            PharmacyDto(
+                                id = row[Pharmacies.id],
+                                name = row[Pharmacies.name],
+                                description = null,
+                                imageUrl = null,
+                                address = row[Pharmacies.address],
+                                city = row[Pharmacies.city],
+                                latitude = row[Pharmacies.latitude],
+                                longitude = row[Pharmacies.longitude],
+                                phone = row[Pharmacies.phone],
+                                isOpen = row[Pharmacies.isOpen],
+                                ratingAvg = 0.0,
+                                totalRatings = 0,
+                                isVerified = row[Pharmacies.isVerified],
+                                distanceKm = null
+                            )
+                        }
+                    }
+                    call.respond(ApiResponse(success = true, data = pharmacies))
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                }
+            }
+
+            get {
+                val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
+                val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20
+                val city = call.request.queryParameters["city"]
+
+                try {
+                    val result = transaction {
+                        var query = Pharmacies.selectAll()
+
+                        if (city != null) {
+                            query = query.where { Pharmacies.city eq city }
+                        }
+
+                        val total = query.count()
+                         val pharmacies = query
+                             .orderBy(Pharmacies.name)
+                             .limit(pageSize, (page * pageSize).toLong())
+                             .map { row ->
+                                PharmacyDto(
+                                    id = row[Pharmacies.id],
+                                    name = row[Pharmacies.name],
+                                    description = null,
+                                    imageUrl = null,
+                                    address = row[Pharmacies.address],
+                                    city = row[Pharmacies.city],
+                                    latitude = row[Pharmacies.latitude],
+                                    longitude = row[Pharmacies.longitude],
+                                    phone = row[Pharmacies.phone],
+                                    isOpen = row[Pharmacies.isOpen],
+                                    ratingAvg = 0.0,
+                                    totalRatings = 0,
+                                    isVerified = row[Pharmacies.isVerified]
+                                )
+                            }
+
+                        PaginatedResult(
+                            items = pharmacies,
+                            total = total,
+                            page = page,
+                            pageSize = pageSize,
+                            totalPages = ((total + pageSize - 1) / pageSize).toInt()
+                        )
+                    }
+                    call.respond(ApiResponse(success = true, data = result))
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                }
+            }
+        }
+    }
+
+    // Protected routes
+    authenticate("jwt-auth") {
+        route("/api/v1") {
+            route("/user") {
                 get {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+
+                        if (!validateUuid(userId)) {
+                         call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
+                         return@get
+                     }
+
                     try {
-                        val categories = transaction {
-                            Categories.selectAll().orderBy(Categories.nameEn.asc()).map { row ->
-                                CategoryDto(
-                                    id = row[Categories.id],
-                                    nameEn = row[Categories.nameEn],
-                                    nameAr = row[Categories.nameAr],
-                                    description = row[Categories.description],
-                                    parentId = row[Categories.parentId],
-                                    createdAt = row[Categories.createdAt]
+                        val user = transaction {
+                            Users.selectAll().where { Users.id eq userId }.firstOrNull()?.let { row ->
+                                UserDto(
+                                    id = row[Users.id],
+                                    email = row[Users.email],
+                                    fullName = row[Users.fullName],
+                                    phone = row[Users.phone],
+                                    avatarUrl = row[Users.avatarUrl],
+                                    role = row[Users.role],
+                                    isVerified = row[Users.isVerified],
+                                    createdAt = row[Users.createdAt]
                                 )
                             }
                         }
-                        call.respond(ApiResponse(success = true, data = categories))
+
+                        if (user != null) {
+                            call.respond(ApiResponse(success = true, data = user))
+                        } else {
+                            call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "User not found"))
+                         }
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
                     }
                 }
             }
-            
-            // Pharmacies - public read access for nearby search
-            route("/pharmacies") {
-                get("/nearby") {
-                    val lat = call.request.queryParameters["lat"]?.toDoubleOrNull()
-                    val lng = call.request.queryParameters["lng"]?.toDoubleOrNull()
-                    val radius = call.request.queryParameters["radius"]?.toDoubleOrNull() ?: 10.0
-                    
-                    if (lat == null || lng == null) {
-                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Latitude and longitude required"))
-                        return@get
+
+            route("/prescriptions") {
+                post {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+
+                    if (!validateUuid(userId)) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
+                        return@post
                     }
-                    
+
                     try {
-                        val pharmacies = transaction {
-                            // Use Haversine formula for distance calculation
-                            val haversine = "(6371 * acos(cos(radians($lat)) * cos(radians(latitude)) * cos(radians(longitude) - radians($lng)) + sin(radians($lat)) * sin(radians(latitude))))"
-                            
-                            val query = """
-                                SELECT *, $haversine AS distance_km
-                                FROM pharmacies
-                                WHERE $haversine <= ?
-                                ORDER BY distance_km ASC
-                            """.trimIndent()
-                            
-                            val result = execSQL(query, listOf(radius)) { rs ->
-                                buildList {
-                                    while (rs.next()) {
-                                        add(
-                                            PharmacyDto(
-                                                id = rs.getInt("id"),
-                                                ownerId = rs.getString("owner_id"),
-                                                ownerName = null,
-                                                name = rs.getString("name"),
-                                                address = rs.getString("address"),
-                                                city = rs.getString("city"),
-                                                latitude = rs.getDouble("latitude"),
-                                                longitude = rs.getDouble("longitude"),
-                                                phone = rs.getString("phone"),
-                                                isVerified = rs.getBoolean("is_verified"),
-                                                isOpen = rs.getBoolean("is_open"),
-                                                openingHours = rs.getString("opening_hours"),
-                                                licenseNumber = rs.getString("license_number"),
-                                                distanceKm = rs.getDouble("distance_km"),
-                                                isOnline = false,
-                                                createdAt = Instant.now()
-                                            )
-                                        )
+                        val multipart = call.receiveMultipart()
+                        var notes: String? = null
+                        var pharmacyId: Int? = null
+                        var imageData: ByteArray? = null
+                        var imageContentType = "image/jpeg"
+
+                        multipart.forEachPart { part ->
+                            when (part) {
+                                is PartData.FormItem -> {
+                                    when (part.name) {
+                                        "notes" -> notes = part.value
+                                        "selectedPharmacyId" -> pharmacyId = part.value?.toIntOrNull()
                                     }
                                 }
+                                is PartData.FileItem -> {
+                                    if (part.name == "image") {
+                                        val bytes = part.streamProvider().readBytes()
+                                        imageData = bytes
+                                        imageContentType = part.contentType?.toString() ?: "image/jpeg"
+                                    }
+                                }
+                                else -> {}
                             }
-                            result
+                            part.dispose()
                         }
-                        call.respond(ApiResponse(success = true, data = pharmacies))
+
+                        if (imageData == null) {
+                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Image required"))
+                            return@post
+                        }
+
+                        if (pharmacyId != null && pharmacyId!! <= 0) {
+                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid pharmacy ID"))
+                            return@post
+                        }
+
+                        val timestamp = System.currentTimeMillis()
+                        val objectName = "prescriptions/$userId/${timestamp}_prescription.jpg"
+
+                        val uploadResult = minioService.uploadFile(
+                            bucket = "prescriptions",
+                            objectName = objectName,
+                            inputStream = java.io.ByteArrayInputStream(imageData!!),
+                            contentType = imageContentType
+                        )
+
+                        val imageUrl = uploadResult.getOrNull()
+                            ?: throw Exception("Failed to upload image")
+
+                        val prescriptionResult = prescriptionService.createPrescription(userId, notes, pharmacyId, imageUrl)
+
+                        if (eilajiPlusService != null) {
+                            try {
+                                eilajiPlusService.sendPrescriptionToEilajiPlus(prescriptionResult.id, userId)
+                            } catch (e: Exception) {
+                                // Log error but don't fail
+                            }
+                        }
+
+                        call.respond(HttpStatusCode.Created, ApiResponse(success = true, data = prescriptionResult))
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
                     }
                 }
-                
+
                 get {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+
+                    val status = call.request.queryParameters["status"]
                     val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
                     val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20
-                    val city = call.request.queryParameters["city"]
-                    val isOpen = call.request.queryParameters["isOpen"]?.toBooleanStrictOrNull()
-                    val isVerified = call.request.queryParameters["isVerified"]?.toBooleanStrictOrNull()
-                    
+
                     try {
-                        val result = transaction {
-                            var query = Pharmacies.selectAll()
-                            
-                            if (city != null) {
-                                query = query.where { Pharmacies.city eq city }
-                            }
-                            if (isOpen != null) {
-                                query = query.and { Pharmacies.isOpen eq isOpen }
-                            }
-                            if (isVerified != null) {
-                                query = query.and { Pharmacies.isVerified eq isVerified }
-                            }
-                            
-                            val total = query.count()
-                            val pharmacies = query
-                                .orderBy(Pharmacies.name.asc())
-                                .limit(pageSize, (page * pageSize).toLong())
-                                .map { row ->
-                                    PharmacyDto(
-                                        id = row[Pharmacies.id],
-                                        ownerId = row[Pharmacies.ownerId],
-                                        ownerName = null,
-                                        name = row[Pharmacies.name],
-                                        address = row[Pharmacies.address],
-                                        city = row[Pharmacies.city],
-                                        latitude = row[Pharmacies.latitude],
-                                        longitude = row[Pharmacies.longitude],
-                                        phone = row[Pharmacies.phone],
-                                        isVerified = row[Pharmacies.isVerified],
-                                        isOpen = row[Pharmacies.isOpen],
-                                        openingHours = row[Pharmacies.openingHours],
-                                        licenseNumber = row[Pharmacies.licenseNumber],
-                                        createdAt = row[Pharmacies.createdAt]
-                                    )
-                                }
-                            
-                            PaginatedResult(
-                                items = pharmacies,
-                                total = total,
-                                page = page,
-                                pageSize = pageSize,
-                                totalPages = (total + pageSize - 1) / pageSize
-                            )
-                        }
+                        val result = prescriptionService.getPrescriptionsForUser(userId, status, page, pageSize)
                         call.respond(ApiResponse(success = true, data = result))
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
                     }
                 }
-            }
-        }
-        
-        // Protected routes (authentication required)
-        authentication {
-            route("/api/v1") {
-                // User's own data
-                route("/user") {
-                    get {
-                        val principal = call.principal<JWTPrincipal>()
-                        val userId = principal!!.payload.subject
 
-                        // Validate user ID format
-                        if (!validateUuid(userId)) {
-                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid user ID"))
-                            return@get
-                        }
+                get("/{id}") {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+                    val id = call.parameters["id"]?.toIntOrNull()
 
-                        try {
-                            val user = transaction {
-                                Users.select { Users.id eq userId }.firstOrNull()?.let { row ->
-                                    UserDto(
-                                        id = row[Users.id],
-                                        email = row[Users.email],
-                                        fullName = row[Users.fullName],
-                                        phone = row[Users.phone],
-                                        role = row[Users.role],
-                                        createdAt = row[Users.createdAt]
-                                    )
-                                }
-                            }
-
-                            if (user != null) {
-                                // Log data access
-                                AuditService.logDataAccess(userId, "User", userId, call.request.local.remoteHost)
-                                call.respond(ApiResponse(success = true, data = user))
-                            } else {
-                                call.respond(HttpStatusCode.NotFound, ApiResponse<Map<String, Any>?>(success = false, error = "User not found"))
-                            }
-                        } catch (e: Exception) {
-                            call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
-                        }
+                    if (id == null) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid ID"))
+                        return@get
                     }
-                }
-                
-                // Prescriptions (protected)
-                route("/prescriptions") {
-                    post {
-                        val principal = call.principal<JWTPrincipal>()
-                        val userId = principal!!.payload.getSubject()
 
-                        // Validate user ID format
-                        if (!validateUuid(userId)) {
-                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid user ID"))
-                            return@post
-                        }
-
-                        try {
-                            val multipart = call.receiveMultipart()
-                            var notes: String? = null
-                            var pharmacyId: Int? = null
-                            var imagePart: PartData.FileItem? = null
-
-                            multipart.forEachPart { part ->
-                                when (part.name) {
-                                    "notes" -> notes = (part as? PartData.FormItem)?.value
-                                    "selectedPharmacyId" -> pharmacyId = (part as? PartData.FormItem)?.value?.toIntOrNull()
-                                    "image" -> imagePart = part as? PartData.FileItem
-                                }
-                            }
-
-                            if (imagePart == null) {
-                                call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Image required"))
-                                return@post
-                            }
-
-                            // Validate pharmacy ID if provided
-                            if (pharmacyId != null && pharmacyId!! <= 0) {
-                                call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid pharmacy ID"))
-                                return@post
-                            }
-
-                            // Upload to MinIO with sanitized filename
-                            val timestamp = System.currentTimeMillis()
-                            val originalFileName = imagePart.originalFileName ?: "prescription.jpg"
-                            val sanitizedFileName = SecurityUtils.sanitizeFilename(originalFileName)
-                            val extension = sanitizedFileName.substringAfterLast('.', "jpg")
-                            val objectName = "prescriptions/$userId/${timestamp}_$sanitizedFileName"
-                            val timestamp = System.currentTimeMillis()
-                            val originalFileName = imagePart.originalFileName ?: "prescription.jpg"
-                            val sanitizedFileName = SecurityUtils.sanitizeFilename(originalFileName)
-                            val extension = sanitizedFileName.substringAfterLast('.', "jpg")
-                            val objectName = "prescriptions/$userId/${timestamp}_$sanitizedFileName"
-
-                            val imageUrl = minioService.uploadFile(
-                                bucket = "prescriptions",
-                                objectName = objectName,
-                                inputStream = imagePart.provider(),
-                                size = imagePart.partSize,
-                                contentType = imagePart.contentType?.toString() ?: "image/jpeg"
-                            )
-                            
-                            // Create prescription record
-                            val prescription = prescriptionService.createPrescription(userId, notes, pharmacyId, imageUrl)
-                            
-                            // Send to Eilaji-Plus if configured
-                            if (eilajiPlusService != null) {
-                                try {
-                                    eilajiPlusService.sendPrescriptionToEilajiPlus(prescription.id, userId)
-                                } catch (e: Exception) {
-                                    // Log error but don't fail the request
-                                }
-                            }
-                            
-                            call.respond(HttpStatusCode.Created, ApiResponse(success = true, data = prescription))
-                        } catch (e: Exception) {
-                            call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
-                        }
-                    }
-                    
-                    get {
-                        val principal = call.principal<JWTPrincipal>()
-                        val userId = principal!!.payload.getSubject()
-                        
-                        val status = call.request.queryParameters["status"]
-                        val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
-                        val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20
-                        
-                        try {
-                            val result = prescriptionService.getPrescriptionsForUser(userId, status, page, pageSize)
-                            call.respond(ApiResponse(success = true, data = result))
-                        } catch (e: Exception) {
-                            call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
-                        }
-                    }
-                    
-                    get("/{id}") {
-                        val principal = call.principal<JWTPrincipal>()
-                        val userId = principal!!.payload.getSubject()
-                        val id = call.parameters["id"]?.toIntOrNull()
-                        
-                        if (id == null) {
-                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid ID"))
-                            return@get
-                        }
-                        
-                        try {
-                            val prescription = prescriptionService.getPrescriptionById(id)
-                            
-                            if (prescription != null && prescription.userId == userId) {
-                                call.respond(ApiResponse(success = true, data = prescription))
-                            } else {
-                                call.respond(HttpStatusCode.NotFound, ApiResponse<Map<String, Any>?>(success = false, error = "Prescription not found"))
-                            }
-                        } catch (e: Exception) {
-                            call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
-                        }
-                    }
-                }
-                
-                // Chats (protected)
-                route("/chats") {
-                    get {
-                        val principal = call.principal<JWTPrincipal>()
-                        val userId = principal!!.payload.getSubject()
-                        val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
-                        val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20
-                        
-                        try {
-                            val result = chatService.getChatsForUser(userId, page, pageSize)
-                            call.respond(ApiResponse(success = true, data = result))
-                        } catch (e: Exception) {
-                            call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
-                        }
-                    }
-                    
-                    post {
-                        val principal = call.principal<JWTPrincipal>()
-                        val userId = principal!!.payload.getSubject()
-                        
-                        try {
-                            val request = call.receive<CreateChatRequest>()
-                            val chat = chatService.createChat(request, userId)
-                            call.respond(HttpStatusCode.Created, ApiResponse(success = true, data = chat))
-                        } catch (e: Exception) {
-                            call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
-                        }
-                    }
-                    
-                    get("/{chatId}/messages") {
-                        val principal = call.principal<JWTPrincipal>()
-                        val userId = principal!!.payload.getSubject()
-                        val chatId = call.parameters["chatId"]?.toLongOrNull()
-
-                        if (chatId == null) {
-                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid chat ID"))
-                            return@get
-                        }
-
-                        // Validate chat ID format
-                        if (chatId <= 0) {
-                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid chat ID"))
-                            return@get
-                        }
-
-                        // Verify user owns this chat or is participant
-                        val isParticipant = try {
-                            transaction {
-                                Chats.select { (Chats.id eq chatId) and ((Chats.user1Id eq userId) or (Chats.user2Id eq userId)) }
-                                    .firstOrNull() != null
-                            }
-                        } catch (e: Exception) {
-                            false
-                        }
-
-                        if (!isParticipant) {
-                            call.respond(HttpStatusCode.NotFound, ApiResponse<Map<String, Any>?>(success = false, error = "Chat not found"))
-                            return@get
-                        }
-
-                        val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
-                        val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 50
-                        
-                        try {
-                            val result = messageService.getMessagesForChat(chatId, page, pageSize)
-                            call.respond(ApiResponse(success = true, data = result))
-                        } catch (e: Exception) {
-                            call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
-                        }
-                    }
-                    
-                    post("/{chatId}/read") {
-                        val principal = call.principal<JWTPrincipal>()
-                        val userId = principal!!.payload.getSubject()
-                        val chatId = call.parameters["chatId"]?.toLongOrNull()
-                        
-                        if (chatId == null) {
-                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid chat ID"))
-                            return@post
-                        }
-                        
-                        try {
-                            val request = call.receive<MarkAsReadRequest>()
-                            val count = messageService.markChatAsRead(chatId, userId)
-                            call.respond(ApiResponse(success = true, data = mapOf("markedCount" to count)))
-                        } catch (e: Exception) {
-                            call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
-                        }
-                    }
-                }
-                
-                // Presence endpoint
-                route("/presence") {
-                    get("/online") {
-                        try {
-                            val onlineUsers = redisService.getOnlineUsers()
-                            call.respond(ApiResponse(success = true, data = mapOf("onlineUsers" to onlineUsers.toList())))
-                        } catch (e: Exception) {
-                            call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
-                        }
-                    }
-                    
-                    get("/{userId}") {
-                        val targetUserId = call.parameters["userId"]
-                        
-                        if (targetUserId == null) {
-                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "User ID required"))
-                            return@get
-                        }
-                        
-                        try {
-                            val isOnline = redisService.isUserOnline(targetUserId)
-                            call.respond(ApiResponse(success = true, data = mapOf("userId" to targetUserId, "isOnline" to isOnline)))
-                        } catch (e: Exception) {
-                            call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
-                        }
-                    }
-                }
-                
-                // Eilaji-Plus webhook (for receiving status updates)
-                route("/eilaji-plus/webhook") {
-                    post {
-                        try {
-                            val request = call.receive<EilajiPlusWebhookRequest>()
-                            val success = eilajiPlusService?.processWebhook(request) ?: false
-                            
-                            if (success) {
-                                call.respond(ApiResponse(success = true, message = "Webhook processed successfully"))
-                            } else {
-                                call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Failed to process webhook"))
-                            }
-                        } catch (e: Exception) {
-                            call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
-                        }
-                    }
-                }
-                
-                // WebSocket endpoint
-                webSocket("/ws/chat") {
-                    val token = call.request.queryParameters["token"]
-                    
-                    if (token.isNullOrBlank()) {
-                        close(CloseReason(CloseReason.Codes.INVALID_PAYLOAD, "Authentication token required"))
-                        return@webSocket
-                    }
-                    
-                    // Validate JWT token from query parameter
                     try {
-                        val verifier = io.ktor.server.auth.jwt.JWTVerifier(io.ktor.server.auth.jwt.JWTAlgorithm.RSA256, jwtIssuer, jwtAudience)
-                        // Simplified validation - in production use proper JWT verification
-                        val userId = extractUserIdFromToken(token) // Implement proper token parsing
-                        
-                        if (userId != null) {
-                            webSocketController.handleWebSocketSession(this, userId)
+                        val prescription = prescriptionService.getPrescriptionById(id)
+
+                        if (prescription != null && prescription.userId == userId) {
+                            call.respond(ApiResponse(success = true, data = prescription))
                         } else {
-                            close(CloseReason(CloseReason.Codes.INVALID_PAYLOAD, "Invalid token"))
+                            call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Prescription not found"))
                         }
                     } catch (e: Exception) {
-                        close(CloseReason(CloseReason.Codes.INVALID_PAYLOAD, "Authentication failed"))
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
                     }
                 }
             }
-        }
-        
-        // Order routes
-        authentication {
-            orderRoutes(orderService)
+
+            route("/chats") {
+                get {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+                    val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
+                    val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20
+
+                    try {
+                        val result = chatService.getChatsForUser(userId, page, pageSize)
+                        call.respond(ApiResponse(success = true, data = result))
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    }
+                }
+
+                post {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+
+                    try {
+                        val request = call.receive<CreateChatRequest>()
+                        val chat = chatService.createChat(userId, request.prescriptionId, request.pharmacyId)
+                        call.respond(HttpStatusCode.Created, ApiResponse(success = true, data = chat))
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    }
+                }
+
+                get("/{chatId}/messages") {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+                    val chatId = call.parameters["chatId"]?.toLongOrNull()
+
+                    if (chatId == null) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid chat ID"))
+                        return@get
+                    }
+
+                    val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
+                    val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 50
+
+                    try {
+                        val result = messageService.getMessagesForChat(chatId, userId, page, pageSize)
+                        call.respond(ApiResponse(success = true, data = result))
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    }
+                }
+
+                post("/{chatId}/read") {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+                    val chatId = call.parameters["chatId"]?.toLongOrNull()
+
+                    if (chatId == null) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid chat ID"))
+                        return@post
+                    }
+
+                    try {
+                        val count = messageService.markChatAsRead(chatId, userId)
+                        call.respond(ApiResponse(success = true, data = mapOf("markedCount" to count)))
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    }
+                }
+            }
+
+            route("/presence") {
+                get("/online") {
+                    try {
+                        val onlineUsers = redisService.getOnlineUsers()
+                        call.respond(ApiResponse(success = true, data = mapOf("onlineUsers" to onlineUsers.toList())))
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    }
+                }
+
+                get("/{userId}") {
+                    val targetUserId = call.parameters["userId"]
+
+                    if (targetUserId == null) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "User ID required"))
+                        return@get
+                    }
+
+                    try {
+                        val isOnline = redisService.isUserOnline(targetUserId)
+                        call.respond(ApiResponse(success = true, data = mapOf("userId" to targetUserId, "isOnline" to isOnline)))
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    }
+                }
+            }
+
+            route("/eilaji-plus/webhook") {
+                post {
+                    try {
+                        if (eilajiPlusService == null) {
+                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Eilaji-Plus not configured"))
+                            return@post
+                        }
+                        val webhookRequest = call.receive<EilajiPlusWebhookRequest>()
+                        val success = eilajiPlusService.processWebhook(webhookRequest)
+
+                        if (success) {
+                            call.respond(ApiResponse<Unit>(success = true, message = "Webhook processed successfully"))
+                        } else {
+                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Failed to process webhook"))
+                        }
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    }
+                }
+            }
+
+            webSocket("/ws/chat") {
+                val token = call.request.queryParameters["token"]
+
+                if (token.isNullOrBlank()) {
+                    close(CloseReason(1008, "Authentication token required"))
+                    return@webSocket
+                }
+
+                try {
+                    val userId = extractUserIdFromToken(token)
+
+                    if (userId != null) {
+                        this.handleWebSocketSession(userId, redisService, messageService)
+                    } else {
+                        close(CloseReason(1008, "Invalid token"))
+                    }
+                } catch (e: Exception) {
+                    close(CloseReason(1008, "Authentication failed"))
+                }
+            }
+
+            route("/orders") {
+                post {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+
+                    try {
+                        val request = call.receive<OrderService.OrderCreateRequest>()
+                        val order = orderService.createOrder(request, userId)
+
+                        if (order != null) {
+                            call.respond(HttpStatusCode.Created, ApiResponse<OrderService.OrderResult>(success = true, data = order))
+                        } else {
+                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Failed to create order. Ensure prescription is accepted."))
+                        }
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    }
+                }
+
+                get {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+                    val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
+
+                    try {
+                        val orders = orderService.getUserOrders(userId, userRole)
+                        call.respond(ApiResponse(success = true, data = orders))
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    }
+                }
+
+                get("/{id}") {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+                    val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
+                    val orderId = call.parameters["id"]?.toIntOrNull()
+
+                    if (orderId == null || orderId <= 0) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid order ID"))
+                        return@get
+                    }
+
+                    try {
+                        val order = orderService.getOrderById(orderId, userId, userRole)
+                        if (order != null) {
+                            call.respond(ApiResponse(success = true, data = order))
+                        } else {
+                            call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Order not found or access denied"))
+                        }
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    }
+                }
+
+                put("/{id}/status") {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+                    val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
+                    val orderId = call.parameters["id"]?.toIntOrNull()
+
+                    if (orderId == null) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid order ID"))
+                        return@put
+                    }
+
+                    if (userRole != UserRole.PHARMACIST && userRole != UserRole.ADMIN) {
+                        call.respond(HttpStatusCode.Forbidden, ApiResponse<Unit>(success = false, error = "Only pharmacists and admins can update order status"))
+                        return@put
+                    }
+
+                    try {
+                        val request = call.receive<OrderService.OrderUpdateStatusRequest>()
+                        val order = orderService.updateOrderStatus(orderId, request.status, request.paymentStatus, userId, userRole)
+
+                        if (order != null) {
+                            call.respond(ApiResponse(success = true, data = order))
+                        } else {
+                            call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Order not found or access denied"))
+                        }
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    }
+                }
+            }
         }
     }
 }
 
-// Helper function to extract user ID from JWT token
 private fun extractUserIdFromToken(token: String): String? {
     try {
         val parts = token.split(".")
         if (parts.size < 2) return null
-        
+
         val payload = String(java.util.Base64.getDecoder().decode(parts[1]))
         val json = kotlinx.serialization.json.Json.parseToJsonElement(payload).jsonObject
         return json["sub"]?.jsonPrimitive?.content
@@ -735,108 +708,22 @@ private fun extractUserIdFromToken(token: String): String? {
     }
 }
 
-// Helper for raw SQL execution
-private inline fun <T> Transaction.execSQL(sql: String, params: List<Any?>, transform: (java.sql.ResultSet) -> T): T {
-    return exec(sql) { statement ->
-        params.forEachIndexed { index, param ->
-            statement.setObject(index + 1, param)
+private suspend fun io.ktor.server.websocket.DefaultWebSocketServerSession.handleWebSocketSession(
+    userId: String,
+    redisService: RedisService,
+    messageService: MessageService
+) {
+    try {
+        redisService.setOnlineStatus(userId, true)
+
+        for (frame in incoming) {
+            val textFrame = frame as? io.ktor.websocket.Frame.Text ?: continue
+            val message = textFrame.readText()
+            println("Received message from $userId: $message")
         }
-        val rs = statement.executeQuery()
-        transform(rs)
-    }
-}
-
-// Order routes extension
-fun Route.orderRoutes(orderService: OrderService) {
-    route("/orders") {
-        post {
-            val principal = call.principal<JWTPrincipal>()
-            val userId = principal!!.payload.getSubject()
-
-            try {
-                val request = call.receive<OrderService.OrderCreateRequest>()
-                val order = orderService.createOrder(request, userId)
-
-                if (order != null) {
-                    call.respond(HttpStatusCode.Created, ApiResponse(success = true, data = order))
-                } else {
-                    call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Failed to create order. Ensure prescription is accepted."))
-                }
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
-            }
-        }
-
-        get {
-            val principal = call.principal<JWTPrincipal>()
-            val userId = principal!!.payload.getSubject()
-            val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
-
-            try {
-                val orders = orderService.getUserOrders(userId, userRole)
-                call.respond(ApiResponse(success = true, data = orders))
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
-            }
-        }
-
-        get("/{id}") {
-            val principal = call.principal<JWTPrincipal>()
-            val userId = principal!!.payload.getSubject()
-            val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
-            val orderId = call.parameters["id"]?.toIntOrNull()
-
-            if (orderId == null || orderId <= 0) {
-                call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid order ID"))
-                return@get
-            }
-
-            // Validate user ID format
-            if (!validateUuid(userId)) {
-                call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid user ID"))
-                return@get
-            }
-
-            try {
-                val order = orderService.getOrderById(orderId, userId, userRole)
-                if (order != null) {
-                    call.respond(ApiResponse(success = true, data = order))
-                } else {
-                    call.respond(HttpStatusCode.NotFound, ApiResponse<Map<String, Any>?>(success = false, error = "Order not found or access denied"))
-                }
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
-            }
-        }
-
-        put("/{id}/status") {
-            val principal = call.principal<JWTPrincipal>()
-            val userId = principal!!.payload.getSubject()
-            val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
-            val orderId = call.parameters["id"]?.toIntOrNull()
-
-            if (orderId == null) {
-                call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid order ID"))
-                return@put
-            }
-
-            if (userRole != UserRole.PHARMACIST && userRole != UserRole.ADMIN) {
-                call.respond(HttpStatusCode.Forbidden, ApiResponse<Map<String, Any>?>(success = false, error = "Only pharmacists and admins can update order status"))
-                return@put
-            }
-
-            try {
-                val request = call.receive<OrderService.OrderUpdateStatusRequest>()
-                val order = orderService.updateOrderStatus(orderId, request.status, request.paymentStatus, userId, userRole)
-
-                if (order != null) {
-                    call.respond(ApiResponse(success = true, data = order))
-                } else {
-                    call.respond(HttpStatusCode.NotFound, ApiResponse<Map<String, Any>?>(success = false, error = "Order not found or access denied"))
-                }
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, ApiResponse<Map<String, Any>?>(success = false, error = e.message))
-            }
-        }
+    } catch (e: Exception) {
+        println("WebSocket error for user $userId: ${e.message}")
+    } finally {
+        redisService.setOnlineStatus(userId, false)
     }
 }

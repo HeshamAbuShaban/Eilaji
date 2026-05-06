@@ -1,6 +1,6 @@
 package com.eilaji.backend.websocket
 
-import com.eilaji.backend.dto.WebSocketMessage
+import com.eilaji.backend.dto.*
 import com.eilaji.backend.service.ChatService
 import com.eilaji.backend.service.MessageService
 import com.eilaji.backend.service.RedisService

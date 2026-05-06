@@ -1,4 +1,4 @@
-package com.eilaji.backend.service
+package com.eilaji.backend.initialization
 
 import com.eilaji.backend.data.*
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -7,6 +7,7 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 import java.util.UUID
+import org.mindrot.jbcrypt.BCrypt
 
 object DatabaseSeeder {
 
@@ -20,185 +21,136 @@ object DatabaseSeeder {
             }
 
             println("INFO: Seeding database with test data...")
+            seedUsers()
             seedCategories()
-            seedSubcategories()
             seedMedicines()
             seedPharmacies()
             println("INFO: Database seeding completed")
         }
     }
 
-    private fun seedCategories() {
-        val categories = listOf(
-            Triple("Pain Relief", "مسكنات الآلام", "ic_pain_relief"),
-            Triple("Antibiotics", "المضادات الحيوية", "ic_antibiotics"),
-            Triple("Vitamins & Supplements", "الفيتامينات والمكملات", "ic_vitamins"),
-            Triple("Chronic Diseases", "الأمراض المزمنة", "ic_chronic"),
-            Triple("First Aid", "الإسعافات الأولية", "ic_first_aid"),
-            Triple("Skin Care", "العناية بالبشرة", "ic_skin_care"),
-            Triple("Cold & Flu", "نزلات البرد والإنفلونزا", "ic_cold_flu")
+    private fun seedUsers() {
+        println("Seeding users...")
+        val users = listOf(
+            Triple("test-owner-1", "pharmacist1@eilaji.com", "PHARMACIST"),
+            Triple("test-owner-2", "pharmacist2@eilaji.com", "PHARMACIST"),
+            Triple("test-patient-1", "patient@eilaji.com", "PATIENT"),
+            Triple("test-admin", "admin@eilaji.com", "ADMIN")
         )
-
-        categories.forEach { (nameEn, nameAr, icon) ->
-            Categories.insert {
-                it[id] = UUID.randomUUID()
-                it[nameEn] = nameEn
-                it[nameAr] = nameAr
-                it[iconUrl] = "/icons/$icon.png"
-                it[isActive] = true
-                it[createdAt] = java.sql.Timestamp.from(Instant.now())
+        users.forEach { (id, email, role) ->
+            Users.insert {
+                it[Users.id] = id
+                it[Users.email] = email
+                it[Users.passwordHash] = BCrypt.hashpw("password123", BCrypt.gensalt())
+                it[Users.fullName] = "Test User ${id}"
+                it[Users.role] = role
+                it[Users.isVerified] = true
+                it[Users.isActive] = true
+                it[Users.createdAt] = Instant.now()
+                it[Users.updatedAt] = Instant.now()
             }
         }
-        println("INFO: Seeded ${categories.size} categories")
+        println("Seeded ${users.size} users")
     }
 
-    private fun seedSubcategories() {
-        transaction {
-            val painRelief = Categories.select { Categories.nameEn eq "Pain Relief" }.first()
-            val antibiotics = Categories.select { Categories.nameEn eq "Antibiotics" }.first()
-            val vitamins = Categories.select { Categories.nameEn eq "Vitamins & Supplements" }.first()
-            val chronic = Categories.select { Categories.nameEn eq "Chronic Diseases" }.first()
-            val coldFlu = Categories.select { Categories.nameEn eq "Cold & Flu" }.first()
-            val skinCare = Categories.select { Categories.nameEn eq "Skin Care" }.first()
+    private fun seedCategories() {
+        println("Seeding categories...")
+        val categoryIds = listOf(
+            Categories.insert {
+                it[nameEn] = "Pain Relievers"
+                it[nameAr] = "مسكنات الألم"
+            } get Categories.id,
 
-            val subcategories = listOf(
-                // Pain Relief subcategories
-                Pair(painRelief[Categories.id], Triple("Headache", "الصداع", "ic_headache")),
-                Pair(painRelief[Categories.id], Triple("Muscle Pain", "آلام العضلات", "ic_muscle_pain")),
-                Pair(painRelief[Categories.id], Triple("Joint Pain", "آلام المفاصل", "ic_joint_pain")),
+            Categories.insert {
+                it[nameEn] = "Antibiotics"
+                it[nameAr] = "المضادات الحيوية"
+            } get Categories.id,
 
-                // Antibiotics subcategories
-                Pair(antibiotics[Categories.id], Triple("Penicillins", "البنسيلينات", "ic_penicillin")),
-                Pair(antibiotics[Categories.id], Triple("Macrolides", "المضادات العريضة", "ic_macrolide")),
-                Pair(antibiotics[Categories.id], Triple("Cephalosporins", "السيفالوسبورينات", "ic_cephalosporin")),
+            Categories.insert {
+                it[nameEn] = "Vitamins & Supplements"
+                it[nameAr] = "الفيتامينات والمكملات"
+            } get Categories.id,
 
-                // Vitamins subcategories
-                Pair(vitamins[Categories.id], Triple("Multivitamins", "متعددة الفيتامينات", "ic_multivitamin")),
-                Pair(vitamins[Categories.id], Triple("Vitamin C", "فيتامين C", "ic_vit_c")),
-                Pair(vitamins[Categories.id], Triple("Vitamin D", "فيتامين D", "ic_vit_d")),
+            Categories.insert {
+                it[nameEn] = "Skin Care"
+                it[nameAr] = "العناية بالبشرة"
+            } get Categories.id,
 
-                // Chronic Diseases subcategories
-                Pair(chronic[Categories.id], Triple("Diabetes", "السكري", "ic_diabetes")),
-                Pair(chronic[Categories.id], Triple("Hypertension", "ضغط الدم", "ic_hypertension")),
-                Pair(chronic[Categories.id], Triple("Asthma", "الربو", "ic_asthma")),
+            Categories.insert {
+                it[nameEn] = "Cold & Flu"
+                it[nameAr] = "البرد والإنفلونزا"
+            } get Categories.id,
 
-                // Cold & Flu subcategories
-                Pair(coldFlu[Categories.id], Triple("Cough Syrups", "أدوية السعال", "ic_cough")),
-                Pair(coldFlu[Categories.id], Triple("Nasal Sprays", "بخاخات الأنف", "ic_nasal")),
-                Pair(coldFlu[Categories.id], Triple("Throat Lozenges", "أقراص الحلق", "ic_throat")),
-
-                // Skin Care subcategories
-                Pair(skinCare[Categories.id], Triple("Moisturizers", "المرطبات", "ic_moisturizer")),
-                Pair(skinCare[Categories.id], Triple("Acne Treatment", "علاج حب الشباب", "ic_acne")),
-                Pair(skinCare[Categories.id], Triple("Sun Protection", "الحماية من الشمس", "ic_sunscreen"))
-            )
-
-            subcategories.forEach { (categoryId, triple) ->
-                Subcategories.insert {
-                    it[id] = UUID.randomUUID()
-                    it[Subcategories.categoryId] = categoryId
-                    it[nameEn] = triple.first
-                    it[nameAr] = triple.second
-                    it[iconUrl] = "/icons/${triple.third}.png"
-                    it[isActive] = true
-                    it[createdAt] = java.sql.Timestamp.from(Instant.now())
-                }
-            }
-            println("INFO: Seeded ${subcategories.size} subcategories")
-        }
+            Categories.insert {
+                it[nameEn] = "Digestive Health"
+                it[nameAr] = "صحة الجهاز الهضمي"
+            } get Categories.id
+        )
+        println("Seeded ${categoryIds.size} categories")
     }
 
     private fun seedMedicines() {
-        transaction {
-            val painRelief = Categories.select { Categories.nameEn eq "Pain Relief" }.first()
-            val antibiotics = Categories.select { Categories.nameEn eq "Antibiotics" }.first()
-            val vitamins = Categories.select { Categories.nameEn eq "Vitamins & Supplements" }.first()
+        println("Seeding medicines...")
+        // Get first category for examples
+        val firstCategoryId = Categories.selectAll().first()[Categories.id]
 
-            val medicines = listOf(
-                // Pain Relief medicines
-                MedicineData("Panadol Extra", "بانادول إكسترا", "Pain relief for headaches and muscle pain", "GSK", painRelief[Categories.id], null, 12.50, false),
-                MedicineData("Brufen 400mg", "بروفين 400 مجم", "Anti-inflammatory and pain relief", "Abbott", painRelief[Categories.id], null, 8.75, false),
-                MedicineData("Aspirin 100mg", "أسبرين 100 مجم", "Blood thinner and pain relief", "Bayer", painRelief[Categories.id], null, 5.25, false),
+        val medicineIds = listOf(
+            Medicines.insert {
+                it[titleEn] = "Paracetamol 500mg"
+                it[titleAr] = "باراسيتامول 500مجم"
+                it[description] = "Pain reliever and fever reducer"
+                it[categoryId] = firstCategoryId
+                it[manufacturer] = "PharmaCorp"
+                it[requiresPrescription] = false
+                it[price] = 5.99.toBigDecimal()
+                it[isActive] = true
+            } get Medicines.id,
 
-                // Antibiotics
-                MedicineData("Augmentin 1g", "أجمنتين 1 جرام", "Broad-spectrum antibiotic", "GSK", antibiotics[Categories.id], null, 45.00, true),
-                MedicineData("Zithromax 500mg", "زيثروماكس 500 مجم", "Macrolide antibiotic", "Pfizer", antibiotics[Categories.id], null, 38.50, true),
-                MedicineData("Cephalexin 500mg", "سيفالكسين 500 مجم", "Cephalosporin antibiotic", "Sandoz", antibiotics[Categories.id], null, 25.00, true),
-
-                // Vitamins
-                MedicineData("Centrum", "سنترم", "Multivitamin supplement", "Pfizer", vitamins[Categories.id], null, 32.00, false),
-                MedicineData("Vitamin C 1000mg", "فيتامين C 1000 مجم", "Immune system support", "Now Foods", vitamins[Categories.id], null, 15.50, false),
-                MedicineData("Vitamin D3 5000 IU", "فيتامين D3 5000 وحدة", "Bone health supplement", "Nature Made", vitamins[Categories.id], null, 18.75, false)
-            )
-
-            medicines.forEach { med ->
-                Medicines.insert {
-                    it[id] = UUID.randomUUID()
-                    it[titleEn] = med.titleEn
-                    it[titleAr] = med.titleAr
-                    it[description] = med.description
-                    it[categoryId] = med.categoryId
-                    it[subcategoryId] = med.subcategoryId
-                    it[manufacturer] = med.manufacturer
-                    it[requiresPrescription] = med.requiresPrescription
-                    it[price] = med.price?.toBigDecimal()
-                    it[isActive] = true
-                    it[createdAt] = java.sql.Timestamp.from(Instant.now())
-                    it[updatedAt] = java.sql.Timestamp.from(Instant.now())
-                }
-            }
-            println("INFO: Seeded ${medicines.size} medicines")
-        }
+            Medicines.insert {
+                it[titleEn] = "Ibuprofen 400mg"
+                it[titleAr] = "إيبوبروفين 400مجم"
+                it[description] = "Anti-inflammatory pain reliever"
+                it[categoryId] = firstCategoryId
+                it[manufacturer] = "MedLife"
+                it[requiresPrescription] = false
+                it[price] = 8.50.toBigDecimal()
+                it[isActive] = true
+            } get Medicines.id
+        )
+        println("Seeded ${medicineIds.size} medicines")
     }
 
     private fun seedPharmacies() {
-        val pharmacies = listOf(
-            PharmacyData("Al Noor Pharmacy", "صيدلية النور", "123 King Fahd Road", "Riyadh", 24.7136, 46.6753, "0112345678", true, true),
-            PharmacyData("Al Hawi Pharmacy", "صيدلية الهواي", "456 Prince Sultan St", "Jeddah", 21.5433, 39.1728, "0123456789", true, true),
-            PharmacyData("Al Jazeera Pharmacy", "صيدلية الجزيرة", "789 Al Medina Road", "Mecca", 21.3891, 39.8579, "0134567890", false, true),
-            PharmacyData("Al Shifa Pharmacy", "صيدلية الشفاء", "321 King Abdulaziz St", "Dammam", 26.3927, 49.9777, "0145678901", true, false),
-            PharmacyData("Al Marwa Pharmacy", "صيدلية المروة", "654 Palestine St", "Medina", 24.5247, 39.5692, "0156789012", true, true)
-        )
-
-        pharmacies.forEach { ph ->
+        println("Seeding pharmacies...")
+        val pharmacyIds = listOf(
             Pharmacies.insert {
-                it[id] = UUID.randomUUID()
-                it[name] = ph.nameEn
-                it[description] = ph.nameAr
-                it[address] = ph.address
-                it[city] = ph.city
-                it[latitude] = ph.latitude
-                it[longitude] = ph.longitude
-                it[phone] = ph.phone
-                it[isVerified] = ph.isVerified
-                it[isOpen] = ph.isOpen
-                it[isActive] = true
-                it[createdAt] = java.sql.Timestamp.from(Instant.now())
-            }
-        }
-        println("INFO: Seeded ${pharmacies.size} pharmacies")
+                it[ownerId] = "test-owner-1"
+                it[name] = "Al-Shifa Pharmacy"
+                it[address] = "123 Main St, Damascus"
+                it[city] = "Damascus"
+                it[latitude] = 33.5138
+                it[longitude] = 36.2765
+                it[phone] = "+963-11-1234567"
+                it[isVerified] = true
+                it[isOpen] = true
+                it[openingHours] = "9:00-22:00"
+                it[licenseNumber] = "LIC-001"
+            } get Pharmacies.id,
+
+            Pharmacies.insert {
+                it[ownerId] = "test-owner-2"
+                it[name] = "Al-Hayat Pharmacy"
+                it[address] = "456 Oak Ave, Aleppo"
+                it[city] = "Aleppo"
+                it[latitude] = 36.2021
+                it[longitude] = 37.1343
+                it[phone] = "+963-21-7654321"
+                it[isVerified] = true
+                it[isOpen] = true
+                it[openingHours] = "8:00-21:00"
+                it[licenseNumber] = "LIC-002"
+            } get Pharmacies.id
+        )
+        println("Seeded ${pharmacyIds.size} pharmacies")
     }
-
-    data class MedicineData(
-        val titleEn: String,
-        val titleAr: String,
-        val description: String?,
-        val manufacturer: String?,
-        val categoryId: UUID,
-        val subcategoryId: UUID?,
-        val price: Double?,
-        val requiresPrescription: Boolean
-    )
-
-    data class PharmacyData(
-        val nameEn: String,
-        val nameAr: String,
-        val address: String,
-        val city: String,
-        val latitude: Double,
-        val longitude: Double,
-        val phone: String,
-        val isVerified: Boolean,
-        val isOpen: Boolean
-    )
 }

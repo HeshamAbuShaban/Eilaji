@@ -2,6 +2,7 @@ package com.eilaji.backend.dto
 
 import kotlinx.serialization.Serializable
 import java.time.Instant
+import kotlinx.serialization.Contextual
 import java.util.UUID
 
 // ===== Auth DTOs =====
@@ -36,21 +37,21 @@ data class RefreshTokenRequest(
 
 @Serializable
 data class UserDto(
-    val id: UUID,
+    @Contextual val id: String,  // Users.id is varchar("id", 255)
     val email: String,
     val fullName: String,
     val phone: String?,
     val avatarUrl: String?,
     val role: String,
     val isVerified: Boolean,
-    val createdAt: Instant
+    val createdAt: @Contextual Instant
 )
 
 // ===== Medicine DTOs =====
 
 @Serializable
 data class MedicineDto(
-    val id: UUID,
+    val id: Int,  // Medicines.id is integer("id").autoIncrement()
     val titleAr: String,
     val titleEn: String,
     val descriptionAr: String?,
@@ -66,7 +67,7 @@ data class MedicineDto(
 
 @Serializable
 data class CategoryDto(
-    val id: UUID,
+    @Contextual val id: Int,  // Categories.id is integer("id").autoIncrement()
     val nameAr: String,
     val nameEn: String,
     val iconUrl: String?,
@@ -75,7 +76,7 @@ data class CategoryDto(
 
 @Serializable
 data class SubcategoryDto(
-    val id: UUID,
+    @Contextual val id: Int,  // Categories.id (self-reference)
     val nameAr: String,
     val nameEn: String,
     val iconUrl: String?
@@ -85,7 +86,7 @@ data class SubcategoryDto(
 
 @Serializable
 data class PharmacyDto(
-    val id: UUID,
+    val id: Int,  // Pharmacies.id is integer("id").autoIncrement()
     val name: String,
     val description: String?,
     val imageUrl: String?,
@@ -117,22 +118,25 @@ data class CreatePharmacyRequest(
 
 @Serializable
 data class PrescriptionDto(
-    val id: UUID,
+    val id: Int,  // Prescriptions.id is integer("id").autoIncrement()
+    val userId: String,  // Users.id is varchar
+    val pharmacyId: Int?,  // Pharmacies.id is integer
+    val pharmacyName: String? = null,
     val imageUrl: String,
     val notes: String?,
     val status: String,
-    val selectedPharmacyId: UUID?,
-    val pharmacyName: String? = null,
     val quotedPrice: Double?,
     val pharmacistNotes: String?,
-    val sentToEilajiPlus: Boolean,
-    val createdAt: Instant
+    val eilajiPlusRef: String?,
+    val eilajiPlusStatus: String?,
+    val createdAt: @Contextual Instant,
+    val updatedAt: @Contextual Instant
 )
 
 @Serializable
 data class CreatePrescriptionRequest(
     val notes: String? = null,
-    val selectedPharmacyId: UUID? = null
+    val pharmacyId: Int? = null
 )
 
 @Serializable
@@ -146,52 +150,77 @@ data class UpdatePrescriptionStatusRequest(
 
 @Serializable
 data class ChatDto(
-    val id: UUID,
-    val otherUserId: UUID,
-    val otherUserName: String,
-    val otherUserAvatar: String?,
-    val lastMessageText: String?,
-    val lastMessageImageUrl: String?,
-    val lastMessageAt: Instant?,
-    val unreadCount: Int
+    val id: Long,  // Chats.id is long("id").autoIncrement()
+    val prescriptionId: Int? = null,  // Prescriptions.id is integer
+    val pharmacyId: Int? = null,  // Pharmacies.id is integer
+    val userId: String,  // Users.id is varchar
+    val pharmacyName: String? = null,
+    val lastMessage: String?,
+    val lastMessageAt: @Contextual Instant?,
+    val createdAt: @Contextual Instant
 )
+
+// ===== Message DTOs =====
 
 @Serializable
 data class MessageDto(
-    val id: UUID,
-    val senderId: UUID,
-    val messageText: String?,
-    val messageImageUrl: String?,
-    val isRead: Boolean,
-    val createdAt: Instant
+    val id: Long,  // Messages.id is long("id").autoIncrement()
+    val chatId: Long,  // Chats.id is long
+    val senderId: String,  // Users.id is varchar
+    val senderName: String? = null,
+    val content: String?,
+    val messageType: String? = null,
+    val attachmentUrl: String? = null,
+    val isRead: Boolean = false,
+    val readAt: @Contextual Instant? = null,
+    val createdAt: @Contextual Instant
 )
 
 @Serializable
 data class SendMessageRequest(
-    val chatId: UUID,
+    val chatId: Long,
     val messageText: String? = null,
     val messageImageUrl: String? = null
+)
+
+// ===== Order DTOs =====
+
+@Serializable
+data class OrderDto(
+    val id: Int,  // Orders.id is integer("id").autoIncrement()
+    val prescriptionId: Int,  // Prescriptions.id is integer
+    val patientId: String,  // Users.id is varchar
+    val pharmacyId: Int,  // Pharmacies.id is integer
+    val pharmacyName: String? = null,
+    val status: String,
+    val totalAmount: Double,
+    val paymentMethod: String?,
+    val paymentStatus: String,
+    val deliveryAddress: String?,
+    val deliveryNotes: String?,
+    val createdAt: @Contextual Instant,
+    val updatedAt: @Contextual Instant
 )
 
 // ===== Favorites DTOs =====
 
 @Serializable
 data class FavoriteDto(
-    val id: UUID,
+    @Contextual val id: UUID,
     val type: String, // MEDICINE or PHARMACY
-    val medicineId: UUID? = null,
+    val medicineId: @Contextual UUID? = null,
     val medicineTitleAr: String? = null,
     val medicineTitleEn: String? = null,
-    val pharmacyId: UUID? = null,
+    val pharmacyId: @Contextual UUID? = null,
     val pharmacyName: String? = null,
-    val createdAt: Instant
+    val createdAt: @Contextual Instant
 )
 
 // ===== Reminder DTOs =====
 
 @Serializable
 data class MedicationReminderDto(
-    val id: UUID,
+    @Contextual val id: UUID,
     val medicineName: String,
     val dosage: String?,
     val frequency: String,
@@ -219,19 +248,32 @@ data class CreateReminderRequest(
 
 @Serializable
 data class RatingDto(
-    val id: UUID,
-    val userId: UUID,
+    @Contextual val id: UUID,
+    val userId: @Contextual UUID,
     val userName: String,
     val rating: Int,
     val comment: String?,
-    val createdAt: Instant
+    val createdAt: @Contextual Instant
 )
 
 @Serializable
 data class CreateRatingRequest(
-    val pharmacyId: UUID,
+    val pharmacyId: @Contextual UUID,
     val rating: Int,
     val comment: String? = null
+)
+
+// ===== WebSocket DTOs =====
+
+@Serializable
+data class WebSocketMessage(
+    val type: String,
+    val chatId: Long? = null,
+    val userId: String? = null,
+    val message: MessageDto? = null,
+    val timestamp: @Contextual Instant? = null,
+    val isOnline: Boolean? = null,
+    val content: String? = null
 )
 
 // ===== Generic Response =====
@@ -247,9 +289,20 @@ data class ApiResponse<T>(
         fun <T> success(data: T, message: String? = null): ApiResponse<T> {
             return ApiResponse(success = true, data = data, message = message)
         }
-        
+
         fun <T> error(error: String, message: String? = null): ApiResponse<T> {
             return ApiResponse(success = false, error = error, message = message)
         }
     }
 }
+
+// ===== Paginated Result =====
+
+@Serializable
+data class PaginatedResult<T>(
+    val items: List<T>,
+    val total: Long,
+    val page: Int = 0,
+    val pageSize: Int = 20,
+    val totalPages: Int = 0
+)

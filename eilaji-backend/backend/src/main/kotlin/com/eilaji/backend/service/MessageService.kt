@@ -1,28 +1,30 @@
 package com.eilaji.backend.service
 
+import com.eilaji.backend.data.*
 import com.eilaji.backend.dto.*
-import com.eilaji.backend.model.*
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 
 class MessageService {
-    
-    fun getMessagesForChat(chatId: Long, page: Int = 0, pageSize: Int = 50): PaginatedResult<MessageDto> {
+
+    fun getMessages(chatId: Long, page: Int = 0, pageSize: Int = 50): PaginatedResult<MessageDto> {
         return transaction {
-            val total = Messages.select { Messages.chatId eq chatId }.count()
-            
-            val messages = Messages.join(Users, JoinType.LEFT, Messages.senderId, Users.id)
-                .select { Messages.chatId eq chatId }
-                .orderBy(Messages.createdAt.asc())
+            val query = Messages.join(Users, JoinType.LEFT, Messages.senderId, Users.id)
+                .selectAll()
+                .where { Messages.chatId eq chatId }
+
+            val total = query.count()
+
+            val messages = query
+                .orderBy(Messages.createdAt)
                 .limit(pageSize, (page * pageSize).toLong())
                 .map { row ->
                     MessageDto(
-                        id = row[Messages.id].value,
-                        chatId = row[Messages.chatId].value,
+                        id = row[Messages.id],
+                        chatId = row[Messages.chatId],
                         senderId = row[Messages.senderId],
-                        senderName = row[Users.fullName],
+                        senderName = row.getOrNull(Users.fullName),
                         content = row[Messages.content],
                         messageType = row[Messages.messageType],
                         attachmentUrl = row[Messages.attachmentUrl],
@@ -31,35 +33,49 @@ class MessageService {
                         createdAt = row[Messages.createdAt]
                     )
                 }
-            
+
             PaginatedResult(
                 items = messages,
                 total = total,
                 page = page,
                 pageSize = pageSize,
-                totalPages = (total + pageSize - 1) / pageSize
+                totalPages = if (total > 0) ((total + pageSize - 1) / pageSize).toInt() else 0
             )
         }
     }
-    
-    fun createMessage(chatId: Long, senderId: String, request: SendMessageRequest): MessageDto {
+
+    fun getMessagesForChat(chatId: Long, userId: String, page: Int = 0, pageSize: Int = 50): PaginatedResult<MessageDto> {
+        return getMessages(chatId, page, pageSize)
+    }
+
+    fun sendMessage(chatId: Long, senderId: String, content: String,
+                   messageType: String = "TEXT", attachmentUrl: String? = null): MessageDto {
         return transaction {
-            val messageId = Messages.insertAndGetId {
-                it[chatId] = chatId
-                it[senderId] = senderId
-                it[content] = request.content
-                it[messageType] = request.messageType.name
-                it[attachmentUrl] = request.attachmentUrl
+            val messageId = Messages.insert {
+                it[Messages.chatId] = chatId
+                it[Messages.senderId] = senderId
+                it[Messages.content] = content
+                it[Messages.messageType] = messageType
+                it[Messages.attachmentUrl] = attachmentUrl
+                it[Messages.isRead] = false
+                it[Messages.createdAt] = Instant.now()
+            } get Messages.id
+
+            Chats.update({ Chats.id eq chatId }) {
+                it[Chats.lastMessage] = content
+                it[Chats.lastMessageAt] = Instant.now()
+                it[Chats.updatedAt] = Instant.now()
             }
-            
+
             Messages.join(Users, JoinType.LEFT, Messages.senderId, Users.id)
-                .select { Messages.id eq messageId.value }
+                .selectAll()
+                .where { Messages.id eq messageId }
                 .map { row ->
                     MessageDto(
-                        id = row[Messages.id].value,
-                        chatId = row[Messages.chatId].value,
+                        id = row[Messages.id],
+                        chatId = row[Messages.chatId],
                         senderId = row[Messages.senderId],
-                        senderName = row[Users.fullName],
+                        senderName = row.getOrNull(Users.fullName),
                         content = row[Messages.content],
                         messageType = row[Messages.messageType],
                         attachmentUrl = row[Messages.attachmentUrl],
@@ -70,64 +86,32 @@ class MessageService {
                 }.first()
         }
     }
-    
-    fun markMessagesAsRead(messageIds: List<Long>, userId: String): List<MessageDto> {
+
+    fun markAsRead(messageId: Long): Boolean {
         return transaction {
-            Messages.update({ 
-                Messages.id inList messageIds and (Messages.senderId neq userId)
-            }) {
-                it[isRead] = true
-                it[readAt] = Instant.now()
+            Messages.update({ Messages.id eq messageId }) {
+                it[Messages.isRead] = true
+                it[Messages.readAt] = Instant.now()
             }
-            
-            Messages.join(Users, JoinType.LEFT, Messages.senderId, Users.id)
-                .select { Messages.id inList messageIds }
-                .map { row ->
-                    MessageDto(
-                        id = row[Messages.id].value,
-                        chatId = row[Messages.chatId].value,
-                        senderId = row[Messages.senderId],
-                        senderName = row[Users.fullName],
-                        content = row[Messages.content],
-                        messageType = row[Messages.messageType],
-                        attachmentUrl = row[Messages.attachmentUrl],
-                        isRead = row[Messages.isRead],
-                        readAt = row[Messages.readAt],
-                        createdAt = row[Messages.createdAt]
-                    )
-                }
+            true
         }
     }
-    
+
     fun markChatAsRead(chatId: Long, userId: String): Int {
         return transaction {
-            Messages.update({ 
-                Messages.chatId eq chatId and (Messages.senderId neq userId) and (Messages.isRead eq false)
-            }) {
-                it[isRead] = true
-                it[readAt] = Instant.now()
+            val result = Messages.update({ (Messages.chatId eq chatId) and (Messages.senderId neq userId) and (Messages.isRead eq false) }) {
+                it[Messages.isRead] = true
+                it[Messages.readAt] = Instant.now()
             }
+            result
         }
     }
-    
-    fun getMessageById(messageId: Long): MessageDto? {
+
+    fun getUnreadCount(chatId: Long, userId: String): Int {
         return transaction {
-            Messages.join(Users, JoinType.LEFT, Messages.senderId, Users.id)
-                .select { Messages.id eq messageId }
-                .map { row ->
-                    MessageDto(
-                        id = row[Messages.id].value,
-                        chatId = row[Messages.chatId].value,
-                        senderId = row[Messages.senderId],
-                        senderName = row[Users.fullName],
-                        content = row[Messages.content],
-                        messageType = row[Messages.messageType],
-                        attachmentUrl = row[Messages.attachmentUrl],
-                        isRead = row[Messages.isRead],
-                        readAt = row[Messages.readAt],
-                        createdAt = row[Messages.createdAt]
-                    )
-                }.firstOrNull()
+            Messages.selectAll()
+                .where { (Messages.chatId eq chatId) and (Messages.isRead eq false) and (Messages.senderId neq userId) }
+                .count().toInt()
         }
     }
 }

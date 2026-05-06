@@ -87,12 +87,8 @@ class WebSocketSessionManager(
     suspend fun sendMessage(userId: String, chatId: Long, content: String, messageType: String = "TEXT", attachmentUrl: String? = null): MessageDto? {
         return try {
             // Save message to database
-            val message = messageService.createMessage(chatId, userId, 
-                com.eilaji.backend.dto.SendMessageRequest(content, messageType, attachmentUrl))
-            
-            // Update chat's last message
-            chatService.updateLastMessage(chatId, content)
-            
+            val message = messageService.sendMessage(chatId, userId, content, messageType, attachmentUrl)
+
             // Broadcast to all subscribers
             val wsMessage = WebSocketMessage(
                 type = "MESSAGE",
@@ -101,9 +97,9 @@ class WebSocketSessionManager(
                 message = message,
                 timestamp = message.createdAt
             )
-            
+
             broadcastToChat(chatId, wsMessage)
-            
+
             message
         } catch (e: Exception) {
             logger.error("Error sending message: ${e.message}", e)
@@ -113,13 +109,14 @@ class WebSocketSessionManager(
     
     suspend fun markAsRead(userId: String, chatId: Long, messageIds: List<Long>? = null) {
         try {
-            val markedMessages = if (messageIds != null) {
-                messageService.markMessagesAsRead(messageIds, userId)
+            if (messageIds != null) {
+                messageIds.forEach { messageId ->
+                    messageService.markAsRead(messageId)
+                }
             } else {
                 messageService.markChatAsRead(chatId, userId)
-                messageService.getMessagesForChat(chatId).items.filter { !it.isRead }
             }
-            
+
             // Broadcast read receipt to chat participants
             val wsMessage = WebSocketMessage(
                 type = "READ",
@@ -127,7 +124,7 @@ class WebSocketSessionManager(
                 userId = userId,
                 timestamp = java.time.Instant.now()
             )
-            
+
             broadcastToChat(chatId, wsMessage)
         } catch (e: Exception) {
             logger.error("Error marking messages as read: ${e.message}", e)

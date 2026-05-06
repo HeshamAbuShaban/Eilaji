@@ -1,98 +1,105 @@
 package com.eilaji.backend
 
-import com.eilaji.backend.config.RateLimitPlugin
+import com.eilaji.backend.config.DatabaseConfig
+import com.eilaji.backend.config.rateLimitPlugin
 import com.eilaji.backend.controller.adminRoutes
+import com.eilaji.backend.data.*
 import com.eilaji.backend.initialization.DatabaseSeeder
-import com.eilaji.backend.model.*
 import com.eilaji.backend.routes.apiRoutes
+import com.eilaji.backend.security.JwtConfig
 import com.eilaji.backend.service.*
 import com.typesafe.config.ConfigFactory
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpHeaders
+import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.server.plugins.callloging.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.cors.routing.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.server.websocket.*
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.calllogging.CallLogging
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.cors.routing.CORS
+import io.ktor.server.response.respond
+import io.ktor.server.routing.get
+import io.ktor.server.routing.routing
+import io.ktor.server.websocket.WebSockets
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.transactions.transaction
+import kotlinx.serialization.Serializable
 import org.slf4j.event.Level
-import java.time.Duration
+
+@Serializable
+data class HealthResponse(val status: String, val timestamp: String)
 
 fun main() {
     val config = ConfigFactory.load()
-    
+
     val databaseUrl = config.getString("database.url")
     val databaseUser = config.getString("database.user")
     val databasePassword = config.getString("database.password")
     val databaseDriver = config.getString("database.driver")
-    
+
     val redisUrl = config.getString("redis.url")
-    
+
     val minioEndpoint = config.getString("minio.endpoint")
     val minioAccessKey = config.getString("minio.accessKey")
     val minioSecretKey = config.getString("minio.secretKey")
     val minioRegion = config.getString("minio.region")
-    
+
     val jwtSecret = config.getString("jwt.secret")
     val jwtIssuer = config.getString("jwt.issuer")
     val jwtAudience = config.getString("jwt.audience")
     val jwtRealm = config.getString("jwt.realm")
-    
+
     val eilajiPlusBaseUrl = config.getString("eilaji-plus.baseUrl")
     val eilajiPlusApiKey = config.getString("eilaji-plus.apiKey")
-    
+
     val port = config.getInt("server.port")
-    
-    // Initialize database
-    Database.connect(
-        url = databaseUrl,
-        driver = databaseDriver,
-        user = databaseUser,
-        password = databasePassword
-    )
-    
-    // Create tables
-    org.jetbrains.exposed.sql.transactions.transaction {
+
+    // Verify password is loaded (won't print the actual value)
+    println("DB config – user=$databaseUser, password=${if (databasePassword.isNotBlank()) "<present>" else "<missing>"}")
+    // Retry init in case the DB container hasn't finished starting yet
+    var initSuccess = false
+    repeat(5) { attempt ->
+        try {
+            DatabaseConfig.init()
+            initSuccess = true
+            println("Database connection initialized successfully (attempt ${attempt + 1})")
+            return@repeat
+        } catch (e: Exception) {
+            println("DB init failed (attempt ${attempt + 1}): ${e.message}")
+            if (attempt == 4) throw e
+            Thread.sleep(2000L)
+        }
+    }
+    if (!initSuccess) {
+        throw IllegalStateException("Failed to initialize database after retries")
+    }
+
+    transaction {
         SchemaUtils.createMissingTablesAndColumns(
-            Users,
-            Categories,
-            Medicines,
-            Pharmacies,
-            Prescriptions,
-            Chats,
-            Messages,
-            EilajiPlusSync,
-            Orders
+            Users, Categories, Medicines, Pharmacies,
+            Prescriptions, Chats, Messages, EilajiPlusSync,
+            Orders, AuditLogs
         )
     }
 
-    // Seed database with test data (DEV ONLY - controlled by config flag)
     val seedDatabase = config.getBoolean("database.seed-on-startup")
     if (seedDatabase) {
         println("WARNING: Database seeding is enabled - for development only!")
         DatabaseSeeder.seedIfEmpty()
     }
 
-    // Create audit_logs table
-    org.jetbrains.exposed.sql.transactions.transaction {
-        SchemaUtils.createMissingTablesAndColumns(AuditLogs)
-    }
-    
-    // Initialize services
-    val minioService = MinioService(minioEndpoint, minioAccessKey, minioSecretKey, minioRegion)
+    val minioService = MinioService()
     val redisService = RedisService(redisUrl)
     val eilajiPlusService = if (eilajiPlusBaseUrl.isNotBlank()) {
         EilajiPlusService(eilajiPlusBaseUrl, eilajiPlusApiKey)
     } else null
-    
-    embeddedServer(Netty, port = port, host = "0.0.0.0", module = {
+
+    embeddedServer(Netty, port = port, host = "0.0.0.0") {
         mainModule(
             jwtIssuer = jwtIssuer,
             jwtAudience = jwtAudience,
@@ -102,7 +109,7 @@ fun main() {
             redisService = redisService,
             eilajiPlusService = eilajiPlusService
         )
-    }).start(wait = true)
+    }.start(wait = true)
 }
 
 fun Application.mainModule(
@@ -114,7 +121,6 @@ fun Application.mainModule(
     redisService: RedisService,
     eilajiPlusService: EilajiPlusService? = null
 ) {
-    // Install plugins
     install(ContentNegotiation) {
         json(Json {
             prettyPrint = true
@@ -123,21 +129,12 @@ fun Application.mainModule(
             encodeDefaults = true
         })
     }
-    
+
     install(CORS) {
-        // Restrict origins - configure specific allowed origins
-        val allowedOrigins = listOf(
-            "https://your-production-domain.com",
-            "http://localhost:8080",
-            "http://localhost:3000"
-        )
-
-        allowedOrigins.forEach { allowHost(it, schemes = listOf("http", "https")) }
-
+        allowHost("localhost:8080", listOf("http"))
+        allowHost("localhost:3000", listOf("http"))
         allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
-        allowHeader(HttpHeaders.AccessControlAllowOrigin)
-        allowHeader(HttpHeaders.AccessControlRequestHeaders)
         allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Post)
         allowMethod(HttpMethod.Put)
@@ -145,34 +142,26 @@ fun Application.mainModule(
         allowMethod(HttpMethod.Options)
         allowCredentials = true
         maxAgeInSeconds = 3600
-
-        // Security: Validate origin header
-        anyHost() // This allows any host - in production, remove this and use specific hosts above
+        anyHost()
     }
-    
+
     install(CallLogging) {
         level = Level.INFO
-        filter { call -> !call.request.path().startsWith("/health") }
     }
-    
+
     install(WebSockets) {
-        pingPeriod = Duration.ofSeconds(15)
-        timeout = Duration.ofSeconds(15)
         maxFrameSize = Long.MAX_VALUE
         masking = false
     }
-    
+
+    rateLimitPlugin(redisService = redisService)
+
     install(Authentication) {
         jwt("jwt-auth") {
             realm = jwtRealm
-            verifier {
-                JWTVerifier(io.ktor.server.auth.jwt.JWTAlgorithm.HMAC256, jwtSecret)
-                    .withIssuer(jwtIssuer)
-                    .withAudience(jwtAudience)
-                    .build()
-            }
+            verifier(JwtConfig.getVerifier())
             validate { credentials ->
-                if (credentials.payload.getSubject() != null) {
+                if (credentials.payload.subject != null) {
                     JWTPrincipal(credentials.payload)
                 } else {
                     null
@@ -180,34 +169,12 @@ fun Application.mainModule(
             }
         }
     }
-    
-    // Configure Status Pages (Error Handling)
-    install(io.ktor.server.plugins.statuspages.StatusPages) {
-        exception<Throwable> { call, cause ->
-            when (cause) {
-                is IllegalArgumentException -> {
-                    call.respond(io.ktor.http.HttpStatusCode.BadRequest, mapOf("error" to cause.message ?: "Bad Request"))
-                }
-                is java.util.NoSuchElementException -> {
-                    call.respond(io.ktor.http.HttpStatusCode.NotFound, mapOf("error" to "Resource not found"))
-                }
-                else -> {
-                    call.respond(io.ktor.http.HttpStatusCode.InternalServerError, mapOf("error" to "Internal Server Error"))
-                }
-            }
-        }
-    }
-    
-    // Setup routes
+
     routing {
-        // Health check endpoint
         get("/health") {
-            call.respond(mapOf("status" to "UP", "timestamp" to System.currentTimeMillis()))
+            call.respond(HealthResponse(status = "UP", timestamp = System.currentTimeMillis().toString()))
         }
-        
-        // Install rate limiting plugin
-        RateLimitPlugin(redisService).install(this@mainModule)
-        
+
         apiRoutes(
             jwtIssuer = jwtIssuer,
             jwtAudience = jwtAudience,
@@ -217,8 +184,9 @@ fun Application.mainModule(
             redisService = redisService,
             eilajiPlusService = eilajiPlusService
         )
-        
-        // Admin routes
-        adminRoutes()
+
+        authenticate("jwt-auth") {
+            adminRoutes()
+        }
     }
 }
