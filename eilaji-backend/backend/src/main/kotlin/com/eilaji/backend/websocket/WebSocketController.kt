@@ -122,7 +122,7 @@ class WebSocketController(
             
             "PING" -> {
                 session.send(Frame.Text(Json.encodeToString(WebSocketMessage.serializer(),
-                    WebSocketMessage(type = "PONG", timestamp = java.time.Instant.now()))))
+                    WebSocketMessage(type = "PONG", timestamp = java.time.Instant.now().toString()))))
             }
             
             else -> {

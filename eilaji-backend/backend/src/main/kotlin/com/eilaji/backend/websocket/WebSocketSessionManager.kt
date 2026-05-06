@@ -122,7 +122,7 @@ class WebSocketSessionManager(
                 type = "READ",
                 chatId = chatId,
                 userId = userId,
-                timestamp = java.time.Instant.now()
+                timestamp = java.time.Instant.now().toString().toString().toString().toString()
             )
 
             broadcastToChat(chatId, wsMessage)
@@ -153,9 +153,9 @@ class WebSocketSessionManager(
             type = "PRESENCE",
             userId = userId,
             isOnline = isOnline,
-            timestamp = java.time.Instant.now()
+            timestamp = java.time.Instant.now().toString()
         )
-        
+
         sessionMutex.withLock {
             val json = Json.encodeToString(WebSocketMessage.serializer(), message)
             

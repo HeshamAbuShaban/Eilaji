@@ -29,8 +29,8 @@ class MessageService {
                         messageType = row[Messages.messageType],
                         attachmentUrl = row[Messages.attachmentUrl],
                         isRead = row[Messages.isRead],
-                        readAt = row[Messages.readAt],
-                        createdAt = row[Messages.createdAt]
+                        readAt = row[Messages.readAt]?.toString(),
+                        createdAt = row[Messages.createdAt].toString()
                     )
                 }
 
@@ -80,8 +80,8 @@ class MessageService {
                         messageType = row[Messages.messageType],
                         attachmentUrl = row[Messages.attachmentUrl],
                         isRead = row[Messages.isRead],
-                        readAt = row[Messages.readAt],
-                        createdAt = row[Messages.createdAt]
+                        readAt = row[Messages.readAt]?.toString(),
+                        createdAt = row[Messages.createdAt].toString()
                     )
                 }.first()
         }

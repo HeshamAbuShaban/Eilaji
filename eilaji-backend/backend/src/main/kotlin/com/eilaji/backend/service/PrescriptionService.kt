@@ -116,8 +116,8 @@ class PrescriptionService(
             pharmacistNotes = row[Prescriptions.pharmacistNotes],
             eilajiPlusRef = row[Prescriptions.eilajiPlusRef],
             eilajiPlusStatus = row[Prescriptions.eilajiPlusStatus],
-            createdAt = row[Prescriptions.createdAt],
-            updatedAt = row[Prescriptions.updatedAt]
+            createdAt = row[Prescriptions.createdAt].toString(),
+            updatedAt = row[Prescriptions.updatedAt].toString()
         )
     }
 }

@@ -27,8 +27,8 @@ class ChatService {
                         pharmacyName = row.getOrNull(Pharmacies.name),
                         userId = row[Chats.userId],
                         lastMessage = row[Chats.lastMessage],
-                        lastMessageAt = row[Chats.lastMessageAt],
-                        createdAt = row[Chats.createdAt]
+                        lastMessageAt = row[Chats.lastMessageAt]?.toString(),
+                        createdAt = row[Chats.createdAt].toString()
                     )
                 }
 
@@ -55,8 +55,8 @@ class ChatService {
                         pharmacyName = row.getOrNull(Pharmacies.name),
                         userId = row[Chats.userId],
                         lastMessage = row[Chats.lastMessage],
-                        lastMessageAt = row[Chats.lastMessageAt],
-                        createdAt = row[Chats.createdAt]
+                        lastMessageAt = row[Chats.lastMessageAt]?.toString(),
+                        createdAt = row[Chats.createdAt].toString()
                     )
                 }.firstOrNull()
         }
@@ -85,8 +85,8 @@ class ChatService {
                         pharmacyName = row.getOrNull(Pharmacies.name),
                         userId = row[Chats.userId],
                         lastMessage = row[Chats.lastMessage],
-                        lastMessageAt = row[Chats.lastMessageAt],
-                        createdAt = row[Chats.createdAt]
+                        lastMessageAt = row[Chats.lastMessageAt]?.toString(),
+                        createdAt = row[Chats.createdAt].toString()
                     )
                 }.first()
         }

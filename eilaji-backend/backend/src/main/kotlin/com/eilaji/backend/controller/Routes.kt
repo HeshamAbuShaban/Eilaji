@@ -18,7 +18,9 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -53,11 +55,10 @@ fun Route.apiRoutes(
         return SecurityUtils.isValidUuid(uuid)
     }
 
-    // Auth routes (public)
-    registerAuthRoutes(redisService)
-
     // Public routes
     route("/api/v1") {
+        // Auth routes (public)
+        registerAuthRoutes(redisService)
         route("/medicines") {
             get {
                 val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
@@ -337,7 +338,7 @@ fun Route.apiRoutes(
                                     avatarUrl = row[Users.avatarUrl],
                                     role = row[Users.role],
                                     isVerified = row[Users.isVerified],
-                                    createdAt = row[Users.createdAt]
+                                    createdAt = row[Users.createdAt].toString()
                                 )
                             }
                         }
@@ -489,7 +490,7 @@ fun Route.apiRoutes(
                     val userId = principal!!.payload.subject
 
                     try {
-                        val request = call.receive<CreateChatRequest>()
+                        val request = Json.decodeFromString<CreateChatRequest>(call.receiveText())
                         val chat = chatService.createChat(userId, request.prescriptionId, request.pharmacyId)
                         call.respond(HttpStatusCode.Created, ApiResponse(success = true, data = chat))
                     } catch (e: Exception) {
@@ -571,7 +572,7 @@ fun Route.apiRoutes(
                             call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Eilaji-Plus not configured"))
                             return@post
                         }
-                        val webhookRequest = call.receive<EilajiPlusWebhookRequest>()
+                        val webhookRequest = Json.decodeFromString<EilajiPlusWebhookRequest>(call.receiveText())
                         val success = eilajiPlusService.processWebhook(webhookRequest)
 
                         if (success) {
@@ -612,7 +613,7 @@ fun Route.apiRoutes(
                     val userId = principal!!.payload.subject
 
                     try {
-                        val request = call.receive<OrderService.OrderCreateRequest>()
+                        val request = Json.decodeFromString<OrderService.OrderCreateRequest>(call.receiveText())
                         val order = orderService.createOrder(request, userId)
 
                         if (order != null) {
@@ -678,7 +679,7 @@ fun Route.apiRoutes(
                     }
 
                     try {
-                        val request = call.receive<OrderService.OrderUpdateStatusRequest>()
+                        val request = Json.decodeFromString<OrderService.OrderUpdateStatusRequest>(call.receiveText())
                         val order = orderService.updateOrderStatus(orderId, request.status, request.paymentStatus, userId, userRole)
 
                         if (order != null) {
@@ -701,8 +702,13 @@ private fun extractUserIdFromToken(token: String): String? {
         if (parts.size < 2) return null
 
         val payload = String(java.util.Base64.getDecoder().decode(parts[1]))
-        val json = kotlinx.serialization.json.Json.parseToJsonElement(payload).jsonObject
-        return json["sub"]?.jsonPrimitive?.content
+        val jsonElement = Json.parseToJsonElement(payload)
+        if (jsonElement is kotlinx.serialization.json.JsonObject) {
+            return jsonElement["sub"]?.let {
+                (it as? kotlinx.serialization.json.JsonPrimitive)?.content
+            }
+        }
+        return null
     } catch (e: Exception) {
         return null
     }

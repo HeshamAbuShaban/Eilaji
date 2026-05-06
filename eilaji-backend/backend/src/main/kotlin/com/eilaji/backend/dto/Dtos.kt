@@ -27,7 +27,7 @@ data class AuthResponse(
     val accessToken: String,
     val refreshToken: String,
     val expiresIn: Long,
-    val user: UserDto
+    val user: UserDto?
 )
 
 @Serializable
@@ -44,7 +44,7 @@ data class UserDto(
     val avatarUrl: String?,
     val role: String,
     val isVerified: Boolean,
-    val createdAt: @Contextual Instant
+    val createdAt: String
 )
 
 // ===== Medicine DTOs =====
@@ -129,8 +129,8 @@ data class PrescriptionDto(
     val pharmacistNotes: String?,
     val eilajiPlusRef: String?,
     val eilajiPlusStatus: String?,
-    val createdAt: @Contextual Instant,
-    val updatedAt: @Contextual Instant
+    val createdAt: String,
+    val updatedAt: String
 )
 
 @Serializable
@@ -156,8 +156,8 @@ data class ChatDto(
     val userId: String,  // Users.id is varchar
     val pharmacyName: String? = null,
     val lastMessage: String?,
-    val lastMessageAt: @Contextual Instant?,
-    val createdAt: @Contextual Instant
+    val lastMessageAt: String?,
+    val createdAt: String
 )
 
 // ===== Message DTOs =====
@@ -172,8 +172,8 @@ data class MessageDto(
     val messageType: String? = null,
     val attachmentUrl: String? = null,
     val isRead: Boolean = false,
-    val readAt: @Contextual Instant? = null,
-    val createdAt: @Contextual Instant
+    val readAt: String? = null,
+    val createdAt: String
 )
 
 @Serializable
@@ -198,8 +198,8 @@ data class OrderDto(
     val paymentStatus: String,
     val deliveryAddress: String?,
     val deliveryNotes: String?,
-    val createdAt: @Contextual Instant,
-    val updatedAt: @Contextual Instant
+    val createdAt: String,
+    val updatedAt: String
 )
 
 // ===== Favorites DTOs =====
@@ -213,7 +213,7 @@ data class FavoriteDto(
     val medicineTitleEn: String? = null,
     val pharmacyId: @Contextual UUID? = null,
     val pharmacyName: String? = null,
-    val createdAt: @Contextual Instant
+    val createdAt: String
 )
 
 // ===== Reminder DTOs =====
@@ -253,7 +253,7 @@ data class RatingDto(
     val userName: String,
     val rating: Int,
     val comment: String?,
-    val createdAt: @Contextual Instant
+    val createdAt: String
 )
 
 @Serializable
@@ -271,7 +271,7 @@ data class WebSocketMessage(
     val chatId: Long? = null,
     val userId: String? = null,
     val message: MessageDto? = null,
-    val timestamp: @Contextual Instant? = null,
+    val timestamp: String? = null,
     val isOnline: Boolean? = null,
     val content: String? = null
 )
