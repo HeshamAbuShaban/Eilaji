@@ -1,8 +1,12 @@
 package com.eilaji.backend.routes
 
 import com.eilaji.backend.config.RateLimitPlugin
+import com.eilaji.backend.data.*
 import com.eilaji.backend.dto.*
 import com.eilaji.backend.model.*
+import com.eilaji.backend.security.AuditService
+import com.eilaji.backend.security.JwtConfig
+import com.eilaji.backend.security.SecurityUtils
 import com.eilaji.backend.service.*
 import com.eilaji.backend.websocket.WebSocketController
 import io.ktor.http.*
@@ -19,6 +23,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.security.MessageDigest
 import java.time.Instant
+import java.util.UUID
 
 fun Route.apiRoutes(
     jwtIssuer: String,
@@ -35,6 +40,37 @@ fun Route.apiRoutes(
     val orderService = OrderService()
     val sessionManager = WebSocketSessionManager(messageService, chatService, redisService)
     val webSocketController = WebSocketController(sessionManager, redisService, messageService)
+
+    // Helper function to get authenticated user ID from JWT
+    fun getAuthenticatedUserId(call: io.ktor.server.application.ApplicationCall): String? {
+        return try {
+            val principal = call.principal<JWTPrincipal>()
+            principal?.payload?.subject
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    // Helper function to check if user owns a resource
+    fun checkOwnership(call: io.ktor.server.application.ApplicationCall, resourceUserId: String): Boolean {
+        val authenticatedUserId = getAuthenticatedUserId(call)
+        return authenticatedUserId != null && authenticatedUserId == resourceUserId
+    }
+
+    // Helper function to verify UUID format
+    fun validateUuid(uuid: String): Boolean {
+        return SecurityUtils.isValidUuid(uuid)
+    }
+
+    // Helper function to get user ID from JWT with validation
+    fun getUserIdFromCall(call: io.ktor.server.application.ApplicationCall): String? {
+        val token = call.request.headers["Authorization"]?.removePrefix("Bearer ")?.trim()
+        return if (token != null) {
+            JwtConfig.getUserIdFromToken(token)
+        } else {
+            null
+        }
+    }
     
     // Authentication configuration
     val authentication = authenticate("jwt-auth")
@@ -364,8 +400,14 @@ fun Route.apiRoutes(
                 route("/user") {
                     get {
                         val principal = call.principal<JWTPrincipal>()
-                        val userId = principal!!.payload.getSubject()
-                        
+                        val userId = principal!!.payload.subject
+
+                        // Validate user ID format
+                        if (!validateUuid(userId)) {
+                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid user ID"))
+                            return@get
+                        }
+
                         try {
                             val user = transaction {
                                 Users.select { Users.id eq userId }.firstOrNull()?.let { row ->
@@ -379,8 +421,10 @@ fun Route.apiRoutes(
                                     )
                                 }
                             }
-                            
+
                             if (user != null) {
+                                // Log data access
+                                AuditService.logDataAccess(userId, "User", userId, call.request.local.remoteHost)
                                 call.respond(ApiResponse(success = true, data = user))
                             } else {
                                 call.respond(HttpStatusCode.NotFound, ApiResponse<Map<String, Any>?>(success = false, error = "User not found"))
@@ -396,13 +440,19 @@ fun Route.apiRoutes(
                     post {
                         val principal = call.principal<JWTPrincipal>()
                         val userId = principal!!.payload.getSubject()
-                        
+
+                        // Validate user ID format
+                        if (!validateUuid(userId)) {
+                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid user ID"))
+                            return@post
+                        }
+
                         try {
                             val multipart = call.receiveMultipart()
                             var notes: String? = null
                             var pharmacyId: Int? = null
                             var imagePart: PartData.FileItem? = null
-                            
+
                             multipart.forEachPart { part ->
                                 when (part.name) {
                                     "notes" -> notes = (part as? PartData.FormItem)?.value
@@ -410,17 +460,30 @@ fun Route.apiRoutes(
                                     "image" -> imagePart = part as? PartData.FileItem
                                 }
                             }
-                            
+
                             if (imagePart == null) {
                                 call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Image required"))
                                 return@post
                             }
-                            
-                            // Upload to MinIO
+
+                            // Validate pharmacy ID if provided
+                            if (pharmacyId != null && pharmacyId!! <= 0) {
+                                call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid pharmacy ID"))
+                                return@post
+                            }
+
+                            // Upload to MinIO with sanitized filename
                             val timestamp = System.currentTimeMillis()
-                            val extension = imagePart.originalFileName?.substringAfterLast('.') ?: "jpg"
-                            val objectName = "prescriptions/$userId/${timestamp}.$extension"
-                            
+                            val originalFileName = imagePart.originalFileName ?: "prescription.jpg"
+                            val sanitizedFileName = SecurityUtils.sanitizeFilename(originalFileName)
+                            val extension = sanitizedFileName.substringAfterLast('.', "jpg")
+                            val objectName = "prescriptions/$userId/${timestamp}_$sanitizedFileName"
+                            val timestamp = System.currentTimeMillis()
+                            val originalFileName = imagePart.originalFileName ?: "prescription.jpg"
+                            val sanitizedFileName = SecurityUtils.sanitizeFilename(originalFileName)
+                            val extension = sanitizedFileName.substringAfterLast('.', "jpg")
+                            val objectName = "prescriptions/$userId/${timestamp}_$sanitizedFileName"
+
                             val imageUrl = minioService.uploadFile(
                                 bucket = "prescriptions",
                                 objectName = objectName,
@@ -520,12 +583,33 @@ fun Route.apiRoutes(
                         val principal = call.principal<JWTPrincipal>()
                         val userId = principal!!.payload.getSubject()
                         val chatId = call.parameters["chatId"]?.toLongOrNull()
-                        
+
                         if (chatId == null) {
                             call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid chat ID"))
                             return@get
                         }
-                        
+
+                        // Validate chat ID format
+                        if (chatId <= 0) {
+                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid chat ID"))
+                            return@get
+                        }
+
+                        // Verify user owns this chat or is participant
+                        val isParticipant = try {
+                            transaction {
+                                Chats.select { (Chats.id eq chatId) and ((Chats.user1Id eq userId) or (Chats.user2Id eq userId)) }
+                                    .firstOrNull() != null
+                            }
+                        } catch (e: Exception) {
+                            false
+                        }
+
+                        if (!isParticipant) {
+                            call.respond(HttpStatusCode.NotFound, ApiResponse<Map<String, Any>?>(success = false, error = "Chat not found"))
+                            return@get
+                        }
+
                         val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
                         val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 50
                         
@@ -702,8 +786,14 @@ fun Route.orderRoutes(orderService: OrderService) {
             val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
             val orderId = call.parameters["id"]?.toIntOrNull()
 
-            if (orderId == null) {
+            if (orderId == null || orderId <= 0) {
                 call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid order ID"))
+                return@get
+            }
+
+            // Validate user ID format
+            if (!validateUuid(userId)) {
+                call.respond(HttpStatusCode.BadRequest, ApiResponse<Map<String, Any>?>(success = false, error = "Invalid user ID"))
                 return@get
             }
 

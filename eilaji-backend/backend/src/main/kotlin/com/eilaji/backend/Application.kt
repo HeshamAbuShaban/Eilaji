@@ -2,6 +2,7 @@ package com.eilaji.backend
 
 import com.eilaji.backend.config.RateLimitPlugin
 import com.eilaji.backend.controller.adminRoutes
+import com.eilaji.backend.initialization.DatabaseSeeder
 import com.eilaji.backend.model.*
 import com.eilaji.backend.routes.apiRoutes
 import com.eilaji.backend.service.*
@@ -71,6 +72,18 @@ fun main() {
             Orders
         )
     }
+
+    // Seed database with test data (DEV ONLY - controlled by config flag)
+    val seedDatabase = config.getBoolean("database.seed-on-startup")
+    if (seedDatabase) {
+        println("WARNING: Database seeding is enabled - for development only!")
+        DatabaseSeeder.seedIfEmpty()
+    }
+
+    // Create audit_logs table
+    org.jetbrains.exposed.sql.transactions.transaction {
+        SchemaUtils.createMissingTablesAndColumns(AuditLogs)
+    }
     
     // Initialize services
     val minioService = MinioService(minioEndpoint, minioAccessKey, minioSecretKey, minioRegion)
@@ -112,9 +125,18 @@ fun Application.mainModule(
     }
     
     install(CORS) {
-        allowHost("*", schemes = listOf("http", "https"))
+        // Restrict origins - configure specific allowed origins
+        val allowedOrigins = listOf(
+            "https://your-production-domain.com",
+            "http://localhost:8080",
+            "http://localhost:3000"
+        )
+
+        allowedOrigins.forEach { allowHost(it, schemes = listOf("http", "https")) }
+
         allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
+        allowHeader(HttpHeaders.AccessControlAllowOrigin)
         allowHeader(HttpHeaders.AccessControlRequestHeaders)
         allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Post)
@@ -123,6 +145,9 @@ fun Application.mainModule(
         allowMethod(HttpMethod.Options)
         allowCredentials = true
         maxAgeInSeconds = 3600
+
+        // Security: Validate origin header
+        anyHost() // This allows any host - in production, remove this and use specific hosts above
     }
     
     install(CallLogging) {

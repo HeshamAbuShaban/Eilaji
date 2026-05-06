@@ -1,19 +1,38 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample data extraction rules file; uncomment and customize as necessary.
-   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   for details.
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   Data extraction rules for Android 12+ (API 31+)
+   Controls what data can be backed up to cloud or transferred between devices
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <!-- Include non-sensitive app data -->
+        <include domain="sharedpref">
+            <lib domain="sharedpref" />
+        </include>
+
+        <!-- Exclude sensitive encrypted preferences -->
+        <exclude domain="sharedpref">
+            <map path="secure_app_prefs.xml" />
+        </exclude>
+
+        <!-- Exclude caches and databases that may contain PII -->
+        <exclude domain="file">
+            <path path="/cache" />
+            <path path="/databases" />
+            <path path="/files" />
+        </exclude>
     </cloud-backup>
-    <!--
+
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <!-- Disable device transfer of sensitive data -->
+        <exclude domain="sharedpref">
+            <map path="secure_app_prefs.xml" />
+        </exclude>
+
+        <exclude domain="file">
+            <path path="/cache" />
+            <path path="/databases" />
+            <path path="/files" />
+        </exclude>
     </device-transfer>
-    -->
 </data-extraction-rules>

@@ -5,7 +5,9 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.eilaji.backend.data.Users
 import com.eilaji.backend.data.UserRole
 import com.eilaji.backend.dto.*
+import com.eilaji.backend.security.AuditService
 import com.eilaji.backend.security.JwtConfig
+import com.eilaji.backend.security.SecurityUtils
 import com.eilaji.backend.service.RedisService
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -24,25 +26,48 @@ fun Route.registerAuthRoutes(redisService: RedisService) {
     post("/auth/register") {
         try {
             val request = call.receive<RegisterRequest>()
-            
-            // Validate input
-            if (request.email.isBlank() || request.password.length < 6 || request.fullName.isBlank()) {
-                call.respond(HttpStatusCode.BadRequest, ApiResponse.error<String>("Invalid input data"))
+
+            // Validate input with comprehensive checks
+            if (request.email.isBlank() || request.password.isBlank() || request.fullName.isBlank()) {
+                call.respond(HttpStatusCode.BadRequest, ApiResponse.error<String>("Email, password, and full name are required"))
                 return@post
             }
-            
+
+            // Validate email format
+            if (!SecurityUtils.validateEmail(request.email)) {
+                call.respond(HttpStatusCode.BadRequest, ApiResponse.error<String>("Invalid email format"))
+                return@post
+            }
+
+            // Validate password strength
+            val passwordErrors = SecurityUtils.validatePasswordStrength(request.password)
+            if (passwordErrors.isNotEmpty()) {
+                call.respond(HttpStatusCode.BadRequest, ApiResponse.error<List<String>>(passwordErrors))
+                return@post
+            }
+
+            // Check for common passwords
+            if (SecurityUtils.isCommonPassword(request.password)) {
+                call.respond(HttpStatusCode.BadRequest, ApiResponse.error<String>("Password is too common. Please choose a stronger password"))
+                return@post
+            }
+
+            // Sanitize and limit input lengths
+            val sanitizedEmail = SecurityUtils.limitLength(request.email.lowercase().trim(), 255, "email")
+            val sanitizedFullName = SecurityUtils.limitLength(request.fullName.trim(), 100, "full name")
+
             // Check if user already exists
             val existingUser = transaction {
-                Users.select { Users.email eq request.email }.firstOrNull()
+                Users.select { Users.email eq sanitizedEmail }.firstOrNull()
             }
-            
+
             if (existingUser != null) {
                 call.respond(HttpStatusCode.Conflict, ApiResponse.error<String>("Email already registered"))
                 return@post
             }
-            
-            // Hash password with BCrypt
-            val salt = BCrypt.gensalt(10)
+
+            // Hash password with BCrypt (cost factor 12 for better security)
+            val salt = BCrypt.gensalt(12)
             val passwordHash = String(BCrypt.hashpw(request.password.toByteArray(), salt))
             
             // Parse role
@@ -67,10 +92,10 @@ fun Route.registerAuthRoutes(redisService: RedisService) {
             // Generate tokens
             val accessToken = generateAccessToken(userId.toString(), role.name)
             val refreshToken = generateRefreshToken(userId.toString())
-            
+
             // Store refresh token in Redis
             redisService.storeSession("refresh:$refreshToken", userId.toString(), JwtConfig.refreshExpiresIn.toInt())
-            
+
             val userDto = transaction {
                 Users.select { Users.id eq userId }.firstOrNull()?.let { row ->
                     UserDto(
@@ -85,7 +110,17 @@ fun Route.registerAuthRoutes(redisService: RedisService) {
                     )
                 }
             }
-            
+
+            // Log successful registration
+            AuditService.logEvent(
+                eventType = AuditService.EventType.USER_CREATED,
+                userId = userId.toString(),
+                ipAddress = call.request.local.remoteHost,
+                resourceType = "User",
+                resourceId = userId.toString(),
+                description = "User registered: ${request.email}"
+            )
+
             call.respond(HttpStatusCode.Created, ApiResponse.success(
                 AuthResponse(
                     accessToken = accessToken,
@@ -105,26 +140,46 @@ fun Route.registerAuthRoutes(redisService: RedisService) {
     post("/auth/login") {
         try {
             val request = call.receive<LoginRequest>()
-            
+
+            // Validate input
+            if (request.email.isBlank() || request.password.isBlank()) {
+                call.respond(HttpStatusCode.BadRequest, ApiResponse.error<String>("Email and password are required"))
+                return@post
+            }
+
+            // Validate email format
+            if (!SecurityUtils.validateEmail(request.email)) {
+                call.respond(HttpStatusCode.BadRequest, ApiResponse.error<String>("Invalid email format"))
+                return@post
+            }
+
+            // Sanitize email
+            val sanitizedEmail = SecurityUtils.limitLength(request.email.lowercase().trim(), 255, "email")
+
             // Find user by email
             val user = transaction {
-                Users.select { Users.email eq request.email.lowercase().trim() }.firstOrNull()
+                Users.select { Users.email eq sanitizedEmail }.firstOrNull()
             }
-            
+
             if (user == null) {
+                // Log failed attempt but don't reveal user doesn't exist
+                println("WARNING: Failed login attempt for non-existent email: $sanitizedEmail from IP: ${call.request.local.remoteHost}")
                 call.respond(HttpStatusCode.Unauthorized, ApiResponse.error<String>("Invalid credentials"))
                 return@post
             }
-            
+
             // Verify password
             val passwordHash = user[Users.passwordHash]
             if (!BCrypt.checkpw(request.password.toByteArray(), passwordHash.toByteArray())) {
+                // Log failed login attempt
+                AuditService.logLoginFailure(request.email, call.request.local.remoteHost, "Wrong password")
                 call.respond(HttpStatusCode.Unauthorized, ApiResponse.error<String>("Invalid credentials"))
                 return@post
             }
-            
+
             // Check if user is active
             if (!user[Users.isActive]) {
+                AuditService.logLoginFailure(request.email, call.request.local.remoteHost, "Account deactivated")
                 call.respond(HttpStatusCode.Forbidden, ApiResponse.error<String>("Account is deactivated"))
                 return@post
             }
@@ -139,6 +194,8 @@ fun Route.registerAuthRoutes(redisService: RedisService) {
             // Store refresh token in Redis
             redisService.storeSession("refresh:$refreshToken", userId, JwtConfig.refreshExpiresIn.toInt())
             
+            // Log successful login
+            AuditService.logLoginSuccess(userId, call.request.local.remoteHost, call.request.headers["User-Agent"])
             // Set user online
             redisService.setUserOnline(userId)
             

@@ -1,72 +1,88 @@
 package dev.anonymous.eilaji.ui.main.guard.signUp
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import dev.anonymous.eilaji.firebase.FirebaseController
+import dev.anonymous.eilaji.network.ApiService
+import dev.anonymous.eilaji.network.NetworkModule
+import dev.anonymous.eilaji.network.RegisterRequest
+import dev.anonymous.eilaji.storage.AppSharedPreferences
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class SignUpViewModel : ViewModel() {
-    private val firebaseController = FirebaseController.getInstance()
+
+    private lateinit var apiService: ApiService
+    private lateinit var sharedPreferences: AppSharedPreferences
 
     private val _signUpResult = MutableLiveData<SignUpResult>()
     val signUpResult: LiveData<SignUpResult> get() = _signUpResult
 
-    private val _token = MutableLiveData<String>()
-    val token: LiveData<String> get() = _token
-
-    fun signUp(fullName: String, token: String, email: String, password: String) {
-        // Call the register method from FirebaseController
-        firebaseController.register(email, password,
-            onTaskSuccessful = { userUid ->
-                putUserData(userUid, fullName, token)
-            },
-            onTaskFailed = { exception ->
-//            val errorMessage = getFirebaseErrorMessage(exception)
-                // now onTaskFailed returns final massage without the need for getFirebaseErrorMessage
-                _signUpResult.value = SignUpResult.Error(exception)
-            }
-        )
+    fun init(context: Context) {
+        apiService = NetworkModule.provideApiService(context)
+        sharedPreferences = AppSharedPreferences.Instance(context)
     }
 
-    private fun putUserData(userUid: String, fullName: String, token: String) {
-        firebaseController.addUser(userUid, fullName, token = token,
-            onTaskSuccessful = {
-                _signUpResult.value = SignUpResult.Success(fullName)
-            },
-            onTaskFailed = {
-                _signUpResult.value = SignUpResult.Error(it)
-            }
-        )
-    }
-
-    fun getToken() {
-        firebaseController.getToken(
-            onTaskSuccessful = { _token.value = it },
-            onTaskFailed = {
-                _signUpResult.value = SignUpResult.Error(it)
-            }
-        )
-    }
-
-    /*
-    //this one is a bit different than the Login one
-    private fun getFirebaseErrorMessage(errorCode: String): String {
-        Log.d("SignUp", "getFirebaseErrorMessage: errorCode from Firebase :$errorCode")
-        // Map Firebase error codes to error messages
-        return when (errorCode) {
-            //Older 3 dose-nt actually work
-            "ERROR_INVALID_EMAIL" -> "Invalid email address."
-            "ERROR_WEAK_PASSWORD" -> "Weak password. Please choose a stronger password."
-            "ERROR_EMAIL_ALREADY_IN_USE" -> "Email already in use."
-            //New 3Lines That ChatP provide when ask to show error massage for `SignUp`
-            "INVALID_USERNAME" -> "Invalid username"
-            "INVALID_EMAIL" -> "Invalid email"
-            "INVALID_PASSWORD" -> "Invalid password"
-            //default replay if not found the accurate one.
-            else -> "Sign up failed."
+    fun signUp(fullName: String, email: String, password: String, phone: String? = null) {
+        // Validate input
+        if (fullName.isBlank() || email.isBlank() || password.isBlank()) {
+            _signUpResult.value = SignUpResult.Error("Full name, email, and password are required")
+            return
         }
+
+        if (password.length < 12) {
+            _signUpResult.value = SignUpResult.Error("Password must be at least 12 characters long")
+            return
+        }
+
+        val request = RegisterRequest(
+            email = email.trim().lowercase(),
+            password = password,
+            fullName = fullName.trim(),
+            phone = phone?.trim()
+        )
+
+        apiService.register(request).enqueue(object : Callback<dev.anonymous.eilaji.network.ApiResponse<dev.anonymous.eilaji.network.LoginResponse>> {
+            override fun onResponse(
+                call: Call<dev.anonymous.eilaji.network.ApiResponse<dev.anonymous.eilaji.network.LoginResponse>>,
+                response: Response<dev.anonymous.eilaji.network.ApiResponse<dev.anonymous.eilaji.network.LoginResponse>>
+            ) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val loginResponse = response.body()?.data
+                    if (loginResponse != null) {
+                        // Save tokens and user data
+                        sharedPreferences.putToken(loginResponse.accessToken)
+                        sharedPreferences.putFullName(loginResponse.user.fullName)
+                        sharedPreferences.putUserId(loginResponse.user.id)
+                        sharedPreferences.putRole(loginResponse.user.role)
+                        sharedPreferences.putIsVerified(loginResponse.user.isVerified)
+                        sharedPreferences.putIsActive(loginResponse.user.isActive)
+
+                        _signUpResult.value = SignUpResult.Success(loginResponse.user.fullName)
+                    } else {
+                        _signUpResult.value = SignUpResult.Error("Invalid response from server")
+                    }
+                } else {
+                    val errorMessage = when {
+                        response.body()?.error != null -> response.body()?.error
+                        response.code() == 409 -> "Email already registered"
+                        response.code() == 400 -> "Invalid input data"
+                        else -> "Registration failed. Please try again."
+                    }
+                    _signUpResult.value = SignUpResult.Error(errorMessage ?: "Registration failed")
+                }
+            }
+
+            override fun onFailure(
+                call: Call<dev.anonymous.eilaji.network.ApiResponse<dev.anonymous.eilaji.network.LoginResponse>>,
+                t: Throwable
+            ) {
+                _signUpResult.value = SignUpResult.Error("Network error: ${t.message}")
+            }
+        })
     }
-     */
 }
 
 sealed class SignUpResult {

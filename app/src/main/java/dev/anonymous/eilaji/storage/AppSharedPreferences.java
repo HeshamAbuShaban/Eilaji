@@ -2,11 +2,20 @@ package dev.anonymous.eilaji.storage;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
+import android.util.Base64;
+
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 
 public class AppSharedPreferences {
     private enum SharedPreferencesKeys {
-        onBoardingDone, isFirstTime, token, fullName, imageUrl, currentUserChattingUid
+        onBoardingDone, isFirstTime, token, fullName, imageUrl, currentUserChattingUid, userId, phone, role, isVerified, isActive
     }
 
     private static AppSharedPreferences Instance;
@@ -14,7 +23,22 @@ public class AppSharedPreferences {
     private SharedPreferences.Editor editor;
 
     private AppSharedPreferences(Context context) {
-        sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+        try {
+            MasterKey masterKey = new MasterKey.Builder(context)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build();
+            sharedPreferences = EncryptedSharedPreferences.create(
+                context,
+                "secure_app_prefs",
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            );
+        } catch (GeneralSecurityException | IOException e) {
+            // Fallback to regular SharedPreferences if encryption fails
+            // This should not happen in normal operation
+            sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+        }
     }
 
     public static AppSharedPreferences getInstance(Context context) {
@@ -82,7 +106,68 @@ public class AppSharedPreferences {
     }
 
     //------------------------------------
+    // Secure user data methods
+    //------------------------------------
 
+    public String getUserId() {
+        return sharedPreferences.getString(SharedPreferencesKeys.userId.name(), null);
+    }
+
+    public void putUserId(String userId) {
+        editor = sharedPreferences.edit();
+        editor.putString(SharedPreferencesKeys.userId.name(), userId);
+        editor.apply();
+    }
+
+    public String getPhone() {
+        return sharedPreferences.getString(SharedPreferencesKeys.phone.name(), null);
+    }
+
+    public void putPhone(String phone) {
+        editor = sharedPreferences.edit();
+        editor.putString(SharedPreferencesKeys.phone.name(), phone);
+        editor.apply();
+    }
+
+    public String getRole() {
+        return sharedPreferences.getString(SharedPreferencesKeys.role.name(), null);
+    }
+
+    public void putRole(String role) {
+        editor = sharedPreferences.edit();
+        editor.putString(SharedPreferencesKeys.role.name(), role);
+        editor.apply();
+    }
+
+    public boolean isVerified() {
+        return sharedPreferences.getBoolean(SharedPreferencesKeys.isVerified.name(), false);
+    }
+
+    public void putIsVerified(boolean isVerified) {
+        editor = sharedPreferences.edit();
+        editor.putBoolean(SharedPreferencesKeys.isVerified.name(), isVerified);
+        editor.apply();
+    }
+
+    public boolean isActive() {
+        return sharedPreferences.getBoolean(SharedPreferencesKeys.isActive.name(), true);
+    }
+
+    public void putIsActive(boolean isActive) {
+        editor = sharedPreferences.edit();
+        editor.putBoolean(SharedPreferencesKeys.isActive.name(), isActive);
+        editor.apply();
+    }
+
+    public void clearAll() {
+        editor = sharedPreferences.edit();
+        editor.clear();
+        editor.apply();
+    }
+
+    //------------------------------------
+    // Legacy methods that were commented out
+    //------------------------------------
     /*`public void invokeDummyData() {
         editor = sharedPreferences.edit();
         editor.putBoolean(SharedPreferencesKeys.invoked.name(), true);

@@ -1,17 +1,13 @@
 package com.eilaji.backend.service
 
-import io.minio.BucketExistsArgs
-import io.minio.MakeBucketArgs
-import io.minio.MinioClient
-import io.minio.PutObjectArgs
-import io.minio.GetObjectArgs
-import io.minio.RemoveObjectArgs
-import io.minio.ListObjectsArgs
+import com.eilaji.backend.security.SecurityUtils
+import io.minio.*
 import io.minio.messages.Item
 import com.typesafe.config.ConfigFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStream
+import java.util.UUID
 
 class MinioService {
     private val config = ConfigFactory.load()
@@ -63,16 +59,37 @@ class MinioService {
         contentType: String = "application/octet-stream"
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
+            // Validate and sanitize inputs
+            if (bucket.isBlank() || objectName.isBlank()) {
+                return@withContext Result.failure(IllegalArgumentException("Bucket and object name cannot be blank"))
+            }
+
+            // Sanitize bucket name
+            if (!bucket.matches(Regex("^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$"))) {
+                return@withContext Result.failure(IllegalArgumentException("Invalid bucket name format"))
+            }
+
+            // Sanitize object name to prevent path traversal
+            val sanitizedObjectName = SecurityUtils.sanitizeFilename(objectName)
+
+            // Validate content type
+            val allowedContentTypes = setOf(
+                "image/jpeg", "image/png", "image/gif", "image/webp",
+                "application/pdf", "text/plain", "application/msword",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            )
+            val safeContentType = if (contentType in allowedContentTypes) contentType else "application/octet-stream"
+
             client.putObject(
                 PutObjectArgs.builder()
                     .bucket(bucket)
-                    .`object`(objectName)
+                    .`object`(sanitizedObjectName)
                     .stream(inputStream, inputStream.available().toLong(), -1)
-                    .contentType(contentType)
+                    .contentType(safeContentType)
                     .build()
             )
-            
-            val fileUrl = "$endpoint/$bucket/$objectName"
+
+            val fileUrl = "$endpoint/$bucket/$sanitizedObjectName"
             Result.success(fileUrl)
         } catch (e: Exception) {
             Result.failure(e)

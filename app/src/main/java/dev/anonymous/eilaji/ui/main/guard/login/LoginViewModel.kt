@@ -1,72 +1,79 @@
 package dev.anonymous.eilaji.ui.main.guard.login
 
 import android.app.Activity
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.google.firebase.auth.FirebaseAuthException
-import dev.anonymous.eilaji.firebase.FirebaseController
-
+import dev.anonymous.eilaji.network.ApiService
+import dev.anonymous.eilaji.network.LoginRequest
+import dev.anonymous.eilaji.network.NetworkModule
+import dev.anonymous.eilaji.storage.AppSharedPreferences
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class LoginViewModel : ViewModel() {
-    private val firebaseController = FirebaseController.getInstance()
+
+    private lateinit var apiService: ApiService
+    private lateinit var sharedPreferences: AppSharedPreferences
 
     private val _loginResult = MutableLiveData<LoginResult>()
     val loginResult: LiveData<LoginResult> get() = _loginResult
 
-    private val _token = MutableLiveData<String>()
-    val token: LiveData<String> get() = _token
-
-    fun login(email: String, password: String, activity: Activity) {
-        firebaseController.login(email, password, activity,
-            onTaskSuccessful = { getUserData(it) },
-            showSnackBar = { task ->
-                val exception = task.exception
-                if (exception is FirebaseAuthException) {
-                    val errorCode = exception.errorCode
-                    val errorMessage = getFirebaseErrorMessage(errorCode)
-                    _loginResult.value = LoginResult.Error(errorMessage)
-                } else {
-                    _loginResult.value = LoginResult.Error("Authentication failed.")
-                }
-            })
+    fun init(context: Context) {
+        apiService = NetworkModule.provideApiService(context)
+        sharedPreferences = AppSharedPreferences.Instance(context)
     }
 
-    private fun getUserData(userUid: String) {
-        firebaseController.getUser(
-            userUid,
-            onTaskSuccessful = { exists, fullName, imageUrl ->
-                if (exists) {
-                    _loginResult.value = LoginResult.Success(
-                        fullName.toString(), imageUrl.toString()
-                    )
-                } else {
-                    _loginResult.value = LoginResult.Error("User not found")
-                }
-            },
-            onTaskFailed = {
-                _loginResult.value = LoginResult.Error(it)
-            }
-        )
-    }
-
-    fun getToken() {
-        firebaseController.getToken(
-            onTaskSuccessful = { _token.value = it },
-            onTaskFailed = {
-                _loginResult.value = LoginResult.Error(it)
-            }
-        )
-    }
-
-    private fun getFirebaseErrorMessage(errorCode: String): String {
-        return when (errorCode) {
-            "ERROR_INVALID_EMAIL" -> "Invalid email address."
-            "ERROR_WRONG_PASSWORD" -> "Incorrect password."
-            "ERROR_USER_NOT_FOUND" -> "User not found."
-            "ERROR_EMAIL_ALREADY_IN_USE" -> "Email already in use."
-            else -> "Authentication failed."
+    fun login(email: String, password: String) {
+        if (email.isBlank() || password.isBlank()) {
+            _loginResult.value = LoginResult.Error("Email and password are required")
+            return
         }
+
+        val request = LoginRequest(email.trim().lowercase(), password)
+
+        apiService.login(request).enqueue(object : Callback<dev.anonymous.eilaji.network.ApiResponse<dev.anonymous.eilaji.network.LoginResponse>> {
+            override fun onResponse(
+                call: Call<dev.anonymous.eilaji.network.ApiResponse<dev.anonymous.eilaji.network.LoginResponse>>,
+                response: Response<dev.anonymous.eilaji.network.ApiResponse<dev.anonymous.eilaji.network.LoginResponse>>
+            ) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val loginResponse = response.body()?.data
+                    if (loginResponse != null) {
+                        // Save tokens and user data
+                        sharedPreferences.putToken(loginResponse.accessToken)
+                        sharedPreferences.putFullName(loginResponse.user.fullName)
+                        sharedPreferences.putUserId(loginResponse.user.id)
+                        sharedPreferences.putRole(loginResponse.user.role)
+                        sharedPreferences.putIsVerified(loginResponse.user.isVerified)
+                        sharedPreferences.putIsActive(loginResponse.user.isActive)
+
+                        _loginResult.value = LoginResult.Success(
+                            loginResponse.user.fullName,
+                            loginResponse.user.imageUrl ?: ""
+                        )
+                    } else {
+                        _loginResult.value = LoginResult.Error("Invalid response from server")
+                    }
+                } else {
+                    val errorMessage = response.body()?.error ?: "Login failed. Please check your credentials."
+                    _loginResult.value = LoginResult.Error(errorMessage)
+                }
+            }
+
+            override fun onFailure(
+                call: Call<dev.anonymous.eilaji.network.ApiResponse<dev.anonymous.eilaji.network.LoginResponse>>,
+                t: Throwable
+            ) {
+                _loginResult.value = LoginResult.Error("Network error: ${t.message}")
+            }
+        })
+    }
+
+    fun logout() {
+        sharedPreferences.clearAll()
     }
 }
 
