@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit
 
 object NetworkModule {
 
-    private const val BASE_URL = "https://your-backend-domain.com/api/v1/"
+    private const val BASE_URL = "http://your-backend-domain.com/api/v1/"
 
     // For development/testing with local server
     private const val DEV_BASE_URL = "http://10.0.2.2:8080/api/v1/" // Android emulator localhost
