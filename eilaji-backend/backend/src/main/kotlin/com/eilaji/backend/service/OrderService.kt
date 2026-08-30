@@ -4,7 +4,6 @@ import com.eilaji.backend.data.*
 import com.eilaji.backend.dto.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.time.Instant
 import java.util.UUID
@@ -13,8 +12,8 @@ class OrderService {
 
     @Serializable
     data class OrderCreateRequest(
-        @Contextual(UuidSerializer::class) val prescriptionId: UUID,
-        @Contextual(UuidSerializer::class) val pharmacyId: UUID,
+        val prescriptionId: UUID,
+        val pharmacyId: UUID,
         val totalAmount: Double,
         val paymentMethod: String? = null,
         val deliveryAddress: String? = null,
@@ -29,10 +28,10 @@ class OrderService {
 
     @Serializable
     data class OrderResult(
-        @Contextual(UuidSerializer::class) val id: UUID,
-        @Contextual(UuidSerializer::class) val prescriptionId: UUID,
+        val id: UUID,
+        val prescriptionId: UUID,
         val patientId: String,
-        @Contextual(UuidSerializer::class) val pharmacyId: UUID,
+        val pharmacyId: UUID,
         val pharmacyName: String?,
         val status: String,
         val totalAmount: Double,
@@ -40,8 +39,8 @@ class OrderService {
         val paymentStatus: String,
         val deliveryAddress: String?,
         val deliveryNotes: String?,
-        @Contextual val createdAt: Instant,
-        @Contextual val updatedAt: Instant
+        val createdAt: Instant,
+        val updatedAt: Instant
     )
 
     fun createOrder(request: OrderCreateRequest, userId: String): OrderResult? {

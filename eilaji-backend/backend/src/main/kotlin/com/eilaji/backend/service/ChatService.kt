@@ -115,7 +115,8 @@ class ChatService {
     fun updateLastMessage(chatId: UUID, message: String, senderId: String, messageType: String = "TEXT", imageUrl: String? = null) {
         val senderUuid = UUID.fromString(senderId)
         transaction {
-            val isPatient = Chats.selectAll().where { Chats.id eq chatId }.first()?[Chats.patientUserId] == senderUuid
+            val chat = Chats.selectAll().where { Chats.id eq chatId }.firstOrNull()
+            val isPatient = chat?[Chats.patientUserId] == senderUuid
             
             Chats.update({ Chats.id eq chatId }) {
                 it[Chats.lastMessageText] = if (messageType == "TEXT") message else null

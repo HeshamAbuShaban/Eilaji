@@ -7,6 +7,8 @@ import com.eilaji.backend.security.JwtConfig
 import com.eilaji.backend.security.SecurityUtils
 import com.eilaji.backend.service.*
 import com.eilaji.backend.controller.registerAuthRoutes
+import com.eilaji.backend.websocket.WebSocketController
+import com.eilaji.backend.websocket.WebSocketSessionManager
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.readRemaining
@@ -63,14 +65,12 @@ fun Route.apiRoutes(
             get {
                 val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
                 val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20
-                val categoryId = call.request.queryParameters["categoryId"]?.let { UUID.fromString(it) }
+                val subcategoryId = call.request.queryParameters["subcategoryId"]?.let { UUID.fromString(it) }
 
                 try {
                     val result = transaction {
-                        val baseQuery = if (categoryId != null) {
-                            Medicines.join(Categories, JoinType.LEFT, Medicines.categoryId, Categories.id)
-                                .selectAll()
-                                .where { Medicines.categoryId eq categoryId }
+                        val baseQuery = if (subcategoryId != null) {
+                            Medicines.selectAll().where { Medicines.subcategoryId eq subcategoryId }
                         } else {
                             Medicines.selectAll()
                         }
@@ -326,14 +326,15 @@ fun Route.apiRoutes(
                     val principal = call.principal<JWTPrincipal>()
                     val userId = principal!!.payload.subject
 
-                        if (!validateUuid(userId)) {
-                         call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
-                         return@get
-                     }
+                    if (!validateUuid(userId)) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
+                        return@get
+                    }
+                    val userUuid = UUID.fromString(userId)
 
                     try {
                         val user = transaction {
-                            Users.selectAll().where { Users.id eq userId }.firstOrNull()?.let { row ->
+                            Users.selectAll().where { Users.id eq userUuid }.firstOrNull()?.let { row ->
                                 UserDto(
                                     id = row[Users.id],
                                     email = row[Users.email],

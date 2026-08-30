@@ -32,17 +32,17 @@ object DatabaseSeeder {
     private fun seedUsers() {
         println("Seeding users...")
         val users = listOf(
-            Triple("test-owner-1", "pharmacist1@eilaji.com", "PHARMACIST"),
-            Triple("test-owner-2", "pharmacist2@eilaji.com", "PHARMACIST"),
-            Triple("test-patient-1", "patient@eilaji.com", "PATIENT"),
-            Triple("test-admin", "admin@eilaji.com", "ADMIN")
+            Triple(UUID.randomUUID().toString(), "pharmacist1@eilaji.com", "PHARMACIST"),
+            Triple(UUID.randomUUID().toString(), "pharmacist2@eilaji.com", "PHARMACIST"),
+            Triple(UUID.randomUUID().toString(), "patient@eilaji.com", "PATIENT"),
+            Triple(UUID.randomUUID().toString(), "admin@eilaji.com", "ADMIN")
         )
         users.forEach { (id, email, role) ->
             Users.insert {
-                it[Users.id] = id
+                it[Users.id] = UUID.fromString(id)
                 it[Users.email] = email
                 it[Users.passwordHash] = BCrypt.hashpw("password123", BCrypt.gensalt())
-                it[Users.fullName] = "Test User ${id}"
+                it[Users.fullName] = "Test User $id"
                 it[Users.role] = role
                 it[Users.isVerified] = true
                 it[Users.isActive] = true
@@ -98,8 +98,8 @@ object DatabaseSeeder {
             Medicines.insert {
                 it[titleEn] = "Paracetamol 500mg"
                 it[titleAr] = "باراسيتامول 500مجم"
-                it[description] = "Pain reliever and fever reducer"
-                it[categoryId] = firstCategoryId
+                it[descriptionEn] = "Pain reliever and fever reducer"
+                it[subcategoryId] = firstCategoryId
                 it[manufacturer] = "PharmaCorp"
                 it[requiresPrescription] = false
                 it[price] = 5.99.toBigDecimal()
@@ -109,8 +109,8 @@ object DatabaseSeeder {
             Medicines.insert {
                 it[titleEn] = "Ibuprofen 400mg"
                 it[titleAr] = "إيبوبروفين 400مجم"
-                it[description] = "Anti-inflammatory pain reliever"
-                it[categoryId] = firstCategoryId
+                it[descriptionEn] = "Anti-inflammatory pain reliever"
+                it[subcategoryId] = firstCategoryId
                 it[manufacturer] = "MedLife"
                 it[requiresPrescription] = false
                 it[price] = 8.50.toBigDecimal()
@@ -122,9 +122,12 @@ object DatabaseSeeder {
 
     private fun seedPharmacies() {
         println("Seeding pharmacies...")
+        // Get a pharmacist user to use as owner
+        val pharmacistId = Users.selectAll().where { Users.role eq "PHARMACIST" }.first()?[Users.id] ?: UUID.randomUUID()
+        
         val pharmacyIds = listOf(
             Pharmacies.insert {
-                it[ownerId] = "test-owner-1"
+                it[ownerUserId] = pharmacistId
                 it[name] = "Al-Shifa Pharmacy"
                 it[address] = "123 Main St, Damascus"
                 it[city] = "Damascus"
@@ -138,7 +141,7 @@ object DatabaseSeeder {
             } get Pharmacies.id,
 
             Pharmacies.insert {
-                it[ownerId] = "test-owner-2"
+                it[ownerUserId] = pharmacistId
                 it[name] = "Al-Hayat Pharmacy"
                 it[address] = "456 Oak Ave, Aleppo"
                 it[city] = "Aleppo"

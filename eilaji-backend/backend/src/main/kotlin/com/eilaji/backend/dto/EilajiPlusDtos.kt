@@ -3,10 +3,11 @@ package com.eilaji.backend.dto
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Contextual
 import java.time.Instant
+import java.util.UUID
 
 @Serializable
 data class EilajiPlusPrescriptionRequest(
-    val prescriptionId: Int,
+    val prescriptionId: UUID,
     val userId: String,
     val imageUrl: String,
     val notes: String?,
@@ -32,11 +33,11 @@ data class EilajiPlusWebhookRequest(
 
 @Serializable
 data class CreateChatRequest(
-    val prescriptionId: Int? = null,
-    val pharmacyId: Int? = null
+    val prescriptionId: UUID? = null,
+    val pharmacyId: UUID? = null
 )
 
 @Serializable
 data class MarkAsReadRequest(
-    val lastReadMessageId: Long? = null
+    val lastReadMessageId: UUID? = null
 )

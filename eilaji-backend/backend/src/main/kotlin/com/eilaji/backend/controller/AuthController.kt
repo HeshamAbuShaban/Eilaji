@@ -69,7 +69,7 @@ fun Route.registerAuthRoutes(redisService: RedisService) {
 
             val userId = transaction {
                 Users.insert {
-                    it[Users.id] = UUID.randomUUID().toString()
+                    it[Users.id] = UUID.randomUUID()
                     it[Users.email] = request.email.lowercase().trim()
                     it[Users.passwordHash] = passwordHash
                     it[Users.fullName] = request.fullName.trim()
@@ -95,8 +95,8 @@ fun Route.registerAuthRoutes(redisService: RedisService) {
                 createdAt = user[Users.createdAt].toString()
             )
 
-            val token = JwtConfig.createJWT(userDto.id, userDto.fullName, userDto.role, userDto.email)
-            val refreshToken = JwtConfig.createRefreshToken(userDto.id)
+            val token = JwtConfig.createJWT(userDto.id.toString(), userDto.fullName, userDto.role, userDto.email)
+            val refreshToken = JwtConfig.createRefreshToken(userDto.id.toString())
 
             AuditService.logEvent(
                 eventType = AuditService.EventType.USER_CREATED,
@@ -163,8 +163,8 @@ fun Route.registerAuthRoutes(redisService: RedisService) {
                 createdAt = user[Users.createdAt].toString()
             )
 
-            val token = JwtConfig.createJWT(userDto.id, userDto.fullName, userDto.role, userDto.email)
-            val refreshToken = JwtConfig.createRefreshToken(userDto.id)
+            val token = JwtConfig.createJWT(userDto.id.toString(), userDto.fullName, userDto.role, userDto.email)
+            val refreshToken = JwtConfig.createRefreshToken(userDto.id.toString())
 
             AuditService.logLoginSuccess(
                 userId = userDto.id,

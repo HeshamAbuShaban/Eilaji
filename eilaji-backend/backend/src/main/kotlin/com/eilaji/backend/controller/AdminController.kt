@@ -11,6 +11,7 @@ import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
+import java.util.UUID
 
 fun Route.adminRoutes() {
     route("/admin") {
@@ -37,7 +38,7 @@ fun Route.adminRoutes() {
 
                         query.orderBy(Users.createdAt, SortOrder.DESC).map { row ->
                             mapOf(
-                                "id" to row[Users.id],
+                                "id" to row[Users.id].toString(),
                                 "email" to row[Users.email],
                                 "fullName" to row[Users.fullName],
                                 "phone" to row[Users.phone],
@@ -61,7 +62,8 @@ fun Route.adminRoutes() {
                     return@put
                 }
 
-                val userId = call.parameters["id"]
+                val userIdStr = call.parameters["id"]
+                val userId = userIdStr?.let { UUID.fromString(it) }
                 if (userId == null) {
                     call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "User ID required"))
                     return@put
@@ -75,10 +77,11 @@ fun Route.adminRoutes() {
                         } else {
                             Users.update({ Users.id eq userId }) {
                                 it[Users.updatedAt] = Instant.now()
+                                it[Users.isVerified] = true
                             }
                             Users.selectAll().where { Users.id eq userId }.firstOrNull()?.let { row ->
                                 mapOf(
-                                    "id" to row[Users.id],
+                                    "id" to row[Users.id].toString(),
                                     "email" to row[Users.email],
                                     "fullName" to row[Users.fullName],
                                     "role" to row[Users.role],
@@ -119,9 +122,9 @@ fun Route.adminRoutes() {
 
                         query.orderBy(Prescriptions.createdAt, SortOrder.DESC).map { row ->
                             mapOf(
-                                "id" to row[Prescriptions.id],
-                                "userId" to row[Prescriptions.userId],
-                                "pharmacyId" to row[Prescriptions.pharmacyId],
+                                "id" to row[Prescriptions.id].toString(),
+                                "userId" to row[Prescriptions.patientUserId].toString(),
+                                "pharmacyId" to row[Prescriptions.selectedPharmacyId]?.toString(),
                                 "imageUrl" to row[Prescriptions.imageUrl],
                                 "status" to row[Prescriptions.status],
                                 "quotedPrice" to row[Prescriptions.quotedPrice]?.toDouble(),
