@@ -81,11 +81,14 @@ class MinioService {
             )
             val safeContentType = if (contentType in allowedContentTypes) contentType else "application/octet-stream"
 
+            // Read stream to byte array first to get size
+            val bytes = inputStream.readAllBytes()
+
             client.putObject(
                 PutObjectArgs.builder()
                     .bucket(bucket)
                     .`object`(sanitizedObjectName)
-                    .stream(inputStream, inputStream.available().toLong(), -1)
+                    .stream(java.io.ByteArrayInputStream(bytes), bytes.size.toLong(), -1)
                     .contentType(safeContentType)
                     .build()
             )

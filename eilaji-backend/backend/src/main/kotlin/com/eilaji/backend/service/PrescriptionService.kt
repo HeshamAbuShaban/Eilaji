@@ -6,17 +6,19 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
+import java.util.UUID
 
 class PrescriptionService(
     private val minioService: MinioService,
-    private val eilajiPlusService: EilajiPlusService? = null,
+    private val eilajiDoctorService: EilajiPlusService? = null,
 ) {
 
-    fun createPrescription(userId: String, notes: String?, pharmacyId: Int?, imageUrl: String): PrescriptionDto {
+    fun createPrescription(userId: String, notes: String?, pharmacyId: UUID?, imageUrl: String): PrescriptionDto {
+        val userUuid = UUID.fromString(userId)
         return transaction {
             val prescriptionId = Prescriptions.insert {
-                it[Prescriptions.userId] = userId
-                it[Prescriptions.pharmacyId] = pharmacyId
+                it[Prescriptions.patientUserId] = userUuid
+                it[Prescriptions.selectedPharmacyId] = pharmacyId
                 it[Prescriptions.imageUrl] = imageUrl
                 it[Prescriptions.notes] = notes
                 it[Prescriptions.status] = "PENDING"
@@ -29,15 +31,16 @@ class PrescriptionService(
     }
 
     fun getPrescriptionsForUser(userId: String, status: String? = null, page: Int = 0, pageSize: Int = 20): PaginatedResult<PrescriptionDto> {
+        val userUuid = UUID.fromString(userId)
         return transaction {
             val baseQuery = if (status != null) {
-                Prescriptions.join(Pharmacies, JoinType.LEFT, Prescriptions.pharmacyId, Pharmacies.id)
+                Prescriptions.join(Pharmacies, JoinType.LEFT, Prescriptions.selectedPharmacyId, Pharmacies.id)
                     .selectAll()
-                    .where { (Prescriptions.userId eq userId) and (Prescriptions.status eq status) }
+                    .where { (Prescriptions.patientUserId eq userUuid) and (Prescriptions.status eq status) }
             } else {
-                Prescriptions.join(Pharmacies, JoinType.LEFT, Prescriptions.pharmacyId, Pharmacies.id)
+                Prescriptions.join(Pharmacies, JoinType.LEFT, Prescriptions.selectedPharmacyId, Pharmacies.id)
                     .selectAll()
-                    .where { Prescriptions.userId eq userId }
+                    .where { Prescriptions.patientUserId eq userUuid }
             }
 
             val total = baseQuery.count()
@@ -57,13 +60,13 @@ class PrescriptionService(
         }
     }
 
-    fun getPrescriptionById(prescriptionId: Int): PrescriptionDto? {
+    fun getPrescriptionById(prescriptionId: UUID): PrescriptionDto? {
         return transaction {
             getPrescriptionDtoById(prescriptionId)
         }
     }
 
-    fun updatePrescriptionStatus(prescriptionId: Int, status: String, quotedPrice: Double? = null,
+    fun updatePrescriptionStatus(prescriptionId: UUID, status: String, quotedPrice: Double? = null,
                                  pharmacistNotes: String? = null): PrescriptionDto? {
         return transaction {
             Prescriptions.update({ Prescriptions.id eq prescriptionId }) {
@@ -81,12 +84,13 @@ class PrescriptionService(
         }
     }
 
-    fun deletePrescription(prescriptionId: Int, userId: String): Boolean {
+    fun deletePrescription(prescriptionId: UUID, userId: String): Boolean {
+        val userUuid = UUID.fromString(userId)
         return transaction {
             val prescription = Prescriptions.selectAll().where { Prescriptions.id eq prescriptionId }.firstOrNull()
                 ?: return@transaction false
 
-            if (prescription[Prescriptions.userId] != userId) {
+            if (prescription[Prescriptions.patientUserId] != userUuid) {
                 return@transaction false
             }
 
@@ -95,8 +99,8 @@ class PrescriptionService(
         }
     }
 
-    private fun getPrescriptionDtoById(prescriptionId: Int): PrescriptionDto? {
-        return Prescriptions.join(Pharmacies, JoinType.LEFT, Prescriptions.pharmacyId, Pharmacies.id)
+    private fun getPrescriptionDtoById(prescriptionId: UUID): PrescriptionDto? {
+        return Prescriptions.join(Pharmacies, JoinType.LEFT, Prescriptions.selectedPharmacyId, Pharmacies.id)
             .selectAll()
             .where { Prescriptions.id eq prescriptionId }
             .map { row -> mapRowToPrescriptionDto(row) }
@@ -106,16 +110,16 @@ class PrescriptionService(
     private fun mapRowToPrescriptionDto(row: ResultRow): PrescriptionDto {
         return PrescriptionDto(
             id = row[Prescriptions.id],
-            userId = row[Prescriptions.userId],
-            pharmacyId = row[Prescriptions.pharmacyId],
+            userId = row[Prescriptions.patientUserId].toString(),
+            pharmacyId = row[Prescriptions.selectedPharmacyId],
             pharmacyName = row.getOrNull(Pharmacies.name),
             imageUrl = row[Prescriptions.imageUrl],
             notes = row[Prescriptions.notes],
             status = row[Prescriptions.status],
             quotedPrice = row[Prescriptions.quotedPrice]?.toDouble(),
             pharmacistNotes = row[Prescriptions.pharmacistNotes],
-            eilajiPlusRef = row[Prescriptions.eilajiPlusRef],
-            eilajiPlusStatus = row[Prescriptions.eilajiPlusStatus],
+            eilajiPlusRef = row[Prescriptions.eilajiDoctorPrescriptionId]?.toString(),
+            eilajiPlusStatus = row[Prescriptions.sentToEilajiDoctor]?.toString(),
             createdAt = row[Prescriptions.createdAt].toString(),
             updatedAt = row[Prescriptions.updatedAt].toString()
         )

@@ -12,6 +12,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 class WebSocketSessionManager(
@@ -27,7 +28,7 @@ class WebSocketSessionManager(
     private val userSessions = ConcurrentHashMap<String, MutableSet<DefaultWebSocketServerSession>>()
     
     // Map of chatId to subscribed user IDs
-    private val chatSubscribers = ConcurrentHashMap<Long, MutableSet<String>>()
+    private val chatSubscribers = ConcurrentHashMap<UUID, MutableSet<String>>()
     
     // Mutex for thread-safe operations
     private val sessionMutex = Mutex()
@@ -67,14 +68,14 @@ class WebSocketSessionManager(
         }
     }
     
-    suspend fun joinChat(userId: String, chatId: Long) {
+    suspend fun joinChat(userId: String, chatId: UUID) {
         sessionMutex.withLock {
             chatSubscribers.computeIfAbsent(chatId) { ConcurrentHashMap.newKeySet() }.add(userId)
             logger.info("User $userId joined chat $chatId")
         }
     }
     
-    suspend fun leaveChat(userId: String, chatId: Long) {
+    suspend fun leaveChat(userId: String, chatId: UUID) {
         sessionMutex.withLock {
             chatSubscribers[chatId]?.remove(userId)
             if (chatSubscribers[chatId].isNullOrEmpty()) {
@@ -84,7 +85,7 @@ class WebSocketSessionManager(
         }
     }
     
-    suspend fun sendMessage(userId: String, chatId: Long, content: String, messageType: String = "TEXT", attachmentUrl: String? = null): MessageDto? {
+    suspend fun sendMessage(userId: String, chatId: UUID, content: String, messageType: String = "TEXT", attachmentUrl: String? = null): MessageDto? {
         return try {
             // Save message to database
             val message = messageService.sendMessage(chatId, userId, content, messageType, attachmentUrl)
@@ -107,7 +108,7 @@ class WebSocketSessionManager(
         }
     }
     
-    suspend fun markAsRead(userId: String, chatId: Long, messageIds: List<Long>? = null) {
+    suspend fun markAsRead(userId: String, chatId: UUID, messageIds: List<UUID>? = null) {
         try {
             if (messageIds != null) {
                 messageIds.forEach { messageId ->
@@ -122,7 +123,7 @@ class WebSocketSessionManager(
                 type = "READ",
                 chatId = chatId,
                 userId = userId,
-                timestamp = java.time.Instant.now().toString().toString().toString().toString()
+                timestamp = java.time.Instant.now().toString()
             )
 
             broadcastToChat(chatId, wsMessage)
@@ -131,7 +132,7 @@ class WebSocketSessionManager(
         }
     }
     
-    private suspend fun broadcastToChat(chatId: Long, message: WebSocketMessage) {
+    private suspend fun broadcastToChat(chatId: UUID, message: WebSocketMessage) {
         sessionMutex.withLock {
             val subscribers = chatSubscribers[chatId] ?: return
             val json = Json.encodeToString(WebSocketMessage.serializer(), message)

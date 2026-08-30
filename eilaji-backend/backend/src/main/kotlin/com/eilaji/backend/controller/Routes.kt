@@ -63,7 +63,7 @@ fun Route.apiRoutes(
             get {
                 val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
                 val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20
-                val categoryId = call.request.queryParameters["categoryId"]?.toIntOrNull()
+                val categoryId = call.request.queryParameters["categoryId"]?.let { UUID.fromString(it) }
 
                 try {
                     val result = transaction {
@@ -84,8 +84,8 @@ fun Route.apiRoutes(
                                     id = row[Medicines.id],
                                     titleEn = row[Medicines.titleEn],
                                     titleAr = row[Medicines.titleAr],
-                                    descriptionAr = null,
-                                    descriptionEn = row[Medicines.description],
+                                    descriptionAr = row[Medicines.descriptionAr],
+                                    descriptionEn = row[Medicines.descriptionEn],
                                     imageUrl = row[Medicines.imageUrl],
                                     price = row[Medicines.price]?.toDouble(),
                                     manufacturer = row[Medicines.manufacturer],
@@ -101,7 +101,7 @@ fun Route.apiRoutes(
                             total = total,
                             page = page,
                             pageSize = pageSize,
-                            totalPages = ((total + pageSize - 1) / pageSize).toInt()
+                            totalPages = if (total > 0) ((total + pageSize - 1) / pageSize).toInt() else 0
                         )
                     }
                     call.respond(ApiResponse(success = true, data = result))
@@ -126,7 +126,8 @@ fun Route.apiRoutes(
                         val baseQuery = Medicines.selectAll().where {
                             Medicines.titleEn.like(searchPattern) or
                             Medicines.titleAr.like(searchPattern) or
-                            (Medicines.description like searchPattern) or
+                            (Medicines.descriptionEn like searchPattern) or
+                            (Medicines.descriptionAr like searchPattern) or
                             (Medicines.manufacturer like searchPattern)
                         }
 
@@ -139,8 +140,8 @@ fun Route.apiRoutes(
                                     id = row[Medicines.id],
                                     titleEn = row[Medicines.titleEn],
                                     titleAr = row[Medicines.titleAr],
-                                    descriptionAr = null,
-                                    descriptionEn = row[Medicines.description],
+                                    descriptionAr = row[Medicines.descriptionAr],
+                                    descriptionEn = row[Medicines.descriptionEn],
                                     imageUrl = row[Medicines.imageUrl],
                                     price = row[Medicines.price]?.toDouble(),
                                     manufacturer = row[Medicines.manufacturer],
@@ -156,7 +157,7 @@ fun Route.apiRoutes(
                             total = total,
                             page = page,
                             pageSize = pageSize,
-                            totalPages = ((total + pageSize - 1) / pageSize).toInt()
+                            totalPages = if (total > 0) ((total + pageSize - 1) / pageSize).toInt() else 0
                         )
                     }
                     call.respond(ApiResponse(success = true, data = result))
@@ -166,7 +167,8 @@ fun Route.apiRoutes(
             }
 
             get("/{id}") {
-                val id = call.parameters["id"]?.toIntOrNull()
+                val idStr = call.parameters["id"]
+                val id = idStr?.let { UUID.fromString(it) }
                 if (id == null) {
                     call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid ID"))
                     return@get
@@ -180,8 +182,8 @@ fun Route.apiRoutes(
                                     id = row[Medicines.id],
                                     titleEn = row[Medicines.titleEn],
                                     titleAr = row[Medicines.titleAr],
-                                    descriptionAr = null,
-                                    descriptionEn = row[Medicines.description],
+                                    descriptionAr = row[Medicines.descriptionAr],
+                                    descriptionEn = row[Medicines.descriptionEn],
                                     imageUrl = row[Medicines.imageUrl],
                                     price = row[Medicines.price]?.toDouble(),
                                     manufacturer = row[Medicines.manufacturer],
@@ -193,11 +195,11 @@ fun Route.apiRoutes(
                             }.firstOrNull()
                     }
 
-                        if (medicine != null) {
-                         call.respond(ApiResponse(success = true, data = medicine))
-                     } else {
-                         call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Medicine not found"))
-                     }
+                    if (medicine != null) {
+                        call.respond(ApiResponse(success = true, data = medicine))
+                    } else {
+                        call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Medicine not found"))
+                    }
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
                 }
@@ -213,7 +215,9 @@ fun Route.apiRoutes(
                                 id = row[Categories.id],
                                 nameEn = row[Categories.nameEn],
                                 nameAr = row[Categories.nameAr],
-                                iconUrl = null,
+                                iconUrl = row[Categories.iconUrl],
+                                displayOrder = row[Categories.displayOrder],
+                                isActive = row[Categories.isActive],
                                 subcategories = emptyList()
                             )
                         }
@@ -242,16 +246,16 @@ fun Route.apiRoutes(
                             PharmacyDto(
                                 id = row[Pharmacies.id],
                                 name = row[Pharmacies.name],
-                                description = null,
-                                imageUrl = null,
+                                description = row[Pharmacies.description],
+                                imageUrl = row[Pharmacies.imageUrl],
                                 address = row[Pharmacies.address],
                                 city = row[Pharmacies.city],
                                 latitude = row[Pharmacies.latitude],
                                 longitude = row[Pharmacies.longitude],
                                 phone = row[Pharmacies.phone],
                                 isOpen = row[Pharmacies.isOpen],
-                                ratingAvg = 0.0,
-                                totalRatings = 0,
+                                ratingAvg = row[Pharmacies.ratingAvg]?.toDouble() ?: 0.0,
+                                totalRatings = row[Pharmacies.totalRatings] ?: 0,
                                 isVerified = row[Pharmacies.isVerified],
                                 distanceKm = null
                             )
@@ -277,23 +281,23 @@ fun Route.apiRoutes(
                         }
 
                         val total = query.count()
-                         val pharmacies = query
-                             .orderBy(Pharmacies.name)
-                             .limit(pageSize, (page * pageSize).toLong())
-                             .map { row ->
+                        val pharmacies = query
+                            .orderBy(Pharmacies.name)
+                            .limit(pageSize, (page * pageSize).toLong())
+                            .map { row ->
                                 PharmacyDto(
                                     id = row[Pharmacies.id],
                                     name = row[Pharmacies.name],
-                                    description = null,
-                                    imageUrl = null,
+                                    description = row[Pharmacies.description],
+                                    imageUrl = row[Pharmacies.imageUrl],
                                     address = row[Pharmacies.address],
                                     city = row[Pharmacies.city],
                                     latitude = row[Pharmacies.latitude],
                                     longitude = row[Pharmacies.longitude],
                                     phone = row[Pharmacies.phone],
                                     isOpen = row[Pharmacies.isOpen],
-                                    ratingAvg = 0.0,
-                                    totalRatings = 0,
+                                    ratingAvg = row[Pharmacies.ratingAvg]?.toDouble() ?: 0.0,
+                                    totalRatings = row[Pharmacies.totalRatings] ?: 0,
                                     isVerified = row[Pharmacies.isVerified]
                                 )
                             }
@@ -303,7 +307,7 @@ fun Route.apiRoutes(
                             total = total,
                             page = page,
                             pageSize = pageSize,
-                            totalPages = ((total + pageSize - 1) / pageSize).toInt()
+                            totalPages = if (total > 0) ((total + pageSize - 1) / pageSize).toInt() else 0
                         )
                     }
                     call.respond(ApiResponse(success = true, data = result))
@@ -367,7 +371,7 @@ fun Route.apiRoutes(
                     try {
                         val multipart = call.receiveMultipart()
                         var notes: String? = null
-                        var pharmacyId: Int? = null
+                        var pharmacyId: UUID? = null
                         var imageData: ByteArray? = null
                         var imageContentType = "image/jpeg"
 
@@ -376,7 +380,7 @@ fun Route.apiRoutes(
                                 is PartData.FormItem -> {
                                     when (part.name) {
                                         "notes" -> notes = part.value
-                                        "selectedPharmacyId" -> pharmacyId = part.value?.toIntOrNull()
+                                        "selectedPharmacyId" -> pharmacyId = part.value?.let { UUID.fromString(it) }
                                     }
                                 }
                                 is PartData.FileItem -> {
@@ -393,11 +397,6 @@ fun Route.apiRoutes(
 
                         if (imageData == null) {
                             call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Image required"))
-                            return@post
-                        }
-
-                        if (pharmacyId != null && pharmacyId!! <= 0) {
-                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid pharmacy ID"))
                             return@post
                         }
 
@@ -418,7 +417,7 @@ fun Route.apiRoutes(
 
                         if (eilajiPlusService != null) {
                             try {
-                                eilajiPlusService.sendPrescriptionToEilajiPlus(prescriptionResult.id, userId)
+                                eilajiPlusService.sendPrescriptionToEilajiDoctor(prescriptionResult.id, userId)
                             } catch (e: Exception) {
                                 // Log error but don't fail
                             }
@@ -449,7 +448,8 @@ fun Route.apiRoutes(
                 get("/{id}") {
                     val principal = call.principal<JWTPrincipal>()
                     val userId = principal!!.payload.subject
-                    val id = call.parameters["id"]?.toIntOrNull()
+                    val idStr = call.parameters["id"]
+                    val id = idStr?.let { UUID.fromString(it) }
 
                     if (id == null) {
                         call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid ID"))
@@ -491,7 +491,9 @@ fun Route.apiRoutes(
 
                     try {
                         val request = Json.decodeFromString<CreateChatRequest>(call.receiveText())
-                        val chat = chatService.createChat(userId, request.prescriptionId, request.pharmacyId)
+                        val prescriptionId = request.prescriptionId?.let { UUID.fromString(it) }
+                        val pharmacyId = request.pharmacyId?.let { UUID.fromString(it) }
+                        val chat = chatService.createChat(userId, prescriptionId, pharmacyId)
                         call.respond(HttpStatusCode.Created, ApiResponse(success = true, data = chat))
                     } catch (e: Exception) {
                         call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
@@ -501,7 +503,8 @@ fun Route.apiRoutes(
                 get("/{chatId}/messages") {
                     val principal = call.principal<JWTPrincipal>()
                     val userId = principal!!.payload.subject
-                    val chatId = call.parameters["chatId"]?.toLongOrNull()
+                    val chatIdStr = call.parameters["chatId"]
+                    val chatId = chatIdStr?.let { UUID.fromString(it) }
 
                     if (chatId == null) {
                         call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid chat ID"))
@@ -522,7 +525,8 @@ fun Route.apiRoutes(
                 post("/{chatId}/read") {
                     val principal = call.principal<JWTPrincipal>()
                     val userId = principal!!.payload.subject
-                    val chatId = call.parameters["chatId"]?.toLongOrNull()
+                    val chatIdStr = call.parameters["chatId"]
+                    val chatId = chatIdStr?.let { UUID.fromString(it) }
 
                     if (chatId == null) {
                         call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid chat ID"))
@@ -595,10 +599,13 @@ fun Route.apiRoutes(
                 }
 
                 try {
-                    val userId = extractUserIdFromToken(token)
+                    val decodedJWT = JwtConfig.verify(token)
+                    val userId = decodedJWT.getClaim("user_id").asString()
 
-                    if (userId != null) {
-                        this.handleWebSocketSession(userId, redisService, messageService)
+                    if (userId.isNotBlank()) {
+                        val sessionManager = WebSocketSessionManager(messageService, chatService, redisService)
+                        val webSocketController = WebSocketController(sessionManager, redisService, messageService)
+                        webSocketController.handleWebSocketSession(this, userId)
                     } else {
                         close(CloseReason(1008, "Invalid token"))
                     }
@@ -643,9 +650,10 @@ fun Route.apiRoutes(
                     val principal = call.principal<JWTPrincipal>()
                     val userId = principal!!.payload.subject
                     val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
-                    val orderId = call.parameters["id"]?.toIntOrNull()
+                    val idStr = call.parameters["id"]
+                    val orderId = idStr?.let { UUID.fromString(it) }
 
-                    if (orderId == null || orderId <= 0) {
+                    if (orderId == null) {
                         call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid order ID"))
                         return@get
                     }
@@ -666,7 +674,8 @@ fun Route.apiRoutes(
                     val principal = call.principal<JWTPrincipal>()
                     val userId = principal!!.payload.subject
                     val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
-                    val orderId = call.parameters["id"]?.toIntOrNull()
+                    val idStr = call.parameters["id"]
+                    val orderId = idStr?.let { UUID.fromString(it) }
 
                     if (orderId == null) {
                         call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid order ID"))
@@ -693,43 +702,5 @@ fun Route.apiRoutes(
                 }
             }
         }
-    }
-}
-
-private fun extractUserIdFromToken(token: String): String? {
-    try {
-        val parts = token.split(".")
-        if (parts.size < 2) return null
-
-        val payload = String(java.util.Base64.getDecoder().decode(parts[1]))
-        val jsonElement = Json.parseToJsonElement(payload)
-        if (jsonElement is kotlinx.serialization.json.JsonObject) {
-            return jsonElement["sub"]?.let {
-                (it as? kotlinx.serialization.json.JsonPrimitive)?.content
-            }
-        }
-        return null
-    } catch (e: Exception) {
-        return null
-    }
-}
-
-private suspend fun io.ktor.server.websocket.DefaultWebSocketServerSession.handleWebSocketSession(
-    userId: String,
-    redisService: RedisService,
-    messageService: MessageService
-) {
-    try {
-        redisService.setOnlineStatus(userId, true)
-
-        for (frame in incoming) {
-            val textFrame = frame as? io.ktor.websocket.Frame.Text ?: continue
-            val message = textFrame.readText()
-            println("Received message from $userId: $message")
-        }
-    } catch (e: Exception) {
-        println("WebSocket error for user $userId: ${e.message}")
-    } finally {
-        redisService.setOnlineStatus(userId, false)
     }
 }

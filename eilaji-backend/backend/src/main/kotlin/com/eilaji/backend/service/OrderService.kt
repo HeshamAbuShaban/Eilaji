@@ -3,18 +3,18 @@ package com.eilaji.backend.service
 import com.eilaji.backend.data.*
 import com.eilaji.backend.dto.*
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.time.Instant
+import java.util.UUID
 
 class OrderService {
 
     @Serializable
     data class OrderCreateRequest(
-        val prescriptionId: Int,
-        val pharmacyId: Int,
+        @Contextual(UuidSerializer::class) val prescriptionId: UUID,
+        @Contextual(UuidSerializer::class) val pharmacyId: UUID,
         val totalAmount: Double,
         val paymentMethod: String? = null,
         val deliveryAddress: String? = null,
@@ -29,10 +29,10 @@ class OrderService {
 
     @Serializable
     data class OrderResult(
-        val id: Int,
-        val prescriptionId: Int,
+        @Contextual(UuidSerializer::class) val id: UUID,
+        @Contextual(UuidSerializer::class) val prescriptionId: UUID,
         val patientId: String,
-        val pharmacyId: Int,
+        @Contextual(UuidSerializer::class) val pharmacyId: UUID,
         val pharmacyName: String?,
         val status: String,
         val totalAmount: Double,
@@ -45,6 +45,7 @@ class OrderService {
     )
 
     fun createOrder(request: OrderCreateRequest, userId: String): OrderResult? {
+        val userUuid = UUID.fromString(userId)
         return transaction {
             val prescription = Prescriptions.selectAll()
                 .where { Prescriptions.id eq request.prescriptionId }
@@ -56,7 +57,7 @@ class OrderService {
 
             val orderId = Orders.insert {
                 it[Orders.prescriptionId] = request.prescriptionId
-                it[Orders.patientId] = userId
+                it[Orders.patientId] = userUuid
                 it[Orders.pharmacyId] = request.pharmacyId
                 it[Orders.status] = "PENDING"
                 it[Orders.totalAmount] = request.totalAmount.toBigDecimal()
@@ -73,13 +74,14 @@ class OrderService {
     }
 
     fun getUserOrders(userId: String, userRole: com.eilaji.backend.data.UserRole): List<OrderResult> {
+        val userUuid = UUID.fromString(userId)
         return transaction {
             val query = if (userRole == com.eilaji.backend.data.UserRole.PHARMACIST || userRole == com.eilaji.backend.data.UserRole.ADMIN) {
                 Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id).selectAll()
             } else {
                 Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id)
                     .selectAll()
-                    .where { Orders.patientId eq userId }
+                    .where { Orders.patientId eq userUuid }
             }
 
             query.orderBy(Orders.createdAt, SortOrder.DESC).map { row ->
@@ -88,7 +90,8 @@ class OrderService {
         }
     }
 
-    fun getOrderById(orderId: Int, userId: String, userRole: com.eilaji.backend.data.UserRole?): OrderResult? {
+    fun getOrderById(orderId: UUID, userId: String, userRole: com.eilaji.backend.data.UserRole?): OrderResult? {
+        val userUuid = UUID.fromString(userId)
         return transaction {
             val query = Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id)
                 .selectAll()
@@ -97,14 +100,14 @@ class OrderService {
             val order = query.firstOrNull() ?: return@transaction null
 
             if (userRole == null || userRole == com.eilaji.backend.data.UserRole.PATIENT) {
-                if (order[Orders.patientId] != userId) return@transaction null
+                if (order[Orders.patientId] != userUuid) return@transaction null
             }
 
             mapRowToOrder(order)
         }
     }
 
-    fun updateOrderStatus(orderId: Int, status: String, paymentStatus: String?, userId: String, userRole: com.eilaji.backend.data.UserRole): OrderResult? {
+    fun updateOrderStatus(orderId: UUID, status: String, paymentStatus: String?, userId: String, userRole: com.eilaji.backend.data.UserRole): OrderResult? {
         return transaction {
             val existingOrder = Orders.selectAll().where { Orders.id eq orderId }.firstOrNull()
                 ?: return@transaction null
@@ -125,7 +128,7 @@ class OrderService {
         }
     }
 
-    fun getOrdersForPharmacy(pharmacyId: Int, status: String? = null, page: Int = 0, pageSize: Int = 20): PaginatedResult<OrderResult> {
+    fun getOrdersForPharmacy(pharmacyId: UUID, status: String? = null, page: Int = 0, pageSize: Int = 20): PaginatedResult<OrderResult> {
         return transaction {
             val query = if (status != null) {
                 Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id)
@@ -155,15 +158,16 @@ class OrderService {
     }
 
     fun getOrdersForUser(userId: String, status: String? = null, page: Int = 0, pageSize: Int = 20): PaginatedResult<OrderResult> {
+        val userUuid = UUID.fromString(userId)
         return transaction {
             val query = if (status != null) {
                 Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id)
                     .selectAll()
-                    .where { (Orders.patientId eq userId) and (Orders.status eq status) }
+                    .where { (Orders.patientId eq userUuid) and (Orders.status eq status) }
             } else {
                 Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id)
                     .selectAll()
-                    .where { Orders.patientId eq userId }
+                    .where { Orders.patientId eq userUuid }
             }
 
             val total = query.count()
@@ -183,12 +187,13 @@ class OrderService {
         }
     }
 
-    fun deleteOrder(orderId: Int, userId: String): Boolean {
+    fun deleteOrder(orderId: UUID, userId: String): Boolean {
+        val userUuid = UUID.fromString(userId)
         return transaction {
             val order = Orders.selectAll().where { Orders.id eq orderId }.firstOrNull()
                 ?: return@transaction false
 
-            if (order[Orders.patientId] != userId) {
+            if (order[Orders.patientId] != userUuid) {
                 return@transaction false
             }
 
@@ -201,7 +206,7 @@ class OrderService {
         return OrderResult(
             id = row[Orders.id],
             prescriptionId = row[Orders.prescriptionId],
-            patientId = row[Orders.patientId],
+            patientId = row[Orders.patientId].toString(),
             pharmacyId = row[Orders.pharmacyId],
             pharmacyName = row.getOrNull(Pharmacies.name),
             status = row[Orders.status],

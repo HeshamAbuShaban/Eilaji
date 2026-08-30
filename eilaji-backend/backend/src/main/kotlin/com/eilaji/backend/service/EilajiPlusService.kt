@@ -12,13 +12,15 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
+import java.util.UUID
 
 class EilajiPlusService(
-    private val eilajiPlusBaseUrl: String,
-    private val eilajiPlusApiKey: String
+    private val eilajiDoctorBaseUrl: String,
+    private val eilajiDoctorApiKey: String
 ) {
 
-    suspend fun sendPrescriptionToEilajiPlus(prescriptionId: Int, userId: String): EilajiPlusPrescriptionResponse {
+    suspend fun sendPrescriptionToEilajiDoctor(prescriptionId: UUID, userId: String): EilajiPlusPrescriptionResponse {
+        val userUuid = UUID.fromString(userId)
         return try {
             val prescription = transaction {
                 Prescriptions.selectAll().where { Prescriptions.id eq prescriptionId }.firstOrNull()
@@ -26,7 +28,7 @@ class EilajiPlusService(
             }
 
             val user = transaction {
-                Users.selectAll().where { Users.id eq userId }.firstOrNull()
+                Users.selectAll().where { Users.id eq userUuid }.firstOrNull()
                     ?: throw IllegalArgumentException("User not found")
             }
 
@@ -39,8 +41,8 @@ class EilajiPlusService(
                 patientPhone = user[Users.phone]
             )
 
-            val response = httpClient.post("$eilajiPlusBaseUrl/api/prescriptions") {
-                header("Authorization", "Bearer $eilajiPlusApiKey")
+            val response = httpClient.post("$eilajiDoctorBaseUrl/api/prescriptions") {
+                header("Authorization", "Bearer $eilajiDoctorApiKey")
                 header("Content-Type", "application/json")
                 setBody(request)
             }
@@ -50,8 +52,8 @@ class EilajiPlusService(
 
                 transaction {
                     Prescriptions.update({ Prescriptions.id eq prescriptionId }) {
-                        it[Prescriptions.eilajiPlusRef] = body.eilajiPlusRef
-                        it[Prescriptions.eilajiPlusStatus] = "SENT"
+                        it[Prescriptions.eilajiDoctorPrescriptionId] = body.eilajiPlusRef?.let { UUID.fromString(it) }
+                        it[Prescriptions.sentToEilajiDoctor] = true
                         it[Prescriptions.updatedAt] = Instant.now()
                     }
 
@@ -65,7 +67,7 @@ class EilajiPlusService(
 
                 body
             } else {
-                throw Exception("Failed to send to Eilaji-Plus: ${response.status}")
+                throw Exception("Failed to send to Eilaji-Doctor: ${response.status}")
             }
         } catch (e: Exception) {
             transaction {
@@ -93,7 +95,7 @@ class EilajiPlusService(
 
             transaction {
                 Prescriptions.update({ Prescriptions.id eq prescriptionId }) {
-                    it[Prescriptions.eilajiPlusStatus] = request.status
+                    it[Prescriptions.eilajiDoctorPrescriptionId] = request.eilajiPlusRef?.let { UUID.fromString(it) }
                     it[Prescriptions.updatedAt] = Instant.now()
 
                     if (request.quotedPrice != null) {
@@ -121,7 +123,7 @@ class EilajiPlusService(
         }
     }
 
-    fun getPendingRetries(limit: Int = 10): List<Int> {
+    fun getPendingRetries(limit: Int = 10): List<UUID> {
         return transaction {
             EilajiPlusSync.selectAll()
                 .where {
@@ -134,7 +136,7 @@ class EilajiPlusService(
         }
     }
 
-    fun incrementRetryCount(prescriptionId: Int, errorMessage: String?) {
+    fun incrementRetryCount(prescriptionId: UUID, errorMessage: String?) {
         transaction {
             val syncRecord = EilajiPlusSync.selectAll()
                 .where { EilajiPlusSync.prescriptionId eq prescriptionId }
