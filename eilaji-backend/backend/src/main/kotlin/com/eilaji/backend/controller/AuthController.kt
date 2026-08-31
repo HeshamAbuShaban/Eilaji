@@ -100,7 +100,7 @@ fun Route.registerAuthRoutes(redisService: RedisService) {
 
             AuditService.logEvent(
                 eventType = AuditService.EventType.USER_CREATED,
-                userId = userDto.id,
+                userId = userDto.id.toString(),
                 description = "User registered: ${userDto.email}"
             )
 
@@ -167,7 +167,7 @@ fun Route.registerAuthRoutes(redisService: RedisService) {
             val refreshToken = JwtConfig.createRefreshToken(userDto.id.toString())
 
             AuditService.logLoginSuccess(
-                userId = userDto.id,
+                userId = userDto.id.toString(),
                 ipAddress = call.request.header("X-Forwarded-For") ?: call.request.local.remoteHost,
                 userAgent = call.request.header("User-Agent")
             )

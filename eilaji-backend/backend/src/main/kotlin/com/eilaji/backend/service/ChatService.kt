@@ -125,9 +125,9 @@ class ChatService {
                 it[Chats.lastMessageAt] = Instant.now()
                 it[Chats.updatedAt] = Instant.now()
                 if (isPatient) {
-                    it[Chats.unreadCountPharmacy] = Chats.unreadCountPharmacy + 1
+                    it[Chats.unreadCountPharmacy] = Chats.unreadCountPharmacy.plus(1)
                 } else {
-                    it[Chats.unreadCountPatient] = Chats.unreadCountPatient + 1
+                    it[Chats.unreadCountPatient] = Chats.unreadCountPatient.plus(1)
                 }
             }
         }

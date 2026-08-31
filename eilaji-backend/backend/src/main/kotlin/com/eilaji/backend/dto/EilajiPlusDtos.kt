@@ -1,13 +1,28 @@
 package com.eilaji.backend.dto
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Contextual
-import java.time.Instant
 import java.util.UUID
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+
+// UUID serializer
+object UuidSerializer : KSerializer<UUID> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UUID")
+    override fun serialize(encoder: Encoder, value: UUID) {
+        encoder.encodeString(value.toString())
+    }
+    override fun deserialize(decoder: Decoder): UUID {
+        return UUID.fromString(decoder.decodeString())
+    }
+}
 
 @Serializable
 data class EilajiPlusPrescriptionRequest(
-    val prescriptionId: UUID,
+    @Contextual(UuidSerializer::class) val prescriptionId: UUID,
     val userId: String,
     val imageUrl: String,
     val notes: String?,
@@ -33,11 +48,11 @@ data class EilajiPlusWebhookRequest(
 
 @Serializable
 data class CreateChatRequest(
-    val prescriptionId: UUID? = null,
-    val pharmacyId: UUID? = null
+    @Contextual(UuidSerializer::class) val prescriptionId: UUID? = null,
+    @Contextual(UuidSerializer::class) val pharmacyId: UUID? = null
 )
 
 @Serializable
 data class MarkAsReadRequest(
-    val lastReadMessageId: UUID? = null
+    @Contextual(UuidSerializer::class) val lastReadMessageId: UUID? = null
 )

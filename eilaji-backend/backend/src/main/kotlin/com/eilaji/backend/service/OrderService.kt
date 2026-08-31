@@ -4,16 +4,44 @@ import com.eilaji.backend.data.*
 import com.eilaji.backend.dto.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.time.Instant
 import java.util.UUID
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+
+// UUID serializer
+object UuidSerializer : KSerializer<UUID> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UUID")
+    override fun serialize(encoder: Encoder, value: UUID) {
+        encoder.encodeString(value.toString())
+    }
+    override fun deserialize(decoder: Decoder): UUID {
+        return UUID.fromString(decoder.decodeString())
+    }
+}
+
+// Instant serializer
+object InstantSerializer : KSerializer<Instant> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Instant")
+    override fun serialize(encoder: Encoder, value: Instant) {
+        encoder.encodeString(value.toString())
+    }
+    override fun deserialize(decoder: Decoder): Instant {
+        return Instant.parse(decoder.decodeString())
+    }
+}
 
 class OrderService {
 
     @Serializable
     data class OrderCreateRequest(
-        val prescriptionId: UUID,
-        val pharmacyId: UUID,
+        @Contextual(UuidSerializer::class) val prescriptionId: UUID,
+        @Contextual(UuidSerializer::class) val pharmacyId: UUID,
         val totalAmount: Double,
         val paymentMethod: String? = null,
         val deliveryAddress: String? = null,
@@ -28,10 +56,10 @@ class OrderService {
 
     @Serializable
     data class OrderResult(
-        val id: UUID,
-        val prescriptionId: UUID,
+        @Contextual(UuidSerializer::class) val id: UUID,
+        @Contextual(UuidSerializer::class) val prescriptionId: UUID,
         val patientId: String,
-        val pharmacyId: UUID,
+        @Contextual(UuidSerializer::class) val pharmacyId: UUID,
         val pharmacyName: String?,
         val status: String,
         val totalAmount: Double,
@@ -39,8 +67,8 @@ class OrderService {
         val paymentStatus: String,
         val deliveryAddress: String?,
         val deliveryNotes: String?,
-        val createdAt: Instant,
-        val updatedAt: Instant
+        @Contextual(InstantSerializer::class) val createdAt: Instant,
+        @Contextual(InstantSerializer::class) val updatedAt: Instant
     )
 
     fun createOrder(request: OrderCreateRequest, userId: String): OrderResult? {
