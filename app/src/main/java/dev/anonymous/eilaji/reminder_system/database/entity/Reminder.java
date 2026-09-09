@@ -95,9 +95,9 @@ public class Reminder implements ReminderContract {
     public void setCustomDaysList(List<String> l) { customDays = Converters.fromList(l); }
     public String getNotes() { return notes; }
     public void setNotes(String v) { notes = v; }
-    public boolean getIsActive() { return isActive; }
+    @Ignore public boolean getIsActive() { return isActive; }
     public boolean isActive() { return isActive; }
-    public void setIsActive(boolean v) { isActive = v; }
+    @Ignore public void setIsActive(boolean v) { isActive = v; }
     public void setActive(boolean v) { isActive = v; }
     public Long getStartDate() { return startDate; }
     public void setStartDate(Long v) { startDate = v; }
