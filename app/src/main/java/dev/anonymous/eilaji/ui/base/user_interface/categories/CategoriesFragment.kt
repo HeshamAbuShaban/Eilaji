@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
+import android.content.Intent
 import dev.anonymous.eilaji.adapters.server.CategoryAdapter
 import dev.anonymous.eilaji.databinding.FragmentCategoriesBinding
 import dev.anonymous.eilaji.ui.other.base.AlternativesActivity
@@ -62,7 +63,7 @@ class CategoriesFragment : Fragment() {
 
     private fun navToSubCategories(categoryId: String, categoryTitle: String) {
         activity?.window?.apply {
-            enterTransition = androidx.transition.Fade()
+            enterTransition = android.transition.Fade()
         }
         val intent = Intent(requireContext(), AlternativesActivity::class.java)
         intent.putExtra("fragmentType", "subCategories")

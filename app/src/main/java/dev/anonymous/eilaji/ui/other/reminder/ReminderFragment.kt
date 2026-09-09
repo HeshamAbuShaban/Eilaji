@@ -116,7 +116,7 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
         reminder.frequency = selectedFrequency
         reminder.scheduleTime = scheduleTime
         reminder.setCustomDaysList(customDays)
-        reminder.isActive = isActive
+        reminder.setActive(isActive)
         reminder.startDate = System.currentTimeMillis()
         reminder.syncStatus = "PENDING"
         reminderViewModel.reminderScheduler.value?.setReminderObject(reminder)

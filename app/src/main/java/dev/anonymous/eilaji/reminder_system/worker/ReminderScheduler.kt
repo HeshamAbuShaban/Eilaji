@@ -34,7 +34,7 @@ class ReminderScheduler(private val context: Context) {
     fun scheduleReminderOneTimeWorkRequest(timeUnit: TimeUnit = TimeUnit.MINUTES) {
         if (!::reminder.isInitialized) return
         val r = reminder as? Reminder
-        if (r != null && !r.scheduleTime.isNullOrBlank() && r.isActive) {
+        if (r != null && !r.scheduleTime.isNullOrBlank() && r.isActive()) {
             scheduleExact(r.id, r.medicineName ?: r.text, r.notificationId, r.frequency ?: "DAILY", r.customDays ?: "[]", r.scheduleTime!!)
             enqueueFallbackOneTime(r)
         } else {

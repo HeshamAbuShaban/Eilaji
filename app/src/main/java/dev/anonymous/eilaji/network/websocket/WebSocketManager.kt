@@ -57,7 +57,7 @@ class WebSocketManager(
             val msg = gson.fromJson(text, WebSocketMessage::class.java) ?: return
             when (msg.type.uppercase()) {
                 "MESSAGE" -> msg.message?.let { onMessage?.invoke(it) } ?: msg.content?.let {
-                    val dto = MessageDto(id = "", chatId = msg.chatId ?: "", senderId = msg.userId ?: "", content = it, messageType = "TEXT", createdAt = msg.timestamp ?: "")
+                    val dto = MessageDto(id = "", chatId = msg.chatId ?: "", senderId = msg.userId ?: "", senderName = null, content = it, messageType = "TEXT", attachmentUrl = null, isRead = false, readAt = null, createdAt = msg.timestamp ?: "")
                     onMessage?.invoke(dto)
                 }
                 "MESSAGE_SENT" -> msg.message?.let { onMessage?.invoke(it) }
@@ -75,7 +75,7 @@ class WebSocketManager(
     fun sendJoin(chatId: String) { send(WebSocketMessage(type = "JOIN", chatId = chatId)) }
     fun sendLeave(chatId: String) { send(WebSocketMessage(type = "LEAVE", chatId = chatId)) }
     fun sendMessage(chatId: String, content: String, messageType: String = "TEXT", attachmentUrl: String? = null) {
-        val inner = if (attachmentUrl != null || messageType != "TEXT") MessageDto(id = "", chatId = chatId, senderId = "", content = content, messageType = messageType, attachmentUrl = attachmentUrl, isRead = false, createdAt = "") else null
+        val inner = if (attachmentUrl != null || messageType != "TEXT") MessageDto(id = "", chatId = chatId, senderId = "", senderName = null, content = content, messageType = messageType, attachmentUrl = attachmentUrl, isRead = false, readAt = null, createdAt = "") else null
         send(WebSocketMessage(type = "MESSAGE", chatId = chatId, content = content, message = inner))
     }
     fun sendRead(chatId: String) { send(WebSocketMessage(type = "READ", chatId = chatId)) }

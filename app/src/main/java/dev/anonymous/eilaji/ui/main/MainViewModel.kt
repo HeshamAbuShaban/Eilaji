@@ -25,7 +25,7 @@ class MainViewModel : ViewModel() {
 
     fun init(context: Context) {
         apiService = NetworkModule.provideApiService(context)
-        sharedPreferences = AppSharedPreferences.Instance(context)
+        sharedPreferences = AppSharedPreferences.getInstance(context)
     }
 
     fun setNavController(navController: NavController) {

@@ -47,7 +47,7 @@ class RemindersListFragment : Fragment(), RemindersAdapter.RemindersListCallback
         }
         syncRepo.syncFetch { remote ->
             if (remote != null && remote.isNotEmpty()) {
-                remote.forEach { r -> try { dbVm.insertReminder(r); scheduler.setReminderObject(r); if (r.isActive) scheduler.scheduleExact(r.id, r.medicineName ?: r.text, r.notificationId, r.frequency ?: "DAILY", r.customDays ?: "[]", r.scheduleTime ?: "08:00:00") } catch (_: Exception) {} }
+                remote.forEach { r -> try { dbVm.insertReminder(r); scheduler.setReminderObject(r); if (r.isActive()) scheduler.scheduleExact(r.id, r.medicineName ?: r.text, r.notificationId, r.frequency ?: "DAILY", r.customDays ?: "[]", r.scheduleTime ?: "08:00:00") } catch (_: Exception) {} }
             }
         }
     }
@@ -59,7 +59,7 @@ class RemindersListFragment : Fragment(), RemindersAdapter.RemindersListCallback
     override fun onDeleteClicked(r: Reminder) { pendingDelete = r; DeleteItemDialogFragment().show(childFragmentManager, "DeleteItemTriggered") }
     override fun onToggleActive(r: Reminder, active: Boolean) {
         dbVm.let {
-            val upd = r; upd.isActive = active
+            val upd = r; upd.setActive(active)
             it.let { try { it.javaClass.getMethod("updateReminder", Reminder::class.java).invoke(it, upd) } catch (_: Exception) { } }
             if (active) { scheduler.setReminderObject(r); scheduler.scheduleExact(r.id, r.medicineName ?: r.text, r.notificationId, r.frequency ?: "DAILY", r.customDays ?: "[]", r.scheduleTime ?: "08:00:00") } else scheduler.cancelReminderById(r)
             syncRepo.syncUpdate(r)

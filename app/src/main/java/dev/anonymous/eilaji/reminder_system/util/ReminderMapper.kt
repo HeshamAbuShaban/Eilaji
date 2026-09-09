@@ -15,7 +15,7 @@ object ReminderMapper {
         scheduleTime = r.scheduleTime ?: "08:00:00",
         customDays = r.getCustomDaysList(),
         notes = r.notes,
-        isActive = r.isActive,
+        isActive = r.isActive(),
         startDate = r.startDate?.let { Instant.ofEpochMilli(it).toString() },
         endDate = r.endDate?.let { Instant.ofEpochMilli(it).toString() }
     )
@@ -26,7 +26,7 @@ object ReminderMapper {
         scheduleTime = r.scheduleTime ?: "08:00:00",
         customDays = r.getCustomDaysList(),
         notes = r.notes,
-        isActive = r.isActive,
+        isActive = r.isActive(),
         startDate = r.startDate?.let { Instant.ofEpochMilli(it).toString() },
         endDate = r.endDate?.let { Instant.ofEpochMilli(it).toString() }
     )
@@ -37,7 +37,7 @@ object ReminderMapper {
         scheduleTime = r.scheduleTime,
         customDays = r.getCustomDaysList(),
         notes = r.notes,
-        isActive = r.isActive,
+        isActive = r.isActive(),
         endDate = r.endDate?.let { Instant.ofEpochMilli(it).toString() }
     )
     fun fromDto(d: MedicationReminderDto): Reminder {
@@ -48,7 +48,7 @@ object ReminderMapper {
         rem.scheduleTime = ReminderTimeUtils.parseScheduleTime(d.scheduleTime)?.let { ReminderTimeUtils.formatScheduleTime(it) } ?: "08:00:00"
         rem.setCustomDaysList(d.customDays)
         rem.notes = d.notes
-        rem.isActive = d.isActive
+        rem.setActive(d.isActive)
         rem.backendId = d.id
         rem.syncStatus = "SYNCED"
         try { d.startDate?.let { rem.startDate = Instant.parse(it).toEpochMilli() } } catch (_: Exception) {}

@@ -15,7 +15,7 @@ class BootReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val db = ReminderDatabase.getDatabase(context)
-                val list = db.reminderDao().getAllSync().filter { it.isActive }
+                val list = db.reminderDao().getAllSync().filter { it.isActive() }
                 val sched = ReminderScheduler(context.applicationContext)
                 list.forEach { r ->
                     try {
