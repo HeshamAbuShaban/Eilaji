@@ -9,45 +9,39 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.firestore.FirebaseFirestore
 import dev.anonymous.eilaji.adapters.MedicinesAdapter
 import dev.anonymous.eilaji.adapters.SubCategoriesAdapter
 import dev.anonymous.eilaji.databinding.FragmentSubCategoriesBinding
 import dev.anonymous.eilaji.models.server.Medicine
 import dev.anonymous.eilaji.models.server.SubCategory
-import dev.anonymous.eilaji.storage.enums.CollectionNames
+import dev.anonymous.eilaji.network.ApiResponse
+import dev.anonymous.eilaji.network.ApiService
+import dev.anonymous.eilaji.network.CategoryDto
+import dev.anonymous.eilaji.network.MedicineDto
+import dev.anonymous.eilaji.network.NetworkModule
+import dev.anonymous.eilaji.network.PaginatedResult
 import dev.anonymous.eilaji.utils.LoadingDialog
-
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class SubCategoriesFragment : Fragment() {
     private lateinit var binding: FragmentSubCategoriesBinding
     private lateinit var viewModel: SubCategoriesViewModel
-
-    //..Firebase
-    // Firebase FireStore
-    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
-
-    // AdsReference
-    private val subCategoryCollection = db.collection(CollectionNames.SubCategory.collection_name)
-    private val medicineCollection = db.collection(CollectionNames.Medicine.collection_name)
-
-    // life of dialog tobe controlled
+    private lateinit var apiService: ApiService
     private val loadingDialog = LoadingDialog()
-
-    // values container
     private lateinit var categoryId: String
     private lateinit var categoryTitle: String
+    private var selectedSubcategoryId: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         loadingDialog.show(childFragmentManager, "FetchingData")
-
         val arguments = arguments
         if (arguments != null) {
             val args = SubCategoriesFragmentArgs.fromBundle(arguments)
             categoryId = args.categoryId
             categoryTitle = args.categoryTitle
-
-            //..loadingDialog.dismiss();
         }
     }
 
@@ -58,6 +52,7 @@ class SubCategoriesFragment : Fragment() {
     ): View {
         binding = FragmentSubCategoriesBinding.inflate(inflater, container, false)
         viewModel = ViewModelProvider(this)[SubCategoriesViewModel::class.java]
+        apiService = NetworkModule.provideApiService(requireContext())
         fetchMedicines()
         fetchSubCategories()
         return binding.root
@@ -65,14 +60,9 @@ class SubCategoriesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // set the toolbar
         binding.includeAppBarLayoutAlternatives.toolbarApp.title = categoryTitle
-
-        // show list from server
         displaySubCategories()
-        // show list from server
         displayMedicines()
-        // dismiss the loading
         loadingDialog.dismiss()
     }
 
@@ -81,7 +71,6 @@ class SubCategoriesFragment : Fragment() {
             setHasFixedSize(false)
             layoutManager = LinearLayoutManager(activity, RecyclerView.HORIZONTAL, false)
             adapter = SubCategoriesAdapter(subCategoriesList)
-            // علشان يحذف الومضة تعت العنصر يلي تحدث
             itemAnimator = null
         }
     }
@@ -93,52 +82,57 @@ class SubCategoriesFragment : Fragment() {
         }
     }
 
-
     private fun fetchSubCategories() {
-        subCategoryCollection.get().addOnSuccessListener { querySnapshot ->
-            val subCategoriesList: ArrayList<SubCategory> = ArrayList()
-            for (documentSnapshot in querySnapshot) {
-                val subCategories = documentSnapshot.toObject(SubCategory::class.java)
-                subCategoriesList.add(subCategories)
+        apiService.getCategories().enqueue(object : Callback<ApiResponse<List<CategoryDto>>> {
+            override fun onResponse(call: Call<ApiResponse<List<CategoryDto>>>, response: Response<ApiResponse<List<CategoryDto>>>) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val categories = response.body()?.data ?: emptyList()
+                    val target = categories.find { it.id == categoryId }
+                    val subs = target?.subcategories ?: emptyList()
+                    viewModel.setSubCategoriesList(subs)
+                } else {
+                    Log.e("SubCategoriesFragment", "fetchSubCategories: error ${response.body()?.error} code ${response.code()}")
+                }
             }
-            viewModel.setSubCategoriesList(subCategoriesList)
-            // Stop the Shimmer
-//            removeAdsShimmer()
-        }.addOnFailureListener { exception ->
-            Log.e("SubCategoriesFragment", "fetchAds: exc", exception)
-            Log.d("SubCategoriesFragment", "fetchAds: massage" + exception.localizedMessage)
-        }
+
+            override fun onFailure(call: Call<ApiResponse<List<CategoryDto>>>, t: Throwable) {
+                Log.e("SubCategoriesFragment", "fetchSubCategories: failure", t)
+            }
+        })
     }
 
     private fun fetchMedicines() {
-        medicineCollection.get().addOnSuccessListener { querySnapshot ->
-            val medicineList: ArrayList<Medicine> = ArrayList()
-            for (documentSnapshot in querySnapshot) {
-                val medicine = documentSnapshot.toObject(Medicine::class.java)
-                medicineList.add(medicine)
+        apiService.getMedicines(subcategoryId = selectedSubcategoryId).enqueue(object : Callback<ApiResponse<PaginatedResult<MedicineDto>>> {
+            override fun onResponse(call: Call<ApiResponse<PaginatedResult<MedicineDto>>>, response: Response<ApiResponse<PaginatedResult<MedicineDto>>>) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val items = response.body()?.data?.items ?: emptyList()
+                    viewModel.setMedicineList(items)
+                } else {
+                    Log.e("SubCategoriesFragment", "fetchMedicines: error ${response.body()?.error} code ${response.code()}")
+                }
             }
-            viewModel.setMedicineList(medicineList)
-            //Stop the Shimmer
-//            removeAdsShimmer()
-        }.addOnFailureListener { exception ->
-            Log.e("SubCategoriesFragment", "fetchAds: exc", exception)
-            Log.d("SubCategoriesFragment", "fetchAds: massage" + exception.localizedMessage)
-        }
+
+            override fun onFailure(call: Call<ApiResponse<PaginatedResult<MedicineDto>>>, t: Throwable) {
+                Log.e("SubCategoriesFragment", "fetchMedicines: failure", t)
+            }
+        })
     }
 
     private fun displaySubCategories() {
-        viewModel.subCategoriesList.observe(viewLifecycleOwner) {
-            setupSubCategoriesRecycler(it)
+        viewModel.subCategoriesList.observe(viewLifecycleOwner) { dtoList ->
+            val uiList = ArrayList(dtoList.map { dto ->
+                SubCategory(dto.id, categoryId, dto.iconUrl ?: "", dto.nameEn)
+            })
+            setupSubCategoriesRecycler(uiList)
         }
     }
 
     private fun displayMedicines() {
-        viewModel.medicineList.observe(viewLifecycleOwner) {
-            setupMedicinesAdapter(it)
+        viewModel.medicineList.observe(viewLifecycleOwner) { dtoList ->
+            val uiList = ArrayList(dtoList.map { dto ->
+                Medicine(dto.id, dto.imageUrl ?: "", dto.titleEn, dto.price ?: 0.0, dto.descriptionEn ?: "", ArrayList(), categoryId, dto.subcategoryNameEn ?: selectedSubcategoryId ?: "", false)
+            })
+            setupMedicinesAdapter(uiList)
         }
     }
-
-
-//    binding.root.layoutParams.width = ConstraintLayout.LayoutParams.MATCH_PARENT
-
 }

@@ -22,7 +22,7 @@ class SignUpViewModel : ViewModel() {
 
     fun init(context: Context) {
         apiService = NetworkModule.provideApiService(context)
-        sharedPreferences = AppSharedPreferences.Instance(context)
+        sharedPreferences = AppSharedPreferences.getInstance(context)
     }
 
     fun signUp(fullName: String, email: String, password: String, phone: String? = null) {

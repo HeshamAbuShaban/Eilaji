@@ -62,26 +62,16 @@ class SignUpFragment : Fragment() {
 
     private fun setupViewModel() {
         signUpViewModel = ViewModelProvider(this)[SignUpViewModel::class.java]
+        signUpViewModel.init(requireContext())
     }
 
-    //this method have a ClickListener that performSignUp using the ViewModel call for register method and the Result are being controlled in the @#observeSignUpResult()
     private fun performSignUp() {
         binding.buCreateAnAccount.setOnClickListener {
             if (validateInputs()) {
                 val fullName = binding.edFullName.text.toString()
                 val email = binding.edEmail.text.toString()
                 val password = binding.edPassword.text.toString()
-                val token = preferences.token
-
-                if (token == null) {
-                    signUpViewModel.getToken()
-                    signUpViewModel.token.observe(viewLifecycleOwner) {
-                        preferences.putToken(it)
-                        signUpViewModel.signUp(fullName, it, email, password)
-                    }
-                } else {
-                    signUpViewModel.signUp(fullName, token, email, password)
-                }
+                signUpViewModel.signUp(fullName, email, password)
             }
         }
     }

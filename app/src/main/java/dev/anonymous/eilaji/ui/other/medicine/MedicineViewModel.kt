@@ -25,17 +25,13 @@ class MedicineViewModel : ViewModel() {
         apiService = NetworkModule.provideApiService(context)
     }
 
-    fun loadMedicines(categoryId: Int? = null, subcategoryId: Int? = null) {
+    fun loadMedicines(subcategoryId: String? = null) {
         if (!::apiService.isInitialized) {
             _error.value = "API service not initialized"
             return
         }
 
-        val call = if (categoryId != null) {
-            apiService.getMedicines(categoryId = categoryId, subcategoryId = subcategoryId)
-        } else {
-            apiService.getMedicines()
-        }
+        val call = apiService.getMedicines(subcategoryId = subcategoryId)
 
         call.enqueue(object : Callback<dev.anonymous.eilaji.network.ApiResponse<dev.anonymous.eilaji.network.PaginatedResult<dev.anonymous.eilaji.network.MedicineDto>>> {
             override fun onResponse(

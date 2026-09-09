@@ -19,7 +19,7 @@ object NetworkModule {
     private const val DEV_PHYSICAL_URL = "http://192.168.1.100:8080/api/v1/"
 
     fun provideOkHttpClient(context: Context): OkHttpClient {
-        val sharedPreferences = AppSharedPreferences.Instance(context)
+        val sharedPreferences = AppSharedPreferences.getInstance(context)
 
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG) {

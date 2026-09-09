@@ -23,7 +23,7 @@ class LoginViewModel : ViewModel() {
 
     fun init(context: Context) {
         apiService = NetworkModule.provideApiService(context)
-        sharedPreferences = AppSharedPreferences.Instance(context)
+        sharedPreferences = AppSharedPreferences.getInstance(context)
     }
 
     fun login(email: String, password: String) {

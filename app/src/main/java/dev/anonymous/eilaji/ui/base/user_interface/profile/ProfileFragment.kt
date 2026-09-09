@@ -9,23 +9,27 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import dev.anonymous.eilaji.databinding.FragmentProfileBinding
 import dev.anonymous.eilaji.firebase.FirebaseController
+import dev.anonymous.eilaji.network.ApiResponse
+import dev.anonymous.eilaji.network.NetworkModule
+import dev.anonymous.eilaji.storage.AppSharedPreferences
+import dev.anonymous.eilaji.storage.enums.FragmentsKeys
 import dev.anonymous.eilaji.ui.main.MainActivity
 import dev.anonymous.eilaji.ui.other.base.AlternativesActivity
-import dev.anonymous.eilaji.storage.enums.FragmentsKeys
 import dev.anonymous.eilaji.ui.other.dialogs.LogoutDialogFragment
 import dev.anonymous.eilaji.ui.other.dialogs.LogoutDialogFragment.LogoutDialogListener
 import java.net.URLEncoder
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
-class ProfileFragment : Fragment() ,LogoutDialogListener{
+class ProfileFragment : Fragment(), LogoutDialogListener {
     private lateinit var _binding: FragmentProfileBinding
     private val binding get() = _binding
-    private val firebaseController = FirebaseController.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Inflate the layout for this fragment
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -36,39 +40,31 @@ class ProfileFragment : Fragment() ,LogoutDialogListener{
     }
 
     private fun setupListeners() {
-        with(binding){
-            // SignOut
+        with(binding) {
             buLogout.setOnClickListener {
-                // show an alert to notify user of the logout action
-                LogoutDialogFragment().show(childFragmentManager,"LogoutTriggered")
+                LogoutDialogFragment().show(childFragmentManager, "LogoutTriggered")
             }
-            // change-password need to be fixed
             buChangePassword.setOnClickListener {
                 val intent = Intent(requireContext(), MainActivity::class.java)
                 intent.putExtra("fragmentType", FragmentsKeys.changePassword.name)
                 startActivity(intent)
             }
-            // check-for-favorite items
             buFavorites.setOnClickListener {
                 val intent = Intent(requireContext(), AlternativesActivity::class.java)
                 intent.putExtra("fragmentType", FragmentsKeys.favorites.name)
                 startActivity(intent)
             }
-            // rate temp
             buRateApp.setOnClickListener {
                 val query = "Leo Messi"
                 val url = "https://www.google.com/search?q=${URLEncoder.encode(query, "UTF-8")}"
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                 startActivity(intent)
             }
-            // map temp
             buAppMap.setOnClickListener {
                 val intent = Intent(requireContext(), AlternativesActivity::class.java)
                 intent.putExtra("fragmentType", FragmentsKeys.add_address.name)
                 startActivity(intent)
             }
-
-            // connect with us temp
             buConnectWithUs.setOnClickListener {
                 val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
                     data = Uri.parse("mailto:eilaji.health@gmail.com")
@@ -76,20 +72,37 @@ class ProfileFragment : Fragment() ,LogoutDialogListener{
                 }
                 startActivity(emailIntent)
             }
-            // etc..
         }
-
     }
-    // logout inside of dialog that shows when user clicked on bnLogout in the fragment
+
     override fun onLogoutClicked() {
-        //first logout from firebase server
-        firebaseController.signOut(requireContext())
-        // pop the current screen from the back stack
+        val prefs = AppSharedPreferences.getInstance(requireContext())
+        val api = NetworkModule.provideApiService(requireContext())
+        api.logout().enqueue(object : Callback<ApiResponse<Any>> {
+            override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
+                prefs.clearAll()
+                try {
+                    FirebaseController.getInstance().signOut(requireContext())
+                } catch (_: Exception) {
+                }
+                navigateToLogin()
+            }
+
+            override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {
+                prefs.clearAll()
+                try {
+                    FirebaseController.getInstance().signOut(requireContext())
+                } catch (_: Exception) {
+                }
+                navigateToLogin()
+            }
+        })
+    }
+
+    private fun navigateToLogin() {
         requireActivity().finish()
-        // move to the login screen
         val intent = Intent(requireContext(), MainActivity::class.java)
-        intent.putExtra("logoutTrigger",
-            FragmentsKeys.logout.name)
+        intent.putExtra("logoutTrigger", FragmentsKeys.logout.name)
         startActivity(intent)
     }
 }

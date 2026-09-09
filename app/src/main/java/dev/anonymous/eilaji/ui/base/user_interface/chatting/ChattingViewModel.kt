@@ -62,6 +62,5 @@ class ChattingViewModel : ViewModel() {
         return try { Instant.parse(s).toEpochMilli() } catch (e: Exception) { try { s.toLong() } catch (_: Exception) { System.currentTimeMillis() } }
     }
 
-    @Deprecated("Use isLoggedIn and chats")
-    fun getCurrentUser(): MutableLiveData<com.google.firebase.auth.FirebaseUser?> { return MutableLiveData(null) }
+
 }

@@ -3,21 +3,21 @@ package dev.anonymous.eilaji.ui.other.sub_categories
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import dev.anonymous.eilaji.models.server.Medicine
-import dev.anonymous.eilaji.models.server.SubCategory
+import dev.anonymous.eilaji.network.MedicineDto
+import dev.anonymous.eilaji.network.SubcategoryDto
 
 class SubCategoriesViewModel : ViewModel() {
-    private val _subCategoriesList = MutableLiveData<ArrayList<SubCategory>>()
-    val subCategoriesList: LiveData<ArrayList<SubCategory>> = _subCategoriesList
+    private val _subCategoriesList = MutableLiveData<List<SubcategoryDto>>()
+    val subCategoriesList: LiveData<List<SubcategoryDto>> = _subCategoriesList
 
-    fun setSubCategoriesList(subCategoriesListList: ArrayList<SubCategory>) {
-        _subCategoriesList.value = subCategoriesListList
+    fun setSubCategoriesList(subCategoriesList: List<SubcategoryDto>) {
+        _subCategoriesList.value = subCategoriesList
     }
-    //--------------------------------------------------
-    private val _medicineList = MutableLiveData<ArrayList<Medicine>>()
-    val medicineList: LiveData<ArrayList<Medicine>> = _medicineList
 
-    fun setMedicineList(medicineList: ArrayList<Medicine>) {
+    private val _medicineList = MutableLiveData<List<MedicineDto>>()
+    val medicineList: LiveData<List<MedicineDto>> = _medicineList
+
+    fun setMedicineList(medicineList: List<MedicineDto>) {
         _medicineList.value = medicineList
     }
 }

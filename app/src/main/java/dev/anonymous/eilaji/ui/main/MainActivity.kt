@@ -8,7 +8,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import dev.anonymous.eilaji.R
-import dev.anonymous.eilaji.firebase.FirebaseController
 import dev.anonymous.eilaji.storage.AppSharedPreferences
 import dev.anonymous.eilaji.storage.enums.FragmentsKeys
 import dev.anonymous.eilaji.ui.base.BaseActivity
@@ -122,7 +121,8 @@ class MainActivity : AppCompatActivity() {
      * Checks if user is signed in aka (non-null) and update UI accordingly.
      * */
     private fun checkUserStatus() {
-        if (FirebaseController.getInstance().getCurrentUser() != null) {
+        val prefs = AppSharedPreferences.getInstance(this)
+        if (prefs.getToken() != null && prefs.getUserId() != null) {
             navigateToHomeScreen()
         }
     }

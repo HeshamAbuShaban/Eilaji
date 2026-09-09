@@ -41,10 +41,10 @@ class LoginFragment : Fragment() {
 
     private fun setupViewModel() {
         loginViewModel = ViewModelProvider(this)[LoginViewModel::class.java]
+        loginViewModel.init(requireContext())
     }
 
     private fun setupListeners() {
-        // this gets the navController from the host activity
         val navController = findNavController()
         binding.apply {
             buSkip.setOnClickListener {
@@ -61,18 +61,8 @@ class LoginFragment : Fragment() {
             buLogin.setOnClickListener {
                 val email = edEmail.text.toString()
                 val password = edPassword.text.toString()
-                val token = preferences.token
-
                 if (checkData(email, password)) {
-                    if (token == null) {
-                        loginViewModel.getToken()
-                        loginViewModel.token.observe(viewLifecycleOwner) {
-                            preferences.putToken(it)
-                            loginViewModel.login(email, password, requireActivity())
-                        }
-                    } else {
-                        loginViewModel.login(email, password, requireActivity())
-                    }
+                    loginViewModel.login(email, password)
                 } else {
                     showTextError(email, password)
                 }
