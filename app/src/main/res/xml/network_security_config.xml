@@ -6,9 +6,15 @@
         </trust-anchors>
     </base-config>
 
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">10.0.3.2</domain>
+    </domain-config>
+
     <domain-config cleartextTrafficPermitted="false">
         <domain includeSubdomains="true">fcm.googleapis.com</domain>
-        <!-- Certificate pin for Firebase -->
         <pin-set expiration="2026-12-31">
             <pin digest="SHA-256">fLHfhI36PKTxgSCcSTPo3CYlppw5cLD4JM3IBYaNOM4=</pin>
             <pin digest="SHA-256">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</pin>

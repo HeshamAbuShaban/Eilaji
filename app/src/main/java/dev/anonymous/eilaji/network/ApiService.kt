@@ -8,7 +8,6 @@ import retrofit2.http.*
 
 interface ApiService {
 
-    // Authentication endpoints
     @POST("auth/register")
     fun register(@Body request: RegisterRequest): Call<ApiResponse<LoginResponse>>
 
@@ -21,31 +20,24 @@ interface ApiService {
     @POST("auth/logout")
     fun logout(): Call<ApiResponse<Any>>
 
-    @GET("auth/verify")
-    fun verifyToken(): Call<ApiResponse<UserDto>>
-
-    // User endpoints
-    @GET("users/me")
+    @GET("user")
     fun getCurrentUser(): Call<ApiResponse<UserDto>>
 
-    @PUT("users/me")
+    @PUT("user")
     fun updateProfile(@Body request: UpdateProfileRequest): Call<ApiResponse<UserDto>>
 
     @PUT("users/change-password")
     fun changePassword(@Body request: ChangePasswordRequest): Call<ApiResponse<Any>>
 
-    // Medicines endpoints
     @GET("medicines")
     fun getMedicines(
         @Query("page") page: Int = 0,
         @Query("pageSize") pageSize: Int = 20,
-        @Query("categoryId") categoryId: Int? = null,
-        @Query("subcategoryId") subcategoryId: Int? = null,
-        @Query("requiresPrescription") requiresPrescription: Boolean? = null
+        @Query("subcategoryId") subcategoryId: String? = null
     ): Call<ApiResponse<PaginatedResult<MedicineDto>>>
 
     @GET("medicines/{id}")
-    fun getMedicine(@Path("id") id: Int): Call<ApiResponse<MedicineDto>>
+    fun getMedicine(@Path("id") id: String): Call<ApiResponse<MedicineDto>>
 
     @GET("medicines/search")
     fun searchMedicines(
@@ -54,11 +46,9 @@ interface ApiService {
         @Query("pageSize") pageSize: Int = 20
     ): Call<ApiResponse<PaginatedResult<MedicineDto>>>
 
-    // Categories endpoints
     @GET("medicines/categories")
     fun getCategories(): Call<ApiResponse<List<CategoryDto>>>
 
-    // Pharmacies endpoints
     @GET("pharmacies")
     fun getPharmacies(
         @Query("page") page: Int = 0,
@@ -68,10 +58,16 @@ interface ApiService {
         @Query("isVerified") isVerified: Boolean? = null
     ): Call<ApiResponse<PaginatedResult<PharmacyDto>>>
 
-    @GET("pharmacies/{id}")
-    fun getPharmacy(@Path("id") id: Int): Call<ApiResponse<PharmacyDto>>
+    @GET("pharmacies/nearby")
+    fun getNearbyPharmacies(
+        @Query("lat") lat: Double,
+        @Query("lng") lng: Double,
+        @Query("radius") radius: Double = 10.0
+    ): Call<ApiResponse<List<PharmacyDto>>>
 
-    // Prescriptions endpoints
+    @GET("pharmacies/{id}")
+    fun getPharmacy(@Path("id") id: String): Call<ApiResponse<PharmacyDto>>
+
     @Multipart
     @POST("prescriptions")
     fun uploadPrescription(
@@ -88,9 +84,8 @@ interface ApiService {
     ): Call<ApiResponse<PaginatedResult<PrescriptionDto>>>
 
     @GET("prescriptions/{id}")
-    fun getPrescription(@Path("id") id: Int): Call<ApiResponse<PrescriptionDto>>
+    fun getPrescription(@Path("id") id: String): Call<ApiResponse<PrescriptionDto>>
 
-    // Orders endpoints
     @POST("orders")
     fun createOrder(@Body request: CreateOrderRequest): Call<ApiResponse<OrderDto>>
 
@@ -98,49 +93,46 @@ interface ApiService {
     fun getOrders(): Call<ApiResponse<List<OrderDto>>>
 
     @GET("orders/{id}")
-    fun getOrder(@Path("id") id: Int): Call<ApiResponse<OrderDto>>
+    fun getOrder(@Path("id") id: String): Call<ApiResponse<OrderDto>>
 
     @PUT("orders/{id}/status")
     fun updateOrderStatus(
-        @Path("id") id: Int,
+        @Path("id") id: String,
         @Body request: UpdateOrderStatusRequest
     ): Call<ApiResponse<OrderDto>>
 
-    // Chat endpoints
     @GET("chats")
-    fun getChats(): Call<ApiResponse<List<ChatDto>>>
+    fun getChats(): Call<ApiResponse<PaginatedResult<ChatDto>>>
 
     @POST("chats")
     fun createChat(@Body request: CreateChatRequest): Call<ApiResponse<ChatDto>>
 
     @GET("chats/{chatId}/messages")
     fun getMessages(
-        @Path("chatId") chatId: Long,
+        @Path("chatId") chatId: String,
         @Query("page") page: Int = 0,
         @Query("pageSize") pageSize: Int = 50
     ): Call<ApiResponse<PaginatedResult<MessageDto>>>
 
     @POST("chats/{chatId}/read")
     fun markAsRead(
-        @Path("chatId") chatId: Long,
+        @Path("chatId") chatId: String,
         @Body request: MarkAsReadRequest
     ): Call<ApiResponse<Map<String, Int>>>
 
-    // Search endpoint
-    @GET("search")
-    fun globalSearch(
-        @Query("q") query: String,
-        @Query("type") type: String? = null
-    ): Call<ApiResponse<SearchResultDto>>
+    @GET("presence/online")
+    fun getOnlineUsers(): Call<ApiResponse<Map<String, List<String>>>>
+
+    @GET("presence/{userId}")
+    fun getPresence(@Path("userId") userId: String): Call<ApiResponse<Map<String, Any>>>
 }
 
-// Request/Response data classes
 data class RegisterRequest(
     @SerializedName("email") val email: String,
     @SerializedName("password") val password: String,
     @SerializedName("fullName") val fullName: String,
     @SerializedName("phone") val phone: String? = null,
-    @SerializedName("role") val role: String = "USER"
+    @SerializedName("role") val role: String = "PATIENT"
 )
 
 data class LoginRequest(
@@ -171,24 +163,29 @@ data class ChangePasswordRequest(
 )
 
 data class CreateOrderRequest(
-    @SerializedName("prescriptionId") val prescriptionId: Int,
-    @SerializedName("pharmacyId") val pharmacyId: Int,
+    @SerializedName("prescriptionId") val prescriptionId: String,
+    @SerializedName("pharmacyId") val pharmacyId: String,
+    @SerializedName("totalAmount") val totalAmount: Double? = null,
+    @SerializedName("paymentMethod") val paymentMethod: String? = null,
+    @SerializedName("deliveryAddress") val deliveryAddress: String? = null,
     @SerializedName("notes") val notes: String? = null
 )
 
 data class UpdateOrderStatusRequest(
-    @SerializedName("status") val status: String
+    @SerializedName("status") val status: String,
+    @SerializedName("paymentStatus") val paymentStatus: String? = null
 )
 
 data class CreateChatRequest(
-    @SerializedName("participantId") val participantId: String
+    @SerializedName("prescriptionId") val prescriptionId: String? = null,
+    @SerializedName("pharmacyId") val pharmacyId: String? = null
 )
 
 data class MarkAsReadRequest(
-    @SerializedName("messageIds") val messageIds: List<Long>
+    @SerializedName("messageIds") val messageIds: List<String>? = null,
+    @SerializedName("chatId") val chatId: String? = null
 )
 
-// DTOs (simplified versions - expand as needed)
 data class UserDto(
     @SerializedName("id") val id: String,
     @SerializedName("email") val email: String,
@@ -197,61 +194,113 @@ data class UserDto(
     @SerializedName("role") val role: String,
     @SerializedName("isVerified") val isVerified: Boolean,
     @SerializedName("isActive") val isActive: Boolean,
-    @SerializedName("imageUrl") val imageUrl: String?
+    @SerializedName("avatarUrl") val imageUrl: String?,
+    @SerializedName("createdAt") val createdAt: String?
 )
 
 data class MedicineDto(
-    @SerializedName("id") val id: Int,
-    @SerializedName("scientificName") val scientificName: String,
-    @SerializedName("commercialName") val commercialName: String?,
-    @SerializedName("categoryId") val categoryId: Int?,
+    @SerializedName("id") val id: String,
+    @SerializedName("titleEn") val titleEn: String,
+    @SerializedName("titleAr") val titleAr: String,
+    @SerializedName("descriptionEn") val descriptionEn: String?,
+    @SerializedName("descriptionAr") val descriptionAr: String?,
+    @SerializedName("manufacturer") val manufacturer: String?,
     @SerializedName("requiresPrescription") val requiresPrescription: Boolean,
-    @SerializedName("imageUrl") val imageUrl: String?
+    @SerializedName("price") val price: Double?,
+    @SerializedName("imageUrl") val imageUrl: String?,
+    @SerializedName("isActive") val isActive: Boolean,
+    @SerializedName("subcategoryNameEn") val subcategoryNameEn: String?,
+    @SerializedName("subcategoryNameAr") val subcategoryNameAr: String?
+)
+
+data class CategoryDto(
+    @SerializedName("id") val id: String,
+    @SerializedName("nameEn") val nameEn: String,
+    @SerializedName("nameAr") val nameAr: String,
+    @SerializedName("iconUrl") val iconUrl: String?,
+    @SerializedName("displayOrder") val displayOrder: Int,
+    @SerializedName("isActive") val isActive: Boolean,
+    @SerializedName("subcategories") val subcategories: List<SubcategoryDto> = emptyList()
+)
+
+data class SubcategoryDto(
+    @SerializedName("id") val id: String,
+    @SerializedName("nameEn") val nameEn: String,
+    @SerializedName("nameAr") val nameAr: String,
+    @SerializedName("iconUrl") val iconUrl: String?
 )
 
 data class PharmacyDto(
-    @SerializedName("id") val id: Int,
+    @SerializedName("id") val id: String,
     @SerializedName("name") val name: String,
+    @SerializedName("description") val description: String?,
+    @SerializedName("imageUrl") val imageUrl: String?,
     @SerializedName("address") val address: String,
-    @SerializedName("city") val city: String,
+    @SerializedName("city") val city: String?,
+    @SerializedName("latitude") val latitude: Double,
+    @SerializedName("longitude") val longitude: Double,
     @SerializedName("phone") val phone: String?,
     @SerializedName("isVerified") val isVerified: Boolean,
-    @SerializedName("isOpen") val isOpen: Boolean
+    @SerializedName("isOpen") val isOpen: Boolean,
+    @SerializedName("ratingAvg") val ratingAvg: Double = 0.0,
+    @SerializedName("totalRatings") val totalRatings: Int = 0,
+    @SerializedName("distanceKm") val distanceKm: Double? = null
 )
 
 data class PrescriptionDto(
-    @SerializedName("id") val id: Int,
+    @SerializedName("id") val id: String,
     @SerializedName("userId") val userId: String,
-    @SerializedName("pharmacyId") val pharmacyId: Int?,
+    @SerializedName("pharmacyId") val pharmacyId: String?,
+    @SerializedName("pharmacyName") val pharmacyName: String?,
     @SerializedName("imageUrl") val imageUrl: String,
     @SerializedName("status") val status: String,
     @SerializedName("notes") val notes: String?,
-    @SerializedName("createdAt") val createdAt: String
+    @SerializedName("quotedPrice") val quotedPrice: Double?,
+    @SerializedName("pharmacistNotes") val pharmacistNotes: String?,
+    @SerializedName("eilajiPlusRef") val eilajiPlusRef: String?,
+    @SerializedName("eilajiPlusStatus") val eilajiPlusStatus: String?,
+    @SerializedName("createdAt") val createdAt: String,
+    @SerializedName("updatedAt") val updatedAt: String
 )
 
 data class OrderDto(
-    @SerializedName("id") val id: Int,
-    @SerializedName("userId") val userId: String,
-    @SerializedName("pharmacyId") val pharmacyId: Int,
+    @SerializedName("id") val id: String,
+    @SerializedName("prescriptionId") val prescriptionId: String,
+    @SerializedName("patientId") val patientId: String,
+    @SerializedName("pharmacyId") val pharmacyId: String,
+    @SerializedName("pharmacyName") val pharmacyName: String?,
     @SerializedName("status") val status: String,
     @SerializedName("totalAmount") val totalAmount: Double,
-    @SerializedName("createdAt") val createdAt: String
+    @SerializedName("paymentMethod") val paymentMethod: String?,
+    @SerializedName("paymentStatus") val paymentStatus: String,
+    @SerializedName("deliveryAddress") val deliveryAddress: String?,
+    @SerializedName("createdAt") val createdAt: String,
+    @SerializedName("updatedAt") val updatedAt: String
 )
 
 data class ChatDto(
-    @SerializedName("id") val id: Long,
-    @SerializedName("user1Id") val user1Id: String,
-    @SerializedName("user2Id") val user2Id: String,
-    @SerializedName("lastMessage") val lastMessage: MessageDto?
+    @SerializedName("id") val id: String,
+    @SerializedName("prescriptionId") val prescriptionId: String?,
+    @SerializedName("pharmacyId") val pharmacyId: String?,
+    @SerializedName("pharmacyName") val pharmacyName: String?,
+    @SerializedName("userId") val userId: String,
+    @SerializedName("userName") val userName: String?,
+    @SerializedName("lastMessage") val lastMessage: String?,
+    @SerializedName("lastMessageAt") val lastMessageAt: String?,
+    @SerializedName("unreadCount") val unreadCount: Int = 0,
+    @SerializedName("createdAt") val createdAt: String
 )
 
 data class MessageDto(
-    @SerializedName("id") val id: Long,
-    @SerializedName("chatId") val chatId: Long,
+    @SerializedName("id") val id: String,
+    @SerializedName("chatId") val chatId: String,
     @SerializedName("senderId") val senderId: String,
-    @SerializedName("content") val content: String,
-    @SerializedName("type") val type: String,
+    @SerializedName("senderName") val senderName: String?,
+    @SerializedName("content") val content: String?,
+    @SerializedName("messageType") val messageType: String?,
+    @SerializedName("attachmentUrl") val attachmentUrl: String?,
     @SerializedName("isRead") val isRead: Boolean,
+    @SerializedName("readAt") val readAt: String?,
     @SerializedName("createdAt") val createdAt: String
 )
 
@@ -268,7 +317,6 @@ data class PaginatedResult<T>(
     @SerializedName("totalPages") val totalPages: Int
 )
 
-// Generic API response
 data class ApiResponse<T>(
     @SerializedName("success") val success: Boolean,
     @SerializedName("data") val data: T? = null,

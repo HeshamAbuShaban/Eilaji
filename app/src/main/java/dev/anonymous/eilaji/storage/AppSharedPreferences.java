@@ -15,7 +15,7 @@ import java.security.GeneralSecurityException;
 
 public class AppSharedPreferences {
     private enum SharedPreferencesKeys {
-        onBoardingDone, isFirstTime, token, fullName, imageUrl, currentUserChattingUid, userId, phone, role, isVerified, isActive
+        onBoardingDone, isFirstTime, token, refreshToken, fcmToken, fullName, imageUrl, currentUserChattingUid, userId, phone, role, isVerified, isActive
     }
 
     private static AppSharedPreferences Instance;
@@ -91,6 +91,26 @@ public class AppSharedPreferences {
     public void putToken(String token) {
         editor = sharedPreferences.edit();
         editor.putString(SharedPreferencesKeys.token.name(), token);
+        editor.apply();
+    }
+
+    public String getRefreshToken() {
+        return sharedPreferences.getString(SharedPreferencesKeys.refreshToken.name(), null);
+    }
+
+    public void putRefreshToken(String token) {
+        editor = sharedPreferences.edit();
+        editor.putString(SharedPreferencesKeys.refreshToken.name(), token);
+        editor.apply();
+    }
+
+    public String getFcmToken() {
+        return sharedPreferences.getString(SharedPreferencesKeys.fcmToken.name(), null);
+    }
+
+    public void putFcmToken(String token) {
+        editor = sharedPreferences.edit();
+        editor.putString(SharedPreferencesKeys.fcmToken.name(), token);
         editor.apply();
     }
 

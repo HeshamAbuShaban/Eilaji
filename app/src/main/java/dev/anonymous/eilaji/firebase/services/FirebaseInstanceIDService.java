@@ -19,9 +19,7 @@ public class FirebaseInstanceIDService extends FirebaseMessagingService {
     @Override
     public void onNewToken(@NonNull String token) {
         super.onNewToken(token);
-
-        // Token is stored securely, avoid logging sensitive data
-        preferences.putToken(token);
+        preferences.putFcmToken(token);
     }
 
     @Override
