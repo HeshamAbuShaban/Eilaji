@@ -81,7 +81,7 @@ fun Route.apiRoutes(
                             .limit(pageSize, (page * pageSize).toLong())
                             .map { row ->
                                 MedicineDto(
-                                    id = row[Medicines.id],
+                                    id = row[Medicines.id].toString(),
                                     titleEn = row[Medicines.titleEn],
                                     titleAr = row[Medicines.titleAr],
                                     descriptionAr = row[Medicines.descriptionAr],
@@ -137,7 +137,7 @@ fun Route.apiRoutes(
                             .limit(pageSize, (page * pageSize).toLong())
                             .map { row ->
                                 MedicineDto(
-                                    id = row[Medicines.id],
+                                    id = row[Medicines.id].toString(),
                                     titleEn = row[Medicines.titleEn],
                                     titleAr = row[Medicines.titleAr],
                                     descriptionAr = row[Medicines.descriptionAr],
@@ -179,7 +179,7 @@ fun Route.apiRoutes(
                         Medicines.selectAll().where { Medicines.id eq id }
                             .map { row ->
                                 MedicineDto(
-                                    id = row[Medicines.id],
+                                    id = row[Medicines.id].toString(),
                                     titleEn = row[Medicines.titleEn],
                                     titleAr = row[Medicines.titleAr],
                                     descriptionAr = row[Medicines.descriptionAr],
@@ -212,7 +212,7 @@ fun Route.apiRoutes(
                     val categories = transaction {
                         Categories.selectAll().orderBy(Categories.nameEn).map { row ->
                             CategoryDto(
-                                id = row[Categories.id],
+                                id = row[Categories.id].toString(),
                                 nameEn = row[Categories.nameEn],
                                 nameAr = row[Categories.nameAr],
                                 iconUrl = row[Categories.iconUrl],
@@ -244,7 +244,7 @@ fun Route.apiRoutes(
                     val pharmacies = transaction {
                         Pharmacies.selectAll().map { row ->
                             PharmacyDto(
-                                id = row[Pharmacies.id],
+                                id = row[Pharmacies.id].toString(),
                                 name = row[Pharmacies.name],
                                 description = row[Pharmacies.description],
                                 imageUrl = row[Pharmacies.imageUrl],
@@ -286,7 +286,7 @@ fun Route.apiRoutes(
                             .limit(pageSize, (page * pageSize).toLong())
                             .map { row ->
                                 PharmacyDto(
-                                    id = row[Pharmacies.id],
+                                    id = row[Pharmacies.id].toString(),
                                     name = row[Pharmacies.name],
                                     description = row[Pharmacies.description],
                                     imageUrl = row[Pharmacies.imageUrl],
@@ -336,7 +336,7 @@ fun Route.apiRoutes(
                         val user = transaction {
                             Users.selectAll().where { Users.id eq userUuid }.firstOrNull()?.let { row ->
                                 UserDto(
-                                    id = row[Users.id],
+                                    id = row[Users.id].toString(),
                                     email = row[Users.email],
                                     fullName = row[Users.fullName],
                                     phone = row[Users.phone],
@@ -418,7 +418,7 @@ fun Route.apiRoutes(
 
                         if (eilajiPlusService != null) {
                             try {
-                                eilajiPlusService.sendPrescriptionToEilajiDoctor(prescriptionResult.id, userId)
+                                eilajiPlusService.sendPrescriptionToEilajiDoctor(UUID.fromString(prescriptionResult.id), userId)
                             } catch (e: Exception) {
                                 // Log error but don't fail
                             }
@@ -651,8 +651,7 @@ fun Route.apiRoutes(
                     val principal = call.principal<JWTPrincipal>()
                     val userId = principal!!.payload.subject
                     val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
-                    val idStr = call.parameters["id"]
-                    val orderId = idStr?.let { UUID.fromString(it) }
+                    val orderId = call.parameters["id"]
 
                     if (orderId == null) {
                         call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid order ID"))
@@ -675,8 +674,7 @@ fun Route.apiRoutes(
                     val principal = call.principal<JWTPrincipal>()
                     val userId = principal!!.payload.subject
                     val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
-                    val idStr = call.parameters["id"]
-                    val orderId = idStr?.let { UUID.fromString(it) }
+                    val orderId = call.parameters["id"]
 
                     if (orderId == null) {
                         call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid order ID"))

@@ -82,21 +82,24 @@ class WebSocketController(
     ) {
         when (message.type.uppercase()) {
             "JOIN" -> {
-                val chatId = message.chatId ?: return sendError(session, "chatId required for JOIN")
+                val chatIdStr = message.chatId ?: return sendError(session, "chatId required for JOIN")
+                val chatId = try { java.util.UUID.fromString(chatIdStr) } catch (e: Exception) { return sendError(session, "Invalid chatId") }
                 sessionManager.joinChat(userId, chatId)
                 session.send(Frame.Text(Json.encodeToString(WebSocketMessage.serializer(),
-                    WebSocketMessage(type = "JOINED", chatId = chatId, userId = userId))))
+                    WebSocketMessage(type = "JOINED", chatId = chatIdStr, userId = userId))))
             }
             
             "LEAVE" -> {
-                val chatId = message.chatId ?: return sendError(session, "chatId required for LEAVE")
+                val chatIdStr = message.chatId ?: return sendError(session, "chatId required for LEAVE")
+                val chatId = try { java.util.UUID.fromString(chatIdStr) } catch (e: Exception) { return sendError(session, "Invalid chatId") }
                 sessionManager.leaveChat(userId, chatId)
                 session.send(Frame.Text(Json.encodeToString(WebSocketMessage.serializer(),
-                    WebSocketMessage(type = "LEFT", chatId = chatId, userId = userId))))
+                    WebSocketMessage(type = "LEFT", chatId = chatIdStr, userId = userId))))
             }
             
             "MESSAGE" -> {
-                val chatId = message.chatId ?: return sendError(session, "chatId required for MESSAGE")
+                val chatIdStr = message.chatId ?: return sendError(session, "chatId required for MESSAGE")
+                val chatId = try { java.util.UUID.fromString(chatIdStr) } catch (e: Exception) { return sendError(session, "Invalid chatId") }
                 val content = message.content ?: return sendError(session, "content required for MESSAGE")
                 
                 val sentMessage = sessionManager.sendMessage(
@@ -109,14 +112,15 @@ class WebSocketController(
                 
                 if (sentMessage != null) {
                     session.send(Frame.Text(Json.encodeToString(WebSocketMessage.serializer(),
-                        WebSocketMessage(type = "MESSAGE_SENT", chatId = chatId, message = sentMessage))))
+                        WebSocketMessage(type = "MESSAGE_SENT", chatId = chatIdStr, message = sentMessage))))
                 } else {
                     sendError(session, "Failed to send message")
                 }
             }
             
             "READ" -> {
-                val chatId = message.chatId ?: return sendError(session, "chatId required for READ")
+                val chatIdStr = message.chatId ?: return sendError(session, "chatId required for READ")
+                val chatId = try { java.util.UUID.fromString(chatIdStr) } catch (e: Exception) { return sendError(session, "Invalid chatId") }
                 sessionManager.markAsRead(userId, chatId)
             }
             

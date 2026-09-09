@@ -93,7 +93,7 @@ class WebSocketSessionManager(
             // Broadcast to all subscribers
             val wsMessage = WebSocketMessage(
                 type = "MESSAGE",
-                chatId = chatId,
+                chatId = chatId.toString(),
                 userId = userId,
                 message = message,
                 timestamp = message.createdAt
@@ -121,7 +121,7 @@ class WebSocketSessionManager(
             // Broadcast read receipt to chat participants
             val wsMessage = WebSocketMessage(
                 type = "READ",
-                chatId = chatId,
+                chatId = chatId.toString(),
                 userId = userId,
                 timestamp = java.time.Instant.now().toString()
             )

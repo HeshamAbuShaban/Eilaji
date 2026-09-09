@@ -85,7 +85,7 @@ fun Route.registerAuthRoutes(redisService: RedisService) {
             }
 
             val userDto = UserDto(
-                id = user[Users.id],
+                id = user[Users.id].toString(),
                 email = user[Users.email],
                 fullName = user[Users.fullName],
                 phone = user[Users.phone],
@@ -95,12 +95,12 @@ fun Route.registerAuthRoutes(redisService: RedisService) {
                 createdAt = user[Users.createdAt].toString()
             )
 
-            val token = JwtConfig.createJWT(userDto.id.toString(), userDto.fullName, userDto.role, userDto.email)
-            val refreshToken = JwtConfig.createRefreshToken(userDto.id.toString())
+            val token = JwtConfig.createJWT(userDto.id, userDto.fullName, userDto.role, userDto.email)
+            val refreshToken = JwtConfig.createRefreshToken(userDto.id)
 
             AuditService.logEvent(
                 eventType = AuditService.EventType.USER_CREATED,
-                userId = userDto.id.toString(),
+                userId = userDto.id,
                 description = "User registered: ${userDto.email}"
             )
 
@@ -153,7 +153,7 @@ fun Route.registerAuthRoutes(redisService: RedisService) {
             }
 
             val userDto = UserDto(
-                id = user[Users.id],
+                id = user[Users.id].toString(),
                 email = user[Users.email],
                 fullName = user[Users.fullName],
                 phone = user[Users.phone],
@@ -163,11 +163,11 @@ fun Route.registerAuthRoutes(redisService: RedisService) {
                 createdAt = user[Users.createdAt].toString()
             )
 
-            val token = JwtConfig.createJWT(userDto.id.toString(), userDto.fullName, userDto.role, userDto.email)
-            val refreshToken = JwtConfig.createRefreshToken(userDto.id.toString())
+            val token = JwtConfig.createJWT(userDto.id, userDto.fullName, userDto.role, userDto.email)
+            val refreshToken = JwtConfig.createRefreshToken(userDto.id)
 
             AuditService.logLoginSuccess(
-                userId = userDto.id.toString(),
+                userId = userDto.id,
                 ipAddress = call.request.header("X-Forwarded-For") ?: call.request.local.remoteHost,
                 userAgent = call.request.header("User-Agent")
             )
