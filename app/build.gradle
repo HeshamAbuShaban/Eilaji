@@ -96,10 +96,8 @@ dependencies {
     // Security - EncryptedSharedPreferences
     implementation 'androidx.security:security-crypto:1.1.0-alpha06'
 
-    // Keep Firebase for messaging if needed, remove others
-    // Uncomment if you still need Firebase messaging:
-    // implementation platform('com.google.firebase:firebase-bom:32.2.2')
-    // implementation 'com.google.firebase:firebase-messaging-ktx'
+    implementation platform('com.google.firebase:firebase-bom:32.2.2')
+    implementation 'com.google.firebase:firebase-messaging-ktx'
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.3'
 
