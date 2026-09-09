@@ -28,12 +28,12 @@ class WebSocketManager @JvmOverloads constructor(
     private var webSocket: WebSocket? = null
     private val gson = Gson()
 
-    var onMessage: ((MessageDto) -> Unit)? = null
-    var onRead: ((String) -> Unit)? = null
-    var onPresence: ((String, Boolean) -> Unit)? = null
-    var onPong: (() -> Unit)? = null
-    var onConnected: (() -> Unit)? = null
-    var onError: ((String) -> Unit)? = null
+    var onMessage: java.util.function.Consumer<MessageDto>? = null
+    var onRead: java.util.function.Consumer<String>? = null
+    var onPresence: java.util.function.BiConsumer<String, Boolean>? = null
+    var onPong: Runnable? = null
+    var onConnected: Runnable? = null
+    var onError: java.util.function.Consumer<String>? = null
 
     private fun buildUrl(): String {
         val base = if (BuildConfig.DEBUG) "http://10.0.2.2:8080/api/v1/" else "https://api.eilaji.com/api/v1/"
@@ -44,10 +44,10 @@ class WebSocketManager @JvmOverloads constructor(
     fun connect() {
         val request = Request.Builder().url(buildUrl()).build()
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
-            override fun onOpen(ws: WebSocket, response: Response) { onConnected?.invoke() }
+            override fun onOpen(ws: WebSocket, response: Response) { onConnected?.run() }
             override fun onMessage(ws: WebSocket, text: String) { handleMessage(text) }
             override fun onMessage(ws: WebSocket, bytes: ByteString) { handleMessage(bytes.utf8()) }
-            override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) { onError?.invoke(t.message ?: "ws failure") }
+            override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) { onError?.accept(t.message ?: "ws failure") }
             override fun onClosed(ws: WebSocket, code: Int, reason: String) { }
         })
     }
@@ -56,14 +56,14 @@ class WebSocketManager @JvmOverloads constructor(
         try {
             val msg = gson.fromJson(text, WebSocketMessage::class.java) ?: return
             when (msg.type.uppercase()) {
-                "MESSAGE" -> msg.message?.let { onMessage?.invoke(it) } ?: msg.content?.let {
+                "MESSAGE" -> msg.message?.let { onMessage?.accept(it) } ?: msg.content?.let {
                     val dto = MessageDto(id = "", chatId = msg.chatId ?: "", senderId = msg.userId ?: "", senderName = null, content = it, messageType = "TEXT", attachmentUrl = null, isRead = false, readAt = null, createdAt = msg.timestamp ?: "")
-                    onMessage?.invoke(dto)
+                    onMessage?.accept(dto)
                 }
-                "MESSAGE_SENT" -> msg.message?.let { onMessage?.invoke(it) }
-                "READ" -> msg.chatId?.let { onRead?.invoke(it) }
-                "PRESENCE" -> if (msg.userId != null && msg.isOnline != null) onPresence?.invoke(msg.userId, msg.isOnline)
-                "PONG" -> onPong?.invoke()
+                "MESSAGE_SENT" -> msg.message?.let { onMessage?.accept(it) }
+                "READ" -> msg.chatId?.let { onRead?.accept(it) }
+                "PRESENCE" -> if (msg.userId != null && msg.isOnline != null) onPresence?.accept(msg.userId, msg.isOnline)
+                "PONG" -> onPong?.run()
                 "CONNECTED", "JOINED", "LEFT" -> {}
                 else -> {}
             }
