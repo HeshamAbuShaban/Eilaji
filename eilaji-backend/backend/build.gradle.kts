@@ -75,8 +75,8 @@ dependencies {
     // implementation("io.ktor:ktor-swagger-ui-jvm:3.0.1")
     
     // Testing
-    testImplementation("io.ktor:ktor-server-tests-jvm:3.0.1")
-    testImplementation("io.ktor:ktor-client-mock-jvm:3.0.1")
+    testImplementation("io.ktor:ktor-server-test-host:3.0.1")
+    testImplementation("io.ktor:ktor-client-mock:3.0.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.3")
     testImplementation("org.mockito:mockito-core:5.14.2")
