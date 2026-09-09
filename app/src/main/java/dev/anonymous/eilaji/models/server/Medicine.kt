@@ -9,7 +9,7 @@ data class Medicine(
     val alternativesMedicine: ArrayList<String>,
     val idCategory: String,
     val idSubCategory: String,
-    val isFavorite: Boolean
+    var isFavorite: Boolean
 ) {
     constructor() : this("", "", "", 0.0, "", ArrayList(), "", "", false)
     // Secondary constructor for Fire-store deserialization
