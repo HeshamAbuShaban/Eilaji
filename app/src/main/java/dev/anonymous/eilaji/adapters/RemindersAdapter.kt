@@ -35,12 +35,12 @@ class RemindersAdapter(val remindersList: ArrayList<Reminder>) : RecyclerView.Ad
                 val lt = ReminderTimeUtils.parseScheduleTime(st)
                 reminderDelayTime.text = lt?.let { ReminderTimeUtils.formatDisplay(it) } ?: st
                 reminderCreationTimestamp.text = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(r.creationTimestamp))
-                switchActive.isChecked = r.isActive
+                switchActive.isChecked = r.isActive()
                 switchActive.setOnCheckedChangeListener { _, isChecked ->
-                    if (r.isActive != isChecked) { r.isActive = isChecked; cb.onToggleActive(r, isChecked) }
+                    if (r.isActive() != isChecked) { r.setActive(isChecked); cb.onToggleActive(r, isChecked) }
                 }
                 deleteReminder.setOnClickListener { cb.onDeleteClicked(r) }
-                root.alpha = if (r.isActive) 1f else 0.55f
+                root.alpha = if (r.isActive()) 1f else 0.55f
             }
         }
     }

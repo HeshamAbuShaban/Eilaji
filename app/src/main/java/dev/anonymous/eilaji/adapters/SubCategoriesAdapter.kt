@@ -33,11 +33,8 @@ class SubCategoriesAdapter(private var listSubCategoriesAdapter: ArrayList<SubCa
 
         // نرسل للعنصر اذا كان تم تحديده او لا
         holder.bind(listModels, lastItemSelected == position) {
-            // نحفظ موقع اخر عنصر تم تحديده قبل ان نحدثه
             val lastSelected = lastItemSelected
-
-            // نغير موقع اخر عنصر تم تحديده حتى يصبح العنصر الاخير غير محدد عند تحديثه
-            lastItemSelected = holder.absoluteAdapterPosition
+            lastItemSelected = holder.bindingAdapterPosition
 
             // نحدث العنصر السابق حتى يخفي التحديد
             notifyItemChanged(lastSelected)
