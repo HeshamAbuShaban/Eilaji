@@ -21,7 +21,7 @@ data class WebSocketMessage(
     @SerializedName("timestamp") val timestamp: String? = null
 )
 
-class WebSocketManager(
+class WebSocketManager @JvmOverloads constructor(
     private val token: String,
     private val client: OkHttpClient = OkHttpClient()
 ) {
@@ -74,7 +74,7 @@ class WebSocketManager(
 
     fun sendJoin(chatId: String) { send(WebSocketMessage(type = "JOIN", chatId = chatId)) }
     fun sendLeave(chatId: String) { send(WebSocketMessage(type = "LEAVE", chatId = chatId)) }
-    fun sendMessage(chatId: String, content: String, messageType: String = "TEXT", attachmentUrl: String? = null) {
+    @JvmOverloads fun sendMessage(chatId: String, content: String, messageType: String = "TEXT", attachmentUrl: String? = null) {
         val inner = if (attachmentUrl != null || messageType != "TEXT") MessageDto(id = "", chatId = chatId, senderId = "", senderName = null, content = content, messageType = messageType, attachmentUrl = attachmentUrl, isRead = false, readAt = null, createdAt = "") else null
         send(WebSocketMessage(type = "MESSAGE", chatId = chatId, content = content, message = inner))
     }

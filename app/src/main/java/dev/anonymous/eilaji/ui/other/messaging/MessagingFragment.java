@@ -228,17 +228,18 @@ public class MessagingFragment extends Fragment {
     private void connectWebSocket() {
         if (webSocketManager == null || chatId == null) return;
         webSocketManager.setOnMessage(dto -> {
-            if (getActivity() == null) return;
-            getActivity().runOnUiThread(() -> {
-                if (dto.getChatId() != null && !dto.getChatId().equals(chatId)) return;
-                messagesAdapter.addMessage(mapToUi(dto));
-                binding.recyclerMessaging.scrollToPosition(messagesAdapter.getItemCount() - 1);
-                markAsRead();
-            });
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    if (dto.getChatId() == null || dto.getChatId().equals(chatId)) {
+                        messagesAdapter.addMessage(mapToUi(dto));
+                        binding.recyclerMessaging.scrollToPosition(messagesAdapter.getItemCount() - 1);
+                        markAsRead();
+                    }
+                });
+            }
         });
         webSocketManager.setOnRead(readChatId -> {
-            if (getActivity() == null) return;
-            getActivity().runOnUiThread(() -> {});
+            if (getActivity() != null) getActivity().runOnUiThread(() -> {});
         });
         webSocketManager.setOnPresence((uid, online) -> {});
         webSocketManager.setOnPong(() -> {});

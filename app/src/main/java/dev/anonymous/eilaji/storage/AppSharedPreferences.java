@@ -19,15 +19,16 @@ public class AppSharedPreferences {
     }
 
     private static AppSharedPreferences Instance;
-    private final SharedPreferences sharedPreferences;
+    private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
 
     private AppSharedPreferences(Context context) {
+        SharedPreferences tmp = null;
         try {
             MasterKey masterKey = new MasterKey.Builder(context)
                 .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
                 .build();
-            sharedPreferences = EncryptedSharedPreferences.create(
+            tmp = EncryptedSharedPreferences.create(
                 context,
                 "secure_app_prefs",
                 masterKey,
@@ -35,10 +36,9 @@ public class AppSharedPreferences {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             );
         } catch (GeneralSecurityException | IOException e) {
-            // Fallback to regular SharedPreferences if encryption fails
-            // This should not happen in normal operation
-            sharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+            tmp = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
         }
+        sharedPreferences = tmp;
     }
 
     public static AppSharedPreferences getInstance(Context context) {
