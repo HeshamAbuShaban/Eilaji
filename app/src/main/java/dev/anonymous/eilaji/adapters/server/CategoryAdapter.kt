@@ -49,10 +49,10 @@ class CategoryAdapter(
                 }
 
                 GeneralUtils.getInstance()
-                    .loadImage(model.iconUrl)
+                    .loadImage(model.iconUrl ?: "")
                     .into(ivPharmacyDepartment)
 
-                tvPharmacyDepartment.text = model.nameEn
+                tvPharmacyDepartment.text = model.nameEn.ifBlank { model.nameAr }
 
                 parentCardCategoryItem.setOnClickListener {
                     navToSubListener(model.id, model.nameEn)
