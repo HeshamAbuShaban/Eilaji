@@ -136,6 +136,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
     }
 
     private fun setupPager() {
+        // Fixed: inline Pharmacy mapping to avoid private extension receiver mismatch
         val list = ArrayList(pharmacyDtos.map { dto -> Pharmacy(uid = dto.id, pharmacy_image_url = dto.imageUrl ?: "", pharmacy_name = dto.name, phone = dto.phone ?: "", address = dto.address, lat = dto.latitude, lng = dto.longitude, token = "") })
         binding.pharmaciesLocationsPager.adapter = PharmaciesLocationsAdapter(list) {
             val action = MapFragmentDirections.actionNavigationMapToNavigationMessaging(null, it.uid, it.pharmacy_name, it.pharmacy_image_url, it.token, null, null)
