@@ -125,6 +125,21 @@ interface ApiService {
 
     @GET("presence/{userId}")
     fun getPresence(@Path("userId") userId: String): Call<ApiResponse<Map<String, Any>>>
+
+    @GET("reminders")
+    fun getReminders(): Call<ApiResponse<List<MedicationReminderDto>>>
+
+    @POST("reminders")
+    fun createReminder(@Body request: CreateReminderRequest): Call<ApiResponse<MedicationReminderDto>>
+
+    @PUT("reminders/{id}")
+    fun updateReminder(@Path("id") id: String, @Body request: UpdateReminderRequest): Call<ApiResponse<MedicationReminderDto>>
+
+    @DELETE("reminders/{id}")
+    fun deleteReminder(@Path("id") id: String): Call<ApiResponse<Any>>
+
+    @GET("reminders/{id}")
+    fun getReminder(@Path("id") id: String): Call<ApiResponse<MedicationReminderDto>>
 }
 
 data class RegisterRequest(
@@ -315,6 +330,45 @@ data class PaginatedResult<T>(
     @SerializedName("page") val page: Int,
     @SerializedName("pageSize") val pageSize: Int,
     @SerializedName("totalPages") val totalPages: Int
+)
+
+data class MedicationReminderDto(
+    @SerializedName("id") val id: String,
+    @SerializedName("userId") val userId: String? = null,
+    @SerializedName("medicineName") val medicineName: String,
+    @SerializedName("dosage") val dosage: String? = null,
+    @SerializedName("frequency") val frequency: String,
+    @SerializedName("scheduleTime") val scheduleTime: String,
+    @SerializedName("customDays") val customDays: List<String> = emptyList(),
+    @SerializedName("notes") val notes: String? = null,
+    @SerializedName("isActive") val isActive: Boolean = true,
+    @SerializedName("startDate") val startDate: String? = null,
+    @SerializedName("endDate") val endDate: String? = null,
+    @SerializedName("createdAt") val createdAt: String? = null,
+    @SerializedName("updatedAt") val updatedAt: String? = null
+)
+
+data class CreateReminderRequest(
+    @SerializedName("medicineName") val medicineName: String,
+    @SerializedName("dosage") val dosage: String? = null,
+    @SerializedName("frequency") val frequency: String,
+    @SerializedName("scheduleTime") val scheduleTime: String,
+    @SerializedName("customDays") val customDays: List<String> = emptyList(),
+    @SerializedName("notes") val notes: String? = null,
+    @SerializedName("isActive") val isActive: Boolean = true,
+    @SerializedName("startDate") val startDate: String? = null,
+    @SerializedName("endDate") val endDate: String? = null
+)
+
+data class UpdateReminderRequest(
+    @SerializedName("medicineName") val medicineName: String? = null,
+    @SerializedName("dosage") val dosage: String? = null,
+    @SerializedName("frequency") val frequency: String? = null,
+    @SerializedName("scheduleTime") val scheduleTime: String? = null,
+    @SerializedName("customDays") val customDays: List<String>? = null,
+    @SerializedName("notes") val notes: String? = null,
+    @SerializedName("isActive") val isActive: Boolean? = null,
+    @SerializedName("endDate") val endDate: String? = null
 )
 
 data class ApiResponse<T>(

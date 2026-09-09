@@ -7,65 +7,42 @@ import androidx.recyclerview.widget.RecyclerView
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.ItemReminderBinding
 import dev.anonymous.eilaji.reminder_system.database.entity.Reminder
-import dev.anonymous.eilaji.storage.enums.ReminderType
+import dev.anonymous.eilaji.reminder_system.util.ReminderTimeUtils
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class RemindersAdapter(val remindersList:ArrayList<Reminder>) : RecyclerView.Adapter<RemindersAdapter.RemindersViewHolder>() {
-    private lateinit var remindersListCallback:RemindersListCallback
-
-    fun registerRemindersListCallback(context: RemindersListCallback){
-        remindersListCallback = context
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RemindersViewHolder {
-        val binding =ItemReminderBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return RemindersViewHolder(binding)
-    }
-
-    override fun getItemCount(): Int {
-        return remindersList.size
-    }
-
-    override fun onBindViewHolder(holder: RemindersViewHolder, position: Int) {
-       val reminder = remindersList[position]
-        holder.bind(reminder)
-        holder.setRemindersListCallback(remindersListCallback)
-    }
-
-    class RemindersViewHolder(private val binding: ItemReminderBinding) : RecyclerView.ViewHolder(binding.root) {
-
-        private lateinit var remindersListCallback: RemindersListCallback
-
-        fun setRemindersListCallback(remindersListCallback: RemindersListCallback){
-            this.remindersListCallback = remindersListCallback
-        }
-
+class RemindersAdapter(val remindersList: ArrayList<Reminder>) : RecyclerView.Adapter<RemindersAdapter.RemindersViewHolder>() {
+    private lateinit var cb: RemindersListCallback
+    fun registerRemindersListCallback(c: RemindersListCallback) { cb = c }
+    override fun onCreateViewHolder(p: ViewGroup, v: Int) = RemindersViewHolder(ItemReminderBinding.inflate(LayoutInflater.from(p.context), p, false))
+    override fun getItemCount() = remindersList.size
+    override fun onBindViewHolder(h: RemindersViewHolder, pos: Int) { h.bind(remindersList[pos]); h.setCallback(cb) }
+    class RemindersViewHolder(private val b: ItemReminderBinding) : RecyclerView.ViewHolder(b.root) {
+        private lateinit var cb: RemindersListCallback
+        fun setCallback(c: RemindersListCallback) { cb = c }
         @SuppressLint("SetTextI18n")
-        fun bind(reminder: Reminder) {
-            with(binding){
-                reminderType.setImageResource(when (reminder.reminderType) {
-                        ReminderType.OneTime.reminderType -> R.drawable.ic_one
-                        else -> R.drawable.ic_repeat
-                    })
-                reminderName.text = reminder.text
-                reminderDelayTime.text = "delay-time: ${reminder.delayedTime} minutes"
-                reminderCreationTimestamp.text = getCreationTimeStamp(reminder.creationTimestamp)
-                deleteReminder.setOnClickListener {
-                    remindersListCallback.onDeleteClicked(reminder)
+        fun bind(r: Reminder) {
+            with(b) {
+                reminderType.setImageResource(if ((r.frequency ?: "DAILY") == "DAILY") R.drawable.ic_repeat else R.drawable.ic_one)
+                reminderName.text = r.medicineName ?: r.text ?: "Medicine"
+                val dosage = r.dosage?.takeIf { it.isNotBlank() }?.let { "$it • " } ?: ""
+                val freq = r.frequency ?: "DAILY"
+                val days = if (freq == "CUSTOM") r.getCustomDaysList().joinToString(",") else ""
+                val freqLabel = if (freq == "CUSTOM" && days.isNotBlank()) "CUSTOM ($days)" else freq
+                reminderDosage.text = "$dosage$freqLabel"
+                val st = r.scheduleTime ?: "08:00:00"
+                val lt = ReminderTimeUtils.parseScheduleTime(st)
+                reminderDelayTime.text = lt?.let { ReminderTimeUtils.formatDisplay(it) } ?: st
+                reminderCreationTimestamp.text = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(r.creationTimestamp))
+                switchActive.isChecked = r.isActive
+                switchActive.setOnCheckedChangeListener { _, isChecked ->
+                    if (r.isActive != isChecked) { r.isActive = isChecked; cb.onToggleActive(r, isChecked) }
                 }
+                deleteReminder.setOnClickListener { cb.onDeleteClicked(r) }
+                root.alpha = if (r.isActive) 1f else 0.55f
             }
         }
-
-        private fun getCreationTimeStamp(creationTimestamp: Long): String {
-            val date = Date(creationTimestamp)
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-            return "created at:" + dateFormat.format(date)
-        }
     }
-
-    interface RemindersListCallback {
-        fun onDeleteClicked(reminder: Reminder)
-    }
+    interface RemindersListCallback { fun onDeleteClicked(reminder: Reminder); fun onToggleActive(reminder: Reminder, active: Boolean) }
 }

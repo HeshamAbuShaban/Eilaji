@@ -14,130 +14,63 @@ import dev.anonymous.eilaji.adapters.RemindersAdapter
 import dev.anonymous.eilaji.databinding.FragmentRemindersListBinding
 import dev.anonymous.eilaji.reminder_system.database.entity.Reminder
 import dev.anonymous.eilaji.reminder_system.database.viewModel.ReminderDatabaseViewModel
+import dev.anonymous.eilaji.reminder_system.repository.ReminderSyncRepository
 import dev.anonymous.eilaji.reminder_system.worker.ReminderScheduler
 import dev.anonymous.eilaji.ui.other.dialogs.DeleteItemDialogFragment
 import dev.anonymous.eilaji.ui.other.dialogs.DeleteItemDialogFragment.DeleteItemDialogListener
 
-class RemindersListFragment : Fragment(), RemindersAdapter.RemindersListCallback ,DeleteItemDialogListener{
+class RemindersListFragment : Fragment(), RemindersAdapter.RemindersListCallback, DeleteItemDialogListener {
     private lateinit var binding: FragmentRemindersListBinding
-    private lateinit var remindersListViewModel: RemindersListViewModel
-    private lateinit var reminderScheduler: ReminderScheduler
-    private lateinit var reminderDatabaseViewModel: ReminderDatabaseViewModel
-    private lateinit var remindersAdapter: RemindersAdapter
+    private lateinit var vm: RemindersListViewModel
+    private lateinit var scheduler: ReminderScheduler
+    private lateinit var dbVm: ReminderDatabaseViewModel
+    private lateinit var adapter: RemindersAdapter
+    private lateinit var syncRepo: ReminderSyncRepository
+    private lateinit var pendingDelete: Reminder
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentRemindersListBinding.inflate(layoutInflater)
-        setupVM()
+        vm = ViewModelProvider(this)[RemindersListViewModel::class.java]
+        dbVm = ViewModelProvider(this)[ReminderDatabaseViewModel::class.java]
+        vm.setupReminderDataViewModel(dbVm)
+        scheduler = ReminderScheduler(requireContext().applicationContext)
+        vm.setReminderScheduler(scheduler)
+        syncRepo = ReminderSyncRepository(requireContext().applicationContext)
         return binding.root
     }
-
-    private fun setupVM() {
-        // view ViewModel
-        remindersListViewModel = ViewModelProvider(this)[RemindersListViewModel::class.java]
-        // Database
-        reminderDatabaseViewModel =
-            ViewModelProvider(this)[ReminderDatabaseViewModel::class.java]
-        remindersListViewModel.setupReminderDataViewModel(reminderDatabaseViewModel)
-
-        // rs Reminder Scheduler
-        reminderScheduler = ReminderScheduler(requireContext().applicationContext)
-        // set it to the v_view model
-        remindersListViewModel.setReminderScheduler(reminderScheduler)
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupRecView()
-        setupListeners()
-    }
-
-
-    private fun setupListeners() {
-        with(binding.fabAddAReminder) {
-            setAnimateShowBeforeLayout(true)
-            setOnClickListener {
-                findNavController().navigate(R.id.action_navigation_reminders_list_to_navigation_add_reminder)
+        binding.fabAddAReminder.setOnClickListener { findNavController().navigate(R.id.action_navigation_reminders_list_to_navigation_add_reminder) }
+        binding.recViewRemindersList.setHasFixedSize(false)
+        vm.getAllReminders().observe(viewLifecycleOwner) { list ->
+            if (list.isEmpty()) showEmpty() else { hideEmpty(); adapter = RemindersAdapter(list as ArrayList<Reminder>); adapter.registerRemindersListCallback(this); binding.recViewRemindersList.adapter = adapter }
+        }
+        syncRepo.syncFetch { remote ->
+            if (remote != null && remote.isNotEmpty()) {
+                remote.forEach { r -> try { dbVm.insertReminder(r); scheduler.setReminderObject(r); if (r.isActive) scheduler.scheduleExact(r.id, r.medicineName ?: r.text, r.notificationId, r.frequency ?: "DAILY", r.customDays ?: "[]", r.scheduleTime ?: "08:00:00") } catch (_: Exception) {} }
             }
         }
     }
-
-    private fun setupRecView() {
-        with(binding.recViewRemindersList) {
-            setHasFixedSize(false)
-            remindersListViewModel.getAllReminders().observe(requireActivity()) { reminders ->
-                if (reminders.isEmpty()) {
-                    // Show the empty image
-                    showEmptyStates()
-                } else {
-                    // Hide the empty image
-                    hideEmptyStates()
-                    remindersAdapter = RemindersAdapter(reminders as ArrayList<Reminder>)
-                    remindersAdapter.registerRemindersListCallback(this@RemindersListFragment)
-                    adapter = remindersAdapter
-                }
-            }
+    private fun showEmpty() {
+        binding.emptyStateContainer.visibility = View.VISIBLE
+        binding.emptyListText.text = SpannableStringBuilder().apply { bold { append(getString(R.string.empty_reminders)) }; append("\ncreate a reminder and it will show up here.") }
+    }
+    private fun hideEmpty() { binding.emptyStateContainer.visibility = View.GONE }
+    override fun onDeleteClicked(r: Reminder) { pendingDelete = r; DeleteItemDialogFragment().show(childFragmentManager, "DeleteItemTriggered") }
+    override fun onToggleActive(r: Reminder, active: Boolean) {
+        dbVm.let {
+            val upd = r; upd.isActive = active
+            it.let { try { it.javaClass.getMethod("updateReminder", Reminder::class.java).invoke(it, upd) } catch (_: Exception) { } }
+            if (active) { scheduler.setReminderObject(r); scheduler.scheduleExact(r.id, r.medicineName ?: r.text, r.notificationId, r.frequency ?: "DAILY", r.customDays ?: "[]", r.scheduleTime ?: "08:00:00") } else scheduler.cancelReminderById(r)
+            syncRepo.syncUpdate(r)
         }
     }
-
-    private fun showEmptyStates() {
-        // Show the empty image view or set its visibility to visible
-        with(binding) {
-            root.setBackgroundResource(R.color.c1_reminder_item_)
-            emptyListImage.visibility = View.VISIBLE
-            with(emptyListText) {
-                visibility = View.VISIBLE
-                val boldText = getString(R.string.empty_reminders)
-                val normalText = "create a reminder and it will show up here."
-
-                val spannableString = SpannableStringBuilder()
-                spannableString.bold { append(boldText) }
-                spannableString.append("\n")
-                spannableString.append(normalText)
-
-                text = spannableString
-//                text = getString(R.string.empty_reminders, "create a reminder and it will show up here.")
-            }
-        }
-
-    }
-
-    private fun hideEmptyStates() {
-        // Hide the empty image view or set its visibility to gone
-        with(binding) {
-            root.setBackgroundResource(R.color.c1_reminder_item)
-            emptyListImage.visibility = View.GONE
-            emptyListText.visibility = View.GONE
-        }
-    }
-
-    private lateinit var selectedReminderTDelete :Reminder
-    override fun onDeleteClicked(reminder: Reminder) {
-        selectedReminderTDelete = reminder
-        DeleteItemDialogFragment().show(childFragmentManager,"DeleteItemTriggered")
-    }
-
     override fun onDialogDeleteClicked() {
-        remindersListViewModel.deleteReminder(selectedReminderTDelete)
-        itemRemovedDelegate(selectedReminderTDelete)
+        vm.deleteReminder(pendingDelete)
+        syncRepo.syncDelete(pendingDelete)
+        try {
+            val pos = adapter.remindersList.indexOf(pendingDelete)
+            if (pos != -1) { adapter.remindersList.removeAt(pos); adapter.notifyItemRemoved(pos); adapter.notifyItemRangeChanged(pos, adapter.remindersList.size) }
+        } catch (_: Exception) {}
     }
-
-    private fun itemRemovedDelegate(reminder: Reminder) {
-        val position = remindersAdapter.remindersList.indexOf(reminder)
-        if (position != -1) {
-            with(remindersAdapter) {
-                remindersList.removeAt(position)
-                notifyItemRemoved(position)
-                notifyItemRangeChanged(
-                    position,
-                    remindersList.size
-                ) // Notify the adapter that item positions have changed
-            }
-            binding.recViewRemindersList.smoothScrollToPosition(position + 1)
-        }
-    }
-
 }

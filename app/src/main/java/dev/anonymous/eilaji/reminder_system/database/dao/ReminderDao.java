@@ -6,6 +6,7 @@ import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import java.util.List;
 
@@ -23,5 +24,17 @@ public interface ReminderDao {
 
     @Delete
     void deleteReminder(Reminder reminder);
+
+    @Update
+    void updateReminder(Reminder reminder);
+
+    @Query("SELECT * FROM reminders WHERE isActive = 1")
+    LiveData<List<Reminder>> getActiveReminders();
+
+    @Query("SELECT * FROM reminders WHERE id = :id LIMIT 1")
+    Reminder getByIdSync(String id);
+
+    @Query("SELECT * FROM reminders")
+    List<Reminder> getAllSync();
 
 }

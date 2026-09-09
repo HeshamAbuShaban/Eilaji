@@ -4,164 +4,171 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_day"
+    android:background="?attr/colorSurface"
+    android:clipToPadding="false"
+    android:padding="16dp"
     tools:context=".ui.other.reminder.ReminderFragment">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-
-        <!--Guidelines-->
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guide_top"
-            android:layout_width="wrap_content"
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintGuide_begin="20dp" />
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:strokeWidth="0dp">
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guide_begin"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_begin="20dp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guide_end"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_end="20dp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-        <!--***************************************************-->
-        <!--fabChangeSound-->
-        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-            android:id="@+id/fabChangeSound"
-            style="@style/PrimaryButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:importantForAccessibility="no"
-            app:icon="@drawable/ic_library_music"
-            app:layout_constraintStart_toStartOf="@id/guide_begin"
-            app:layout_constraintTop_toTopOf="@id/guide_top"
-            tools:ignore="ImageContrastCheck,VisualLintLocaleText,VisualLintOverlap" />
-        <!--TextClock-->
-        <TextClock
-            android:id="@+id/remainingTimeTextView"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_15sdp"
-            android:textAlignment="center"
-            android:textColor="@color/white"
-            android:textSize="@dimen/_35sdp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="@id/guide_end"
-            app:layout_constraintStart_toStartOf="@id/guide_begin"
-            app:layout_constraintTop_toTopOf="@id/guide_top"
-            tools:ignore="TextContrastCheck"
-            tools:text="@string/_00_00_00" />
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/enter_a_reminder_text_e_g_medicine_name"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
-        <!--Title-->
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_5sdp"
-            android:gravity="center"
-            android:text="@string/enter_a_reminder_text_e_g_medicine_name"
-            android:textColor="@color/white"
-            android:textSize="@dimen/_13sdp"
-            app:layout_constraintBottom_toTopOf="@id/reminderNameEditText"
-            app:layout_constraintEnd_toEndOf="@id/guide_end"
-            app:layout_constraintStart_toStartOf="@id/guide_begin"
-            app:layout_constraintTop_toBottomOf="@id/remainingTimeTextView"
-            tools:ignore="TextSizeCheck,TextContrastCheck" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/fabChangeSound"
+                        style="@style/Widget.Material3.Button.IconButton.Filled.TonalButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        app:icon="@drawable/ic_library_music"
+                        app:iconTint="@color/primary_color" />
 
-        <!--TextField-->
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/reminderNameEditText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_15sdp"
-            android:autofillHints="name"
-            android:gravity="center"
-            android:hint="@string/remind_me_something"
-            android:inputType="text"
-            android:minHeight="@dimen/_50sdp"
-            android:textAlignment="center"
-            android:textColor="@color/white"
-            android:textColorHint="@color/white"
-            android:textSize="@dimen/_18ssp"
-            app:layout_constraintEnd_toEndOf="@id/guide_end"
-            app:layout_constraintStart_toStartOf="@id/guide_begin"
-            app:layout_constraintTop_toBottomOf="@id/remainingTimeTextView"
-            tools:ignore="TextContrastCheck,VisualLintTextFieldSize,DuplicateSpeakableTextCheck" />
+                </LinearLayout>
 
-        <!--TimePicker-->
-        <TimePicker
-            android:id="@+id/reminder_timePicker"
-            style="@style/Widget.App.TimePicker"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_5sdp"
-            android:headerBackground="@color/primary_color"
-            android:numbersBackgroundColor="@color/night_window_background_color"
-            android:numbersInnerTextColor="@color/white"
-            android:numbersSelectorColor="@color/primary_color"
-            android:numbersTextColor="@color/white"
-            android:soundEffectsEnabled="true"
-            android:timePickerMode="clock"
-            app:layout_constraintBottom_toTopOf="@id/reminderButtonsContainer"
-            app:layout_constraintEnd_toEndOf="@id/guide_end"
-            app:layout_constraintStart_toStartOf="@id/guide_begin"
-            app:layout_constraintTop_toBottomOf="@id/reminderNameEditText" />
-        <!--android:timePickerMode="clock" This one right here,
-         what i spent time looking for a
-          library displaying this widget-->
+                <TextClock
+                    android:id="@+id/remainingTimeTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textAlignment="center"
+                    android:textColor="@color/primary_color"
+                    android:textSize="32sp"
+                    android:textStyle="bold"
+                    tools:text="08:30 AM" />
 
-        <!--ContainerForRemindersButtons-->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:hint="@string/remind_me_something"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxStrokeColor="@color/primary_color"
+                    app:hintTextColor="@color/primary_color">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/reminderNameEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapWords"
+                        android:minHeight="56dp"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="16sp" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Active"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="14sp" />
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switchIsActive"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:checked="true"
+                        app:thumbTint="@color/primary_color" />
+
+                    <TextView
+                        android:id="@+id/textFrequencyPill"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:background="@drawable/shape_reminder_item"
+                        android:backgroundTint="@color/primary_color"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="6dp"
+                        android:text="DAILY"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp">
+
+            <TimePicker
+                android:id="@+id/reminder_timePicker"
+                style="@style/Widget.App.TimePicker"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:headerBackground="@color/primary_color"
+                android:timePickerMode="clock" />
+
+        </com.google.android.material.card.MaterialCardView>
+
         <LinearLayout
             android:id="@+id/reminderButtonsContainer"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/_15sdp"
-            android:layout_marginTop="@dimen/_5sdp"
-            android:layout_marginEnd="@dimen/_15sdp"
             android:gravity="center"
-            android:maxWidth="320dp"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@id/guide_end"
-            app:layout_constraintStart_toStartOf="@id/guide_begin"
-            app:layout_constraintTop_toBottomOf="@id/reminder_timePicker">
+            android:orientation="vertical">
 
-            <!--Button OneTime-->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/remindOneTimeButton"
                 style="@style/PrimaryButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:elevation="@dimen/_15sdp"
-                android:minHeight="@dimen/_20sdp"
+                android:layout_marginBottom="8dp"
                 android:text="@string/remind_me_one_time"
-                android:textColor="@color/otp_item_color"
-                app:icon="@drawable/ic_one"
-                tools:ignore="VisualLintButtonSize" />
-            <!--Button Repeatedly-->
+                app:icon="@drawable/ic_one" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/remindRepeatedlyButton"
                 style="@style/PrimaryButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:elevation="@dimen/_15sdp"
-                android:minHeight="@dimen/_20sdp"
                 android:text="@string/remind_me_repeatedly"
-                android:textColor="@color/otp_item_color"
-                app:icon="@drawable/ic_repeat"
-                tools:ignore="VisualLintButtonSize" />
+                app:icon="@drawable/ic_repeat" />
 
         </LinearLayout>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
+    </LinearLayout>
 </ScrollView>

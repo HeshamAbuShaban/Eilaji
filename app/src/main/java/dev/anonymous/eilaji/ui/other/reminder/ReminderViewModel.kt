@@ -9,133 +9,53 @@ import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.FragmentReminderBinding
 import dev.anonymous.eilaji.reminder_system.database.entity.Reminder
 import dev.anonymous.eilaji.reminder_system.database.viewModel.ReminderDatabaseViewModel
+import dev.anonymous.eilaji.reminder_system.util.ReminderTimeUtils
 import dev.anonymous.eilaji.reminder_system.worker.ReminderScheduler
+import java.time.LocalTime
 import java.util.Calendar
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-class ReminderViewModel:ViewModel() {
-    //****************** value container for reminderScheduler ******************
-
+class ReminderViewModel : ViewModel() {
     private val _reminderScheduler = MutableLiveData<ReminderScheduler>()
-    val reminderScheduler :LiveData<ReminderScheduler> = _reminderScheduler
-
-    // setter for the reminder Scheduler
-    fun setReminderScheduler(reminderScheduler: ReminderScheduler){
-        _reminderScheduler.value = reminderScheduler
-    }
-
-    //****************** value container for databaseViewModel ******************
-
+    val reminderScheduler: LiveData<ReminderScheduler> = _reminderScheduler
+    fun setReminderScheduler(r: ReminderScheduler) { _reminderScheduler.value = r }
     private val _databaseViewModel = MutableLiveData<ReminderDatabaseViewModel>()
-    private val databaseViewModel :LiveData<ReminderDatabaseViewModel> = _databaseViewModel
+    private val databaseViewModel: LiveData<ReminderDatabaseViewModel> = _databaseViewModel
+    fun setDatabaseViewModel(v: ReminderDatabaseViewModel) { _databaseViewModel.value = v }
 
-    // setter for the reminder Scheduler
-    fun setDatabaseViewModel(databaseViewModel: ReminderDatabaseViewModel){
-        _databaseViewModel.value = databaseViewModel
+    fun determinedTheBackGround(binding: FragmentReminderBinding) {
+        binding.root.setBackgroundResource(android.R.color.transparent)
     }
 
-    //****************** methods that serve the View ******************
-
-    // false means day // true means night
-    fun determinedTheBackGround(binding: FragmentReminderBinding){
-        fun isDayOrNight() :Boolean {
-            val cal = Calendar.getInstance()
-            val hour = cal[Calendar.HOUR_OF_DAY]
-            return hour < 6 || hour > 18
-        }
-        if (isDayOrNight()) binding.root.setBackgroundResource(R.drawable.bg_night) else binding.root.setBackgroundResource(R.drawable.bg_day)
+    fun buildScheduleTime(binding: FragmentReminderBinding): String {
+        val tp = binding.reminderTimePicker
+        val h = tp.hour; val m = tp.minute
+        return ReminderTimeUtils.formatScheduleTime(LocalTime.of(h, m, 0))
     }
-    // the actual time of the timepicker inputs
+
     fun calculateDelay(binding: FragmentReminderBinding): Long {
-        // get to the widget
-        val timePicker = binding.reminderTimePicker
-
-        val currentTime = Calendar.getInstance()
-        val reminderTime = Calendar.getInstance()
-
-        // Set the reminder time based on the selected hour and minute from the TimePicker
-        reminderTime.set(Calendar.HOUR_OF_DAY, timePicker.hour)
-        reminderTime.set(Calendar.MINUTE, timePicker.minute)
-        reminderTime.set(Calendar.SECOND, 0)
-
-        // Calculate the delay in minutes
-        val delayMillis = reminderTime.timeInMillis - currentTime.timeInMillis
-
-//        Log.d(TAG, "delayMinutes= $delayMinutes")
-
-        return TimeUnit.MILLISECONDS.toMinutes(delayMillis)
+        val tp = binding.reminderTimePicker
+        val lt = LocalTime.of(tp.hour, tp.minute, 0)
+        val now = java.time.ZonedDateTime.now(java.time.ZoneId.systemDefault())
+        var cand = now.withHour(lt.hour).withMinute(lt.minute).withSecond(0).withNano(0)
+        if (!cand.isAfter(now)) cand = cand.plusDays(1)
+        return TimeUnit.MILLISECONDS.toMinutes(cand.toInstant().toEpochMilli() - System.currentTimeMillis()).coerceAtLeast(1)
     }
-    // shows the remainingTime unital the Worker fire up
+
     fun showRemainingTime(binding: FragmentReminderBinding) {
-        val timePicker : TimePicker
-        val remainingTimeTV : TextClock
-        // init the widgets in the viewModel
-        with(binding){
-            timePicker =reminderTimePicker
-            remainingTimeTV = remainingTimeTextView
-        }
-
-        // init the Calendar Values
-        val currentTime = Calendar.getInstance()
-        val reminderTime = Calendar.getInstance()
-
-        // Set the reminder time based on the selected hour and minute from the TimePicker
-        reminderTime.set(Calendar.HOUR_OF_DAY, timePicker.hour)
-        reminderTime.set(Calendar.MINUTE, timePicker.minute)
-        reminderTime.set(Calendar.SECOND, 0)
-
-        // calculate the actual value
-        val remainingMillis = reminderTime.timeInMillis - currentTime.timeInMillis
-
-        // Convert remaining time to hours and minutes
-        val remainingHours = TimeUnit.MILLISECONDS.toHours(remainingMillis)
-        val remainingMinutes = TimeUnit.MILLISECONDS.toMinutes(remainingMillis) % 60
-
-        val remainingTime = String.format("%02d:%02d", remainingHours, remainingMinutes)
-        // Display the remaining time to the user
-        remainingTimeTV.text = remainingTime
-    }
-    // clear the user inputs
-    fun clearInputs(binding: FragmentReminderBinding) {
-        with(binding){
-            // Clear input fields for anther Queue request
-            reminderNameEditText.text?.clear()
-            reminderTimePicker.clearFocus()
-        }
-
-    }
-    // creates random Unique id
-    fun randomUUIDString(): String {
-        return UUID.randomUUID().toString()
+        val tp: TimePicker = binding.reminderTimePicker
+        val tv: TextClock = binding.remainingTimeTextView
+        val lt = LocalTime.of(tp.hour, tp.minute, 0)
+        val now = java.time.ZonedDateTime.now(java.time.ZoneId.systemDefault())
+        var cand = now.withHour(lt.hour).withMinute(lt.minute).withSecond(0).withNano(0)
+        if (!cand.isAfter(now)) cand = cand.plusDays(1)
+        val rem = cand.toInstant().toEpochMilli() - System.currentTimeMillis()
+        val h = TimeUnit.MILLISECONDS.toHours(rem); val mm = TimeUnit.MILLISECONDS.toMinutes(rem) % 60
+        tv.text = String.format("%02d:%02d", h, mm)
     }
 
-    /*fun storeReminderIntoDatabase(reminderText: String, delayMinutes: Long) {
-        //Lets save it to the database :
-        val generatedId = "eilaji_reminder_${randomUUIDString()}"
-        databaseViewModel.value?.insertReminder(
-            Reminder(
-                generatedId,
-                reminderText,
-                delayMinutes.toString()
-            )
-        )
-    }*/
-
-    // temp
-    fun storeReminderIntoDatabase(reminder: Reminder) {
-        //Lets save it to the database :
-        databaseViewModel.value?.insertReminder(reminder)
-    }
-
-    // These Are Moved to the RemindersListFragment.kt
-   /* // when you want to cancel a reminder by de activate it from the UI Buttons
-    fun cancelReminderById(reminder: Reminder){
-        reminderScheduler.value?.cancelReminderById(reminder)
-    }
-
-    // use it if you want to check the workInfo before deletion
-    fun fetchWorkInfoByTag(reminder: Reminder) : LiveData<List<WorkInfo>> {
-        return reminderScheduler.value?.fetchWorkInfoByTag(reminder)!!
-    }*/
+    fun clearInputs(binding: FragmentReminderBinding) { with(binding) { reminderNameEditText.text?.clear(); reminderTimePicker.clearFocus() } }
+    fun randomUUIDString(): String = UUID.randomUUID().toString()
+    fun storeReminderIntoDatabase(r: Reminder) { databaseViewModel.value?.insertReminder(r) }
 }

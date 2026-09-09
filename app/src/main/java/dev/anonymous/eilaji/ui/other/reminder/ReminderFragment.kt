@@ -24,8 +24,8 @@ import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.FragmentReminderBinding
 import dev.anonymous.eilaji.reminder_system.database.entity.Reminder
 import dev.anonymous.eilaji.reminder_system.database.viewModel.ReminderDatabaseViewModel
+import dev.anonymous.eilaji.reminder_system.repository.ReminderSyncRepository
 import dev.anonymous.eilaji.reminder_system.worker.ReminderScheduler
-import dev.anonymous.eilaji.storage.enums.ReminderType
 import dev.anonymous.eilaji.ui.other.dialogs.ChangeSoundDialogFragment
 import dev.anonymous.eilaji.ui.other.dialogs.ChangeSoundDialogFragment.ChangeSoundListener
 import dev.anonymous.eilaji.ui.other.dialogs.PeriodicReminderDialogFragment
@@ -34,253 +34,109 @@ import dev.anonymous.eilaji.ui.other.dialogs.permissions.RequestPermissionsDialo
 import dev.anonymous.eilaji.ui.other.dialogs.permissions.RequestPermissionsDialogFragment.RequestPermissionsListener
 import java.util.concurrent.TimeUnit
 
-class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListener,
-    RequestPermissionsListener {
+class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListener, RequestPermissionsListener {
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
-
     private lateinit var reminderViewModel: ReminderViewModel
     private lateinit var binding: FragmentReminderBinding
     private lateinit var reminderScheduler: ReminderScheduler
     private lateinit var reminderDatabaseViewModel: ReminderDatabaseViewModel
+    private lateinit var syncRepo: ReminderSyncRepository
+    private var selectedFrequency = "DAILY"
+    private var customDays: List<String> = emptyList()
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View {
-        // init the binding
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentReminderBinding.inflate(layoutInflater)
-        // set up the view model and the ReminderScheduler Instance Object
         setupComponents()
-        // set the back ground from the view model
         reminderViewModel.determinedTheBackGround(binding)
         return binding.root
     }
-
-    // init the reminderViewModel(for fragment) , reminderScheduler , ReminderDatabaseViewModel (database container)
     private fun setupComponents() {
-        // view ViewModel
         reminderViewModel = ViewModelProvider(this)[ReminderViewModel::class.java]
-        // rs Reminder Scheduler
         reminderScheduler = ReminderScheduler(requireContext().applicationContext)
-        // set it to the v_view model
         reminderViewModel.setReminderScheduler(reminderScheduler)
-        //  DATABASE VIEW_MODEL
-        reminderDatabaseViewModel =
-            ViewModelProvider(this)[ReminderDatabaseViewModel::class.java]
+        reminderDatabaseViewModel = ViewModelProvider(this)[ReminderDatabaseViewModel::class.java]
         reminderViewModel.setDatabaseViewModel(reminderDatabaseViewModel)
+        syncRepo = ReminderSyncRepository(requireContext().applicationContext)
     }
-
-    // TODO(Under Testing)
-    override fun onResume() {
-        super.onResume()
-        requireActivity().onBackPressedDispatcher.addCallback(this) { findNavController().popBackStack() }
-    }
-
+    override fun onResume() { super.onResume(); requireActivity().onBackPressedDispatcher.addCallback(this) { findNavController().popBackStack() } }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupListeners()
-        // initialize the requestPermissionLauncher
-        requestPermissionLauncher =
-            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-                // Check if all permissions are granted
-                val allGranted = permissions.all { it.value }
-                if (allGranted) {
-                    // All permissions granted, you can proceed with sending notifications
-                    Toast.makeText(
-                        requireContext(),
-                        "Great Now you are all set to use The Reminder", Toast.LENGTH_LONG).show()
-                } else {
-                    // Permission denied, handle accordingly
-                    // At least one permission denied, handle accordingly (e.g., show a message or disable certain features)
-                    Toast.makeText(requireContext(), "Permission denied. Cannot create reminder.", Toast.LENGTH_SHORT).show()
-                }
-            }
-        // Request permissions if not granted
-        if (!arePermissionsGranted()) {
-            RequestPermissionsDialogFragment.newInstance(getString(R.string.permissions_message_starter)).show(childFragmentManager, "StarterInform")
+        requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { perms ->
+            if (perms.all { it.value }) Toast.makeText(requireContext(), "Great Now you are all set to use The Reminder", Toast.LENGTH_LONG).show()
+            else Toast.makeText(requireContext(), "Permission denied. Cannot create reminder.", Toast.LENGTH_SHORT).show()
         }
-        // if the BatteryOptimization Enabled
-        if (isBatteryOptimizationEnabled()) {
-            showBatteryOptimizationDialog()
-        }
+        if (!arePermissionsGranted()) RequestPermissionsDialogFragment.newInstance(getString(R.string.permissions_message_starter)).show(childFragmentManager, "StarterInform")
+        if (isBatteryOptimizationEnabled()) showBatteryOptimizationDialog()
+        binding.switchIsActive.setOnCheckedChangeListener { _, _ -> }
+        binding.textFrequencyPill.setOnClickListener { PeriodicReminderDialogFragment().show(childFragmentManager, "PeriodicReminder") }
     }
-
-    // are the permissions granted ?
-    private fun arePermissionsGranted(): Boolean {
-        return REQUIRED_PERMISSIONS.all {
-            ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
-        }
-    }
-
-    /*private fun isBatteryOptimizationEnabled(): Boolean {
-        val powerManager = requireActivity().getSystemService(Context.POWER_SERVICE) as PowerManager
-        return powerManager.isPowerSaveMode
-    }*/
+    private fun arePermissionsGranted() = REQUIRED_PERMISSIONS.all { ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED }
     private fun isBatteryOptimizationEnabled(): Boolean {
-        val powerManager = requireActivity().getSystemService(Context.POWER_SERVICE) as PowerManager
-        val packageName = requireContext().packageName
-        return !powerManager.isIgnoringBatteryOptimizations(packageName)
+        val pm = requireActivity().getSystemService(Context.POWER_SERVICE) as PowerManager
+        return !pm.isIgnoringBatteryOptimizations(requireContext().packageName)
     }
-
-    // this dialog if user is having our app in the battery optimization system
     private fun showBatteryOptimizationDialog() {
-        val dialogBuilder = AlertDialog.Builder(requireContext())
-        dialogBuilder.setTitle("Battery Optimization")
-        dialogBuilder.setMessage(getString(R.string.battery_optimization))
-        dialogBuilder.setPositiveButton("Go to Settings") { _, _ ->
-            // Open battery optimization settings screen
-            val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
-            startActivity(intent)
-        }
-        dialogBuilder.setCancelable(false) // this is to prevent the user from killing the dialog
-        dialogBuilder.setNegativeButton("Cancel") { _, _ ->
-            Toast.makeText(requireContext(), getString(R.string.battery_optimization_still_running), Toast.LENGTH_LONG).show()
-        }
-        dialogBuilder.create().show()
+        AlertDialog.Builder(requireContext()).setTitle("Battery Optimization").setMessage(getString(R.string.battery_optimization))
+            .setPositiveButton("Go to Settings") { _, _ -> startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }
+            .setCancelable(false).setNegativeButton("Cancel") { _, _ -> Toast.makeText(requireContext(), getString(R.string.battery_optimization_still_running), Toast.LENGTH_LONG).show() }.create().show()
     }
-
-
-    // Handle the permission request result
-    private fun requestPermissions() {
-        requestPermissionLauncher.launch(REQUIRED_PERMISSIONS)
-    }
-
-    // set the user click from UI ------------
+    private fun requestPermissions() { requestPermissionLauncher.launch(REQUIRED_PERMISSIONS) }
     private fun setupListeners() {
         with(binding) {
             remindOneTimeButton.setOnClickListener {
-                if (arePermissionsGranted()) {
-                    createOneTimeReminder()
-                } else {
-                    RequestPermissionsDialogFragment.newInstance(getString(R.string.permissions_message_we_are_sorry))
-                        .show(childFragmentManager, "WeAreSorry")
-                }
+                selectedFrequency = "DAILY"; customDays = emptyList()
+                textFrequencyPill.text = "DAILY"
+                if (arePermissionsGranted()) createOneTimeReminder() else RequestPermissionsDialogFragment.newInstance(getString(R.string.permissions_message_we_are_sorry)).show(childFragmentManager, "WeAreSorry")
             }
-
-            remindRepeatedlyButton.setOnClickListener {
-                PeriodicReminderDialogFragment().show(childFragmentManager, "PeriodicReminder")
-            }
-
-            fabChangeSound.setOnClickListener {
-                ChangeSoundDialogFragment().show(childFragmentManager, "ChangeReminderSound")
-            }
+            remindRepeatedlyButton.setOnClickListener { PeriodicReminderDialogFragment().show(childFragmentManager, "PeriodicReminder") }
+            fabChangeSound.setOnClickListener { ChangeSoundDialogFragment().show(childFragmentManager, "ChangeReminderSound") }
         }
     }
-
-    // Creation for the Reminder $$$$$$$$$$$$$$$
     private fun createPeriodicReminder(repeatInterval: Long?, timeUnit: TimeUnit?) {
-        // user text
-        var reminderText = binding.reminderNameEditText.text.toString()
-
-        // the time that the worker will wait for to do it work
-        val delayMinutes = reminderViewModel.calculateDelay(binding)
-
-
-        // guard the null
-        if (reminderText.isEmpty()) reminderText = getString(R.string.placeholder)
-        val generatedId = "eilaji_reminder_${reminderViewModel.randomUUIDString()}"
-        val reminder = Reminder(
-            generatedId,
-            reminderText,
-            delayMinutes,
-            ReminderType.Periodic.reminderType
-        )
-
-        // Set The Scheduler for the user reminder fromViewModel
-        reminderViewModel.reminderScheduler.value?.setReminderObject(reminder = reminder)
-
-        // Sets it for a repeated time
-        reminderViewModel.reminderScheduler.value?.scheduleReminderPeriodicWorkRequest(
-            repeatInterval!!,
-            timeUnit!!
-        ) // don't worry for the force-null cuz i got some init values in the main obj
-
-        reminderViewModel.storeReminderIntoDatabase(reminder)
-        // Show Remaining Time in TextClock
-        reminderViewModel.showRemainingTime(binding)
-
-        // toast that shows the request been made and the reminder been queued
-        Toast.makeText(requireContext(), "Reminder Saved.", Toast.LENGTH_SHORT).show()
-
-        // helps to clear the inputs
-        reminderViewModel.clearInputs(binding)
-    }
-
-    private fun createOneTimeReminder() {
-        // user text
-        var reminderText = binding.reminderNameEditText.text.toString()
-
-        // the time that the worker will wait for to do it work
-        val delayMinutes = reminderViewModel.calculateDelay(binding)
-
-        // if OneTimeWorkRequest or
-        // guard the null
-        if (reminderText.isEmpty()) reminderText = getString(R.string.placeholder)
-        val generatedId = "eilaji_reminder_${reminderViewModel.randomUUIDString()}"
-        val reminder = Reminder(
-            generatedId,
-            reminderText,
-            delayMinutes,
-            ReminderType.OneTime.reminderType
-        )
-
-        // Set The Scheduler for the user reminder fromViewModel
-        reminderViewModel.reminderScheduler.value?.setReminderObject(reminder = reminder)
-        reminderViewModel.reminderScheduler.value?.scheduleReminderOneTimeWorkRequest()
-
-        // Show Remaining Time in TextClock
-        reminderViewModel.showRemainingTime(binding)
-
-
-        //Lets save it to the database :
-        reminderViewModel.storeReminderIntoDatabase(reminder)
-        // reminderViewModel.storeReminderIntoDatabase(reminderText,delayMinutes)
-
-        // toast that shows the request been made and the reminder been queued
-        Toast.makeText(requireContext(), "Reminder Saved.", Toast.LENGTH_SHORT).show()
-
-        // helps to clear the inputs
-        reminderViewModel.clearInputs(binding)
-    }
-
-    // ## Dialog Interfaces Listeners ##############
-    override fun collectUserPeriodicReminderListenerInputs(
-        repeatInterval: Long?,
-        timeUnit: TimeUnit?,
-    ) {
-        // Check if the required permissions are granted
-        if (arePermissionsGranted()) {
-            createPeriodicReminder(repeatInterval, timeUnit)
-        } else {
-            RequestPermissionsDialogFragment.newInstance(getString(R.string.permissions_message_we_are_sorry))
-                .show(childFragmentManager, "WeAreSorry")
+        selectedFrequency = when (timeUnit) {
+            TimeUnit.DAYS -> "WEEKLY"
+            TimeUnit.HOURS -> "DAILY"
+            else -> if (repeatInterval != null && repeatInterval > 1) "CUSTOM" else "DAILY"
         }
+        if (selectedFrequency == "CUSTOM") customDays = listOf("MONDAY","WEDNESDAY","FRIDAY") else customDays = emptyList()
+        binding.textFrequencyPill.text = selectedFrequency
+        createOneTimeReminder()
     }
-
-    override fun collectUserReminderSoundListenerInputs(soundId: Int) {
-        reminderViewModel.reminderScheduler.value?.setReminderSound(soundId)
+    private fun createOneTimeReminder() {
+        var txt = binding.reminderNameEditText.text.toString().trim()
+        if (txt.isEmpty()) txt = getString(R.string.placeholder)
+        val delay = reminderViewModel.calculateDelay(binding)
+        val scheduleTime = reminderViewModel.buildScheduleTime(binding)
+        val isActive = try { binding.switchIsActive.isChecked } catch (_: Exception) { true }
+        val id = "eilaji_reminder_${reminderViewModel.randomUUIDString()}"
+        val reminder = Reminder(id, txt, delay, if (selectedFrequency == "DAILY") 1 else 2)
+        reminder.medicineName = txt
+        reminder.dosage = null
+        reminder.frequency = selectedFrequency
+        reminder.scheduleTime = scheduleTime
+        reminder.setCustomDaysList(customDays)
+        reminder.isActive = isActive
+        reminder.startDate = System.currentTimeMillis()
+        reminder.syncStatus = "PENDING"
+        reminderViewModel.reminderScheduler.value?.setReminderObject(reminder)
+        if (isActive) {
+            if (selectedFrequency == "DAILY" || selectedFrequency == "WEEKLY" || selectedFrequency == "CUSTOM") reminderViewModel.reminderScheduler.value?.scheduleReminderPeriodicWorkRequest(1, TimeUnit.DAYS)
+            else reminderViewModel.reminderScheduler.value?.scheduleReminderOneTimeWorkRequest()
+        }
+        reminderViewModel.storeReminderIntoDatabase(reminder)
+        syncRepo.syncCreate(reminder) { ok -> if (ok) reminder.syncStatus = "SYNCED" }
+        reminderViewModel.showRemainingTime(binding)
+        Toast.makeText(requireContext(), "Reminder Saved.", Toast.LENGTH_SHORT).show()
+        reminderViewModel.clearInputs(binding)
     }
-
-    // Permissions Handler from the user interact with the dialog
-    override fun onAllowClicked() {
-        requestPermissions()
+    override fun collectUserPeriodicReminderListenerInputs(repeatInterval: Long?, timeUnit: TimeUnit?) {
+        if (arePermissionsGranted()) createPeriodicReminder(repeatInterval, timeUnit) else RequestPermissionsDialogFragment.newInstance(getString(R.string.permissions_message_we_are_sorry)).show(childFragmentManager, "WeAreSorry")
     }
-
-    override fun onDenyClicked() {
-        Toast.makeText(requireContext(), getString(R.string.permissions_message_sorry_you_can_not), Toast.LENGTH_SHORT).show()
-    }
-
+    override fun collectUserReminderSoundListenerInputs(soundId: Int) { reminderViewModel.reminderScheduler.value?.setReminderSound(soundId) }
+    override fun onAllowClicked() { requestPermissions() }
+    override fun onDenyClicked() { Toast.makeText(requireContext(), getString(R.string.permissions_message_sorry_you_can_not), Toast.LENGTH_SHORT).show() }
     companion object {
-        private val REQUIRED_PERMISSIONS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                arrayOf(
-                    Manifest.permission.POST_NOTIFICATIONS,
-                    Manifest.permission.VIBRATE,
-                )
-            } else {
-                arrayOf(
-                    Manifest.permission.VIBRATE,
-                )
-            }
+        private val REQUIRED_PERMISSIONS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) arrayOf(Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.VIBRATE) else arrayOf(Manifest.permission.VIBRATE)
     }
 }

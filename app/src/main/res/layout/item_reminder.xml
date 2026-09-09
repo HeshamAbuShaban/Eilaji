@@ -1,93 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="@dimen/_5sdp"
-    android:background="@drawable/shape_reminder_item"
-    android:elevation="@dimen/_25sdp"
-    android:padding="@dimen/_5sdp">
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeColor="@color/primary_color"
+    app:strokeWidth="0dp">
 
-    <!--ReminderType-->
-    <ImageView
-        android:id="@+id/reminder_type"
-        android:layout_width="@dimen/_35sdp"
-        android:layout_height="@dimen/_35sdp"
-        android:layout_marginEnd="@dimen/_15sdp"
-        android:contentDescription="@string/reminder_type_image"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!--ReminderText-->
-    <TextView
-        android:id="@+id/reminder_name"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_4sdp"
-        android:text="@string/remind_me_one_time"
-        android:textAlignment="center"
-        android:textColor="@color/white"
-        android:textSize="@dimen/_18ssp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@id/reminderTimesContainer"
-        app:layout_constraintEnd_toStartOf="@id/reminder_type"
-        app:layout_constraintStart_toEndOf="@id/delete_reminder"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="TextContrastCheck" />
+        android:padding="16dp">
 
-    <!--ContainerForTimeDetails-->
-    <LinearLayout
-        android:id="@+id/reminderTimesContainer"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_4sdp"
-        android:layout_marginBottom="@dimen/_4sdp"
-        android:gravity="center"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/reminder_type"
-        app:layout_constraintStart_toEndOf="@id/delete_reminder"
-        app:layout_constraintTop_toBottomOf="@id/reminder_name">
+        <ImageView
+            android:id="@+id/reminder_type"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:backgroundTint="@color/primary_color"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:src="@drawable/ic_medication" />
 
-        <!--ReminderTime-->
+        <TextView
+            android:id="@+id/reminder_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/switchActive"
+            app:layout_constraintStart_toEndOf="@id/reminder_type"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Amoxicillin 500mg" />
+
+        <TextView
+            android:id="@+id/reminder_dosage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toStartOf="@id/switchActive"
+            app:layout_constraintStart_toEndOf="@id/reminder_type"
+            app:layout_constraintTop_toBottomOf="@id/reminder_name"
+            tools:text="1 pill • DAILY" />
+
         <TextView
             android:id="@+id/reminder_delayTime"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/remind_me_one_time"
-            android:textAlignment="center"
-            android:textColor="@color/gray_light"
-            android:textSize="@dimen/_15ssp" />
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/shape_reminder_item"
+            android:backgroundTint="@color/primary_color"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@id/reminder_type"
+            app:layout_constraintTop_toBottomOf="@id/reminder_dosage"
+            tools:text="08:30:00" />
 
-        <!--ReminderTime-->
         <TextView
             android:id="@+id/reminder_creationTimestamp"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/remind_me_one_time"
-            android:textAlignment="center"
-            android:textColor="@color/gray_light"
-            android:textSize="@dimen/_15ssp" />
+            android:layout_marginStart="8dp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="11sp"
+            app:layout_constraintBottom_toBottomOf="@id/reminder_delayTime"
+            app:layout_constraintStart_toEndOf="@id/reminder_delayTime"
+            app:layout_constraintTop_toTopOf="@id/reminder_delayTime"
+            tools:text="created 2026-09-09" />
 
-    </LinearLayout>
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchActive"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toStartOf="@id/delete_reminder"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <!--DeleteButton-->
-    <ImageButton
-        android:id="@+id/delete_reminder"
-        android:layout_width="@dimen/_35sdp"
-        android:layout_height="@dimen/_35sdp"
-        android:layout_marginStart="@dimen/_15sdp"
-        android:background="@drawable/ic_delete_reminder"
-        android:backgroundTint="@color/primary_color"
-        android:filterTouchesWhenObscured="true"
-        android:text="@string/delete"
-        android:textColor="@color/white"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="ContentDescription,SpeakableTextPresentCheck,TouchTargetSizeCheck,ImageContrastCheck" />
+        <ImageButton
+            android:id="@+id/delete_reminder"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_delete_reminder"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/primary_color"
+            tools:ignore="ContentDescription" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <LinearLayout
+            android:id="@+id/reminderTimesContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            tools:visibility="gone" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -1,72 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/c1_reminder_item"
+    android:background="?attr/colorSurface"
     tools:context=".ui.other.reminder.list.RemindersListFragment">
 
-    <!--Empty States Image-->
-    <ImageView
-        android:id="@+id/emptyListImage"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:contentDescription="@null"
-        android:scaleType="fitCenter"
-        android:src="@drawable/bg_empty_3"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="ImageContrastCheck" />
+        android:layout_height="match_parent">
 
-    <!--Empty States TextView-->
-    <TextView
-        android:id="@+id/emptyListText"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="@dimen/_15sdp"
-        android:gravity="top|center"
-        android:textAlignment="center"
-        android:textColor="@color/white"
-        android:textSize="@dimen/_22sdp"
-        android:textStyle=""
-        android:visibility="invisible"
-        tools:ignore="VisualLintOverlap" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recViewRemindersList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:padding="16dp"
+            android:paddingBottom="80dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_reminder" />
 
-    <!--RecyclerView-->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recViewRemindersList"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.5"
-        tools:listitem="@layout/item_reminder" />
+        <LinearLayout
+            android:id="@+id/emptyStateContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="visible">
 
-    <!--Fab-->
+            <ImageView
+                android:id="@+id/emptyListImage"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:alpha="0.7"
+                android:src="@drawable/bg_empty_3"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/emptyListText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabAddAReminder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|start"
-        android:layout_marginStart="@dimen/_12sdp"
-        android:layout_marginBottom="@dimen/_20sdp"
-        android:contentDescription="@null"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
         android:text="@string/add"
-        android:textColor="#E1BEE7"
-        android:textSize="@dimen/_13ssp"
-        android:textStyle="bold"
-        app:backgroundTint="#724cf9"
+        android:textColor="@color/white"
+        app:backgroundTint="@color/primary_color"
         app:icon="@drawable/ic_add"
-        app:iconTint="#f896d8"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:iconTint="@color/white" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

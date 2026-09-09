@@ -6,14 +6,17 @@ import android.content.Context;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+import androidx.room.TypeConverters;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import dev.anonymous.eilaji.reminder_system.database.Converters;
 import dev.anonymous.eilaji.reminder_system.database.dao.ReminderDao;
 import dev.anonymous.eilaji.reminder_system.database.entity.Reminder;
 
-@Database(entities = {Reminder.class}, version = 1, exportSchema = false)
+@Database(entities = {Reminder.class}, version = 2, exportSchema = false)
+@TypeConverters({Converters.class})
 public abstract class ReminderDatabase extends RoomDatabase {
     public abstract ReminderDao reminderDao();
 
@@ -34,7 +37,7 @@ public abstract class ReminderDatabase extends RoomDatabase {
 
     private static ReminderDatabase buildDatabase(Context context) {
         return Room.databaseBuilder(context, ReminderDatabase.class, "reminder.db")
-                /*.addMigrations(new MigrationFrom1To2())*/
+                .fallbackToDestructiveMigration()
                 .build();
     }
 }
