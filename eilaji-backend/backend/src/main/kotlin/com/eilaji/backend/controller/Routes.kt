@@ -26,6 +26,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.mindrot.jbcrypt.BCrypt
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
@@ -353,6 +354,117 @@ fun Route.apiRoutes(
                         } else {
                             call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "User not found"))
                          }
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    }
+                }
+                put {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+                    if (!validateUuid(userId)) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
+                        return@put
+                    }
+                    val userUuid = UUID.fromString(userId)
+                    try {
+                        val request = Json { ignoreUnknownKeys = true }.decodeFromString<UpdateUserRequest>(call.receiveText())
+                        val updated = transaction {
+                            val existing = Users.selectAll().where { Users.id eq userUuid }.singleOrNull() ?: return@transaction null
+                            Users.update({ Users.id eq userUuid }) {
+                                if (request.fullName != null && request.fullName.isNotBlank()) it[Users.fullName] = request.fullName.trim()
+                                if (request.phone != null) it[Users.phone] = request.phone.trim()
+                                if (request.avatarUrl != null) it[Users.avatarUrl] = request.avatarUrl
+                                it[Users.updatedAt] = Instant.now()
+                            }
+                            Users.selectAll().where { Users.id eq userUuid }.first().let { row ->
+                                UserDto(
+                                    id = row[Users.id].toString(),
+                                    email = row[Users.email],
+                                    fullName = row[Users.fullName],
+                                    phone = row[Users.phone],
+                                    avatarUrl = row[Users.avatarUrl],
+                                    role = row[Users.role],
+                                    isVerified = row[Users.isVerified],
+                                    createdAt = row[Users.createdAt].toString()
+                                )
+                            }
+                        }
+                        if (updated != null) call.respond(ApiResponse(success = true, data = updated))
+                        else call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "User not found"))
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    }
+                }
+                put("/password") {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+                    if (!validateUuid(userId)) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
+                        return@put
+                    }
+                    val userUuid = UUID.fromString(userId)
+                    try {
+                        val request = Json { ignoreUnknownKeys = true }.decodeFromString<UpdatePasswordRequest>(call.receiveText())
+                        val strengthErrors = SecurityUtils.validatePasswordStrength(request.newPassword)
+                        if (strengthErrors.isNotEmpty()) {
+                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = strengthErrors.joinToString("; ")))
+                            return@put
+                        }
+                        val result = transaction {
+                            val row = Users.selectAll().where { Users.id eq userUuid }.singleOrNull() ?: return@transaction null
+                            val storedHash = row[Users.passwordHash]
+                            if (!BCrypt.checkpw(request.oldPassword, storedHash)) return@transaction false
+                            val newHash = BCrypt.hashpw(request.newPassword, BCrypt.gensalt())
+                            Users.update({ Users.id eq userUuid }) {
+                                it[Users.passwordHash] = newHash
+                                it[Users.updatedAt] = Instant.now()
+                            }
+                            true
+                        }
+                        when (result) {
+                            null -> call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "User not found"))
+                            false -> call.respond(HttpStatusCode.Unauthorized, ApiResponse<Unit>(success = false, error = "Old password incorrect"))
+                            true -> call.respond(ApiResponse<Unit>(success = true, message = "Password updated"))
+                            else -> call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = "Unknown error"))
+                        }
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    }
+                }
+            }
+            route("/users") {
+                put("/change-password") {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+                    if (!validateUuid(userId)) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
+                        return@put
+                    }
+                    val userUuid = UUID.fromString(userId)
+                    try {
+                        val request = Json { ignoreUnknownKeys = true }.decodeFromString<UpdatePasswordRequest>(call.receiveText())
+                        val strengthErrors = SecurityUtils.validatePasswordStrength(request.newPassword)
+                        if (strengthErrors.isNotEmpty()) {
+                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = strengthErrors.joinToString("; ")))
+                            return@put
+                        }
+                        val result = transaction {
+                            val row = Users.selectAll().where { Users.id eq userUuid }.singleOrNull() ?: return@transaction null
+                            val storedHash = row[Users.passwordHash]
+                            if (!BCrypt.checkpw(request.oldPassword, storedHash)) return@transaction false
+                            val newHash = BCrypt.hashpw(request.newPassword, BCrypt.gensalt())
+                            Users.update({ Users.id eq userUuid }) {
+                                it[Users.passwordHash] = newHash
+                                it[Users.updatedAt] = Instant.now()
+                            }
+                            true
+                        }
+                        when (result) {
+                            null -> call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "User not found"))
+                            false -> call.respond(HttpStatusCode.Unauthorized, ApiResponse<Unit>(success = false, error = "Old password incorrect"))
+                            true -> call.respond(ApiResponse<Unit>(success = true, message = "Password updated"))
+                            else -> call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = "Unknown error"))
+                        }
                     } catch (e: Exception) {
                         call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
                     }

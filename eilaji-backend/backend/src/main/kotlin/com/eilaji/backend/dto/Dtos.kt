@@ -280,3 +280,62 @@ data class PaginatedResult<T>(
     val pageSize: Int = 20,
     val totalPages: Int = 0
 )
+
+@Serializable
+data class UpdateUserRequest(
+    val fullName: String? = null,
+    val phone: String? = null,
+    val avatarUrl: String? = null
+)
+
+@Serializable
+data class UpdatePasswordRequest(
+    val oldPassword: String,
+    val newPassword: String
+)
+
+@Serializable
+data class CreateMedicineRequest(
+    val titleEn: String,
+    val titleAr: String,
+    val descriptionEn: String? = null,
+    val descriptionAr: String? = null,
+    val imageUrl: String? = null,
+    val price: Double? = null,
+    val manufacturer: String? = null,
+    val requiresPrescription: Boolean = false,
+    val isActive: Boolean = true,
+    val subcategoryId: String? = null
+)
+
+@Serializable
+data class UpdateMedicineRequest(
+    val titleEn: String? = null,
+    val titleAr: String? = null,
+    val descriptionEn: String? = null,
+    val descriptionAr: String? = null,
+    val imageUrl: String? = null,
+    val price: Double? = null,
+    val manufacturer: String? = null,
+    val requiresPrescription: Boolean? = null,
+    val isActive: Boolean? = null,
+    val subcategoryId: String? = null
+)
+
+@Serializable
+data class CreateCategoryRequest(
+    val nameEn: String,
+    val nameAr: String,
+    val iconUrl: String? = null,
+    val displayOrder: Int = 0,
+    val isActive: Boolean = true
+)
+
+@Serializable
+data class UpdateCategoryRequest(
+    val nameEn: String? = null,
+    val nameAr: String? = null,
+    val iconUrl: String? = null,
+    val displayOrder: Int? = null,
+    val isActive: Boolean? = null
+)

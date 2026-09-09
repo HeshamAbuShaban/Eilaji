@@ -1,40 +1,38 @@
 package dev.anonymous.eilaji.ui.other.search
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
-import com.google.firebase.firestore.FirebaseFirestore
-//import com.google.firebase.fire-store.ListenerRegistration
 import dev.anonymous.eilaji.adapters.MedicinesAdapter
 import dev.anonymous.eilaji.adapters.PharmaciesLocationsAdapter
 import dev.anonymous.eilaji.databinding.FragmentSearchBinding
 import dev.anonymous.eilaji.models.Pharmacy
 import dev.anonymous.eilaji.models.server.Medicine
-import dev.anonymous.eilaji.storage.enums.CollectionNames
+import dev.anonymous.eilaji.network.ApiResponse
+import dev.anonymous.eilaji.network.MedicineDto
+import dev.anonymous.eilaji.network.NetworkModule
+import dev.anonymous.eilaji.network.PaginatedResult
+import dev.anonymous.eilaji.network.PharmacyDto
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class SearchFragment : Fragment() {
-    // #-Firebase
-    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
-
-    // AdsReference
-    private val medicinesRef = db.collection(CollectionNames.Medicine.collection_name)
-
-    // PharmacyReference
-    private val pharmaciesRef = db.collection(CollectionNames.Pharmacy.collection_name)
-
-   /* // Listeners
-    private var medicinesListenerRegistration: ListenerRegistration? = null
-    private var pharmaciesListenerRegistration: ListenerRegistration? = null*/
 
     private lateinit var _binding: FragmentSearchBinding
     private val binding get() = _binding
 
     private lateinit var searchViewModel: SearchViewModel
+
+    private val apiService by lazy { NetworkModule.provideApiService(requireContext()) }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -47,61 +45,27 @@ class SearchFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        //get the medicines and set it into the recV
         fetchMedicinesData()
         displayMedicines()
-        //get the pharmacies and set it into the recV
         fetchPharmaciesData()
         displayPharmacies()
+        setupSearchListener()
     }
 
-    /*override fun onStart() {
-        super.onStart()
-        medicinesFetcherListener()
-        pharmaciesFetcherListener()
-    }*/
-
-    /*private fun medicinesFetcherListener() {
-        medicinesListenerRegistration = medicinesRef.addSnapshotListener { querySnapshot, e ->
-            if (e != null) {
-                Log.e("SearchFragment", "fetch: Error", e)
-                return@addSnapshotListener
-            }
-
-            if (querySnapshot != null) {
-                val medicines: ArrayList<Medicine> = ArrayList()
-                for (documentSnapshot in querySnapshot) {
-                    val medicine = documentSnapshot.toObject(Medicine::class.java)
-                    medicines.add(medicine)
+    private fun setupSearchListener() {
+        binding.searchEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                val q = s?.toString()?.trim().orEmpty()
+                if (q.isEmpty()) {
+                    fetchMedicinesData()
+                } else {
+                    searchMedicines(q)
                 }
-                searchViewModel.setMedicinesData(medicines)
-            } else {
-                // Handle the case where the querySnapshot is null
-                // (e.g., show a message to the user or handle the absence of data)
             }
-        }
+        })
     }
-
-    private fun pharmaciesFetcherListener() {
-        pharmaciesListenerRegistration = pharmaciesRef.addSnapshotListener { querySnapshot, e ->
-            if (e != null) {
-                Log.e("SearchFragment", "fetch: Error", e)
-                return@addSnapshotListener
-            }
-
-            if (querySnapshot != null) {
-                val pharmacies: ArrayList<Pharmacy> = ArrayList()
-                for (documentSnapshot in querySnapshot) {
-                    val pharmacy = documentSnapshot.toObject(Pharmacy::class.java)
-                    pharmacies.add(pharmacy)
-                }
-                searchViewModel.setPharmaciesDataData(pharmacies)
-            } else {
-                // Handle the case where the querySnapshot is null
-                // (e.g., show a message to the user or handle the absence of data)
-            }
-        }
-    }*/
 
     private fun setupMedicinesAdapter(medicinesList: ArrayList<Medicine>) {
         with(binding.recVSearchMedicines) {
@@ -127,66 +91,104 @@ class SearchFragment : Fragment() {
         }
     }
 
-    //.. get medicines
     private fun fetchMedicinesData() {
-        val medicines: ArrayList<Medicine> = ArrayList()
-        medicinesRef.get().addOnSuccessListener { querySnapshot ->
-            for (documentSnapshot in querySnapshot) {
-                val medicine = documentSnapshot.toObject(Medicine::class.java)
-                medicines.add(medicine)
+        apiService.getMedicines(page = 0, pageSize = 50).enqueue(object : Callback<ApiResponse<PaginatedResult<MedicineDto>>> {
+            override fun onResponse(call: Call<ApiResponse<PaginatedResult<MedicineDto>>>, response: Response<ApiResponse<PaginatedResult<MedicineDto>>>) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val dtos = response.body()?.data?.items ?: emptyList()
+                    val medicines = ArrayList(dtos.map { it.toMedicine() })
+                    searchViewModel.setMedicinesData(medicines)
+                } else {
+                    val msg = response.body()?.error ?: "Failed to load medicines"
+                    Log.e("SearchFragment", "fetchMedicines: $msg")
+                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+                }
             }
-            // send the data to the container
-            searchViewModel.setMedicinesData(medicines)
-
-        }.addOnFailureListener { exception ->
-            Log.e("SF", "fetch: exc", exception)
-            Log.d("SF", "fetch: massage" + exception.localizedMessage)
-        }
+            override fun onFailure(call: Call<ApiResponse<PaginatedResult<MedicineDto>>>, t: Throwable) {
+                Log.e("SearchFragment", "fetchMedicines: network error", t)
+                Toast.makeText(requireContext(), "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
+
+    private fun searchMedicines(query: String) {
+        apiService.searchMedicines(query, page = 0, pageSize = 50).enqueue(object : Callback<ApiResponse<PaginatedResult<MedicineDto>>> {
+            override fun onResponse(call: Call<ApiResponse<PaginatedResult<MedicineDto>>>, response: Response<ApiResponse<PaginatedResult<MedicineDto>>>) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val dtos = response.body()?.data?.items ?: emptyList()
+                    val medicines = ArrayList(dtos.map { it.toMedicine() })
+                    searchViewModel.setMedicinesData(medicines)
+                } else {
+                    val msg = response.body()?.error ?: "Search failed"
+                    Log.e("SearchFragment", "searchMedicines: $msg")
+                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+                }
+            }
+            override fun onFailure(call: Call<ApiResponse<PaginatedResult<MedicineDto>>>, t: Throwable) {
+                Log.e("SearchFragment", "searchMedicines: network error", t)
+                Toast.makeText(requireContext(), "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
     private fun displayMedicines(){
-        // setup the viewPager with data
         searchViewModel.medicineData.observe(viewLifecycleOwner) {
             setupMedicinesAdapter(it)
         }
     }
-    //.. get pharmacies
+
     private fun fetchPharmaciesData() {
-        val pharmacies: ArrayList<Pharmacy> = ArrayList()
-        pharmaciesRef.get().addOnSuccessListener { querySnapshot ->
-            for (documentSnapshot in querySnapshot) {
-                val pharmacy = documentSnapshot.toObject(Pharmacy::class.java)
-                pharmacies.add(pharmacy)
+        apiService.getPharmacies(page = 0, pageSize = 50).enqueue(object : Callback<ApiResponse<PaginatedResult<PharmacyDto>>> {
+            override fun onResponse(call: Call<ApiResponse<PaginatedResult<PharmacyDto>>>, response: Response<ApiResponse<PaginatedResult<PharmacyDto>>>) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val dtos = response.body()?.data?.items ?: emptyList()
+                    val pharmacies = ArrayList(dtos.map { it.toPharmacy() })
+                    searchViewModel.setPharmaciesDataData(pharmacies)
+                } else {
+                    val msg = response.body()?.error ?: "Failed to load pharmacies"
+                    Log.e("SearchFragment", "fetchPharmacies: $msg")
+                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+                }
             }
-            // send the data to the container
-            searchViewModel.setPharmaciesDataData(pharmacies)
-        }.addOnFailureListener { exception ->
-            Log.e("SF", "fetch: exc", exception)
-            Log.d("SF", "fetch: massage" + exception.localizedMessage)
-        }
+            override fun onFailure(call: Call<ApiResponse<PaginatedResult<PharmacyDto>>>, t: Throwable) {
+                Log.e("SearchFragment", "fetchPharmacies: network error", t)
+                Toast.makeText(requireContext(), "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
+
     private fun displayPharmacies(){
-        // setup the viewPager with data
         searchViewModel.pharmaciesData.observe(viewLifecycleOwner) {
             setupPharmaciesAdapter(it)
         }
     }
 
-    /*override fun onStop() {
-        super.onStop()
-        removeMedicinesListener()
-        removePharmaciesListener()
+    private fun MedicineDto.toMedicine(): Medicine {
+        val title = titleEn.ifBlank { titleAr }
+        val details = descriptionEn ?: descriptionAr ?: ""
+        return Medicine(
+            id = id,
+            imageUrl = imageUrl ?: "",
+            title = title,
+            price = price ?: 0.0,
+            details = details,
+            alternativesMedicine = ArrayList(),
+            idCategory = "",
+            idSubCategory = "",
+            isFavorite = false
+        )
     }
 
-    private fun removeMedicinesListener() {
-        medicinesListenerRegistration?.remove()
-        medicinesListenerRegistration = null
-        searchViewModel.medicineData.removeObservers(viewLifecycleOwner)
+    private fun PharmacyDto.toPharmacy(): Pharmacy {
+        return Pharmacy(
+            uid = id,
+            pharmacy_image_url = imageUrl ?: "",
+            pharmacy_name = name,
+            phone = phone ?: "",
+            address = address,
+            lat = latitude,
+            lng = longitude,
+            token = ""
+        )
     }
-
-    private fun removePharmaciesListener() {
-        pharmaciesListenerRegistration?.remove()
-        pharmaciesListenerRegistration = null
-        searchViewModel.pharmaciesData.removeObservers(viewLifecycleOwner)
-    }*/
-
 }
