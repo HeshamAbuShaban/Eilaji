@@ -184,3 +184,4 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
         mapViewModel.pharmacies.removeObservers(viewLifecycleOwner)
     }
 }
+// trigger rebuild Thu Sep 10 02:47:34 AM EEST 2026
