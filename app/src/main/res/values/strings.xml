@@ -110,5 +110,9 @@
     <string name="like_button" translatable="false">LikeButton</string>
     <string name="reminder_type_image" translatable="false">Reminder Type Image</string>
     <string name="do_you_really_want_to_delete">Do you really want to delete!?</string>
+    <string name="theme">Theme</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system">System default</string>
 
 </resources>

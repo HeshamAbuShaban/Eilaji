@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import dev.anonymous.eilaji.databinding.FragmentFavoritesBinding
+
 class FavoritesFragment : Fragment() {
     private lateinit var _binding: FragmentFavoritesBinding
     private val binding get() = _binding
@@ -22,10 +23,20 @@ class FavoritesFragment : Fragment() {
         favoriteViewModel = ViewModelProvider(this)[FavoriteViewModel::class.java]
         favoriteViewModel.setBindingObj(binding)
         favoriteViewModel.setToolBarTitle(requireContext())
+        favoriteViewModel.initRepo(requireContext())
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         favoriteViewModel.setupFavoritesRecycler(requireActivity())
+        favoriteViewModel.favoritesLive(requireContext()).observe(viewLifecycleOwner) { list ->
+            favoriteViewModel.updateList(list)
+        }
+        favoriteViewModel.syncOnStart()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        favoriteViewModel.refreshFromNetwork()
     }
 }

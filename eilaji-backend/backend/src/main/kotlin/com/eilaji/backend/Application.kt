@@ -81,8 +81,9 @@ fun main() {
 
     transaction {
         SchemaUtils.createMissingTablesAndColumns(
-            Users, Categories, Medicines, Pharmacies,
-            Prescriptions, Chats, Messages, EilajiPlusSync,
+            Users, Categories, Subcategories, Medicines, Pharmacies,
+            PharmacyMedicines, Prescriptions, Chats, Messages, Favorites,
+            Ratings, MedicationReminders, EilajiPlusSync,
             Orders, AuditLogs
         )
     }

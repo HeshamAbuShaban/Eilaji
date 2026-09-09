@@ -244,6 +244,9 @@ fun Route.apiRoutes(
                 try {
                     val pharmacies = transaction {
                         Pharmacies.selectAll().map { row ->
+                            val plat = row[Pharmacies.latitude]
+                            val plng = row[Pharmacies.longitude]
+                            val d = haversineKm(lat, lng, plat, plng)
                             PharmacyDto(
                                 id = row[Pharmacies.id].toString(),
                                 name = row[Pharmacies.name],
@@ -251,16 +254,17 @@ fun Route.apiRoutes(
                                 imageUrl = row[Pharmacies.imageUrl],
                                 address = row[Pharmacies.address],
                                 city = row[Pharmacies.city],
-                                latitude = row[Pharmacies.latitude],
-                                longitude = row[Pharmacies.longitude],
+                                latitude = plat,
+                                longitude = plng,
                                 phone = row[Pharmacies.phone],
                                 isOpen = row[Pharmacies.isOpen],
                                 ratingAvg = row[Pharmacies.ratingAvg]?.toDouble() ?: 0.0,
                                 totalRatings = row[Pharmacies.totalRatings] ?: 0,
                                 isVerified = row[Pharmacies.isVerified],
-                                distanceKm = null
+                                distanceKm = d
                             )
-                        }
+                        }.filter { (it.distanceKm ?: Double.MAX_VALUE) <= radius }
+                            .sortedBy { it.distanceKm }
                     }
                     call.respond(ApiResponse(success = true, data = pharmacies))
                 } catch (e: Exception) {
@@ -312,6 +316,39 @@ fun Route.apiRoutes(
                         )
                     }
                     call.respond(ApiResponse(success = true, data = result))
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                }
+            }
+            get("/pharmacies/{id}/ratings") {
+                val pharmacyIdStr = call.parameters["id"]
+                if (pharmacyIdStr == null || !SecurityUtils.isValidUuid(pharmacyIdStr)) {
+                    call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid pharmacy ID"))
+                    return@get
+                }
+                val pharmacyId = UUID.fromString(pharmacyIdStr)
+                try {
+                    val ratings = transaction {
+                        val pharmacyExists = Pharmacies.selectAll().where { Pharmacies.id eq pharmacyId }.singleOrNull() != null
+                        if (!pharmacyExists) return@transaction null
+                        (Ratings innerJoin Users).selectAll().where { Ratings.pharmacyId eq pharmacyId }
+                            .orderBy(Ratings.createdAt, SortOrder.DESC)
+                            .map { row ->
+                                RatingDto(
+                                    id = row[Ratings.id].toString(),
+                                    userId = row[Ratings.userId].toString(),
+                                    userName = row[Users.fullName],
+                                    rating = row[Ratings.rating],
+                                    comment = row[Ratings.comment],
+                                    createdAt = row[Ratings.createdAt].toString()
+                                )
+                            }
+                    }
+                    if (ratings == null) {
+                        call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Pharmacy not found"))
+                    } else {
+                        call.respond(ApiResponse(success = true, data = ratings))
+                    }
                 } catch (e: Exception) {
                     call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
                 }
@@ -812,6 +849,236 @@ fun Route.apiRoutes(
                     }
                 }
             }
+
+            route("/favorites") {
+                get {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+                    if (!validateUuid(userId)) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
+                        return@get
+                    }
+                    val userUuid = UUID.fromString(userId)
+                    try {
+                        val favorites = transaction {
+                            Favorites.selectAll().where { Favorites.userId eq userUuid }
+                                .orderBy(Favorites.createdAt, SortOrder.DESC)
+                                .map { row ->
+                                    val medId = row[Favorites.medicineId]
+                                    val pharmId = row[Favorites.pharmacyId]
+                                    val medRow = medId?.let { Medicines.selectAll().where { Medicines.id eq it }.singleOrNull() }
+                                    val pharmRow = pharmId?.let { Pharmacies.selectAll().where { Pharmacies.id eq it }.singleOrNull() }
+                                    val type = when {
+                                        medId != null && pharmId != null -> "BOTH"
+                                        medId != null -> "MEDICINE"
+                                        else -> "PHARMACY"
+                                    }
+                                    FavoriteDto(
+                                        id = row[Favorites.id].toString(),
+                                        type = type,
+                                        medicineId = medId?.toString(),
+                                        medicineTitleEn = medRow?.get(Medicines.titleEn),
+                                        medicineTitleAr = medRow?.get(Medicines.titleAr),
+                                        pharmacyId = pharmId?.toString(),
+                                        pharmacyName = pharmRow?.get(Pharmacies.name),
+                                        createdAt = row[Favorites.createdAt].toString()
+                                    )
+                                }
+                        }
+                        call.respond(ApiResponse(success = true, data = favorites))
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    }
+                }
+
+                post {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+                    if (!validateUuid(userId)) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
+                        return@post
+                    }
+                    val userUuid = UUID.fromString(userId)
+                    try {
+                        val req = Json { ignoreUnknownKeys = true }.decodeFromString<CreateFavoriteRequest>(call.receiveText())
+                        if (req.medicineId == null && req.pharmacyId == null) {
+                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "medicineId or pharmacyId required"))
+                            return@post
+                        }
+                        if (req.medicineId != null && !SecurityUtils.isValidUuid(req.medicineId)) {
+                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid medicineId"))
+                            return@post
+                        }
+                        if (req.pharmacyId != null && !SecurityUtils.isValidUuid(req.pharmacyId)) {
+                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid pharmacyId"))
+                            return@post
+                        }
+                        val medUuid = req.medicineId?.let { UUID.fromString(it) }
+                        val pharmUuid = req.pharmacyId?.let { UUID.fromString(it) }
+                        val result = transaction {
+                            if (medUuid != null) {
+                                val exists = Medicines.selectAll().where { Medicines.id eq medUuid }.singleOrNull() != null
+                                if (!exists) return@transaction null to "Medicine not found"
+                            }
+                            if (pharmUuid != null) {
+                                val exists = Pharmacies.selectAll().where { Pharmacies.id eq pharmUuid }.singleOrNull() != null
+                                if (!exists) return@transaction null to "Pharmacy not found"
+                            }
+                            val duplicate = Favorites.selectAll().where { Favorites.userId eq userUuid }.toList()
+                                .any { it[Favorites.medicineId] == medUuid && it[Favorites.pharmacyId] == pharmUuid }
+                            if (duplicate) return@transaction null to "Already favorited"
+                            val id = UUID.randomUUID()
+                            Favorites.insert {
+                                it[Favorites.id] = id
+                                it[Favorites.userId] = userUuid
+                                it[Favorites.medicineId] = medUuid
+                                it[Favorites.pharmacyId] = pharmUuid
+                                it[Favorites.createdAt] = Instant.now()
+                            }
+                            val row = Favorites.selectAll().where { Favorites.id eq id }.single()
+                            val medRow = medUuid?.let { Medicines.selectAll().where { Medicines.id eq it }.singleOrNull() }
+                            val pharmRow = pharmUuid?.let { Pharmacies.selectAll().where { Pharmacies.id eq it }.singleOrNull() }
+                            val type = when {
+                                medUuid != null && pharmUuid != null -> "BOTH"
+                                medUuid != null -> "MEDICINE"
+                                else -> "PHARMACY"
+                            }
+                            FavoriteDto(
+                                id = row[Favorites.id].toString(),
+                                type = type,
+                                medicineId = medUuid?.toString(),
+                                medicineTitleEn = medRow?.get(Medicines.titleEn),
+                                medicineTitleAr = medRow?.get(Medicines.titleAr),
+                                pharmacyId = pharmUuid?.toString(),
+                                pharmacyName = pharmRow?.get(Pharmacies.name),
+                                createdAt = row[Favorites.createdAt].toString()
+                            ) to null
+                        }
+                        if (result.first == null) {
+                            val err = result.second ?: "Not found"
+                            val status = when (err) {
+                                "Already favorited" -> HttpStatusCode.Conflict
+                                "Medicine not found", "Pharmacy not found" -> HttpStatusCode.NotFound
+                                else -> HttpStatusCode.BadRequest
+                            }
+                            call.respond(status, ApiResponse<Unit>(success = false, error = err))
+                        } else {
+                            call.respond(HttpStatusCode.Created, ApiResponse(success = true, data = result.first))
+                        }
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    }
+                }
+
+                delete("/{id}") {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+                    if (!validateUuid(userId)) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
+                        return@delete
+                    }
+                    val favIdStr = call.parameters["id"]
+                    if (favIdStr == null || !SecurityUtils.isValidUuid(favIdStr)) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid favorite ID"))
+                        return@delete
+                    }
+                    val favId = UUID.fromString(favIdStr)
+                    val userUuid = UUID.fromString(userId)
+                    try {
+                        val deleted = transaction {
+                            val fav = Favorites.selectAll().where { Favorites.id eq favId }.singleOrNull() ?: return@transaction null
+                            if (fav[Favorites.userId] != userUuid) return@transaction false
+                            Favorites.deleteWhere { Favorites.id eq favId } > 0
+                        }
+                        when (deleted) {
+                            null -> call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Favorite not found"))
+                            false -> call.respond(HttpStatusCode.Forbidden, ApiResponse<Unit>(success = false, error = "Not your favorite"))
+                            true -> call.respond(ApiResponse<Unit>(success = true, message = "Favorite deleted"))
+                            else -> call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = "Unknown"))
+                        }
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    }
+                }
+            }
+
+            route("/ratings") {
+                post {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+                    if (!validateUuid(userId)) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
+                        return@post
+                    }
+                    val userUuid = UUID.fromString(userId)
+                    try {
+                        val req = Json { ignoreUnknownKeys = true }.decodeFromString<CreateRatingRequest>(call.receiveText())
+                        if (!SecurityUtils.isValidUuid(req.pharmacyId)) {
+                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid pharmacyId"))
+                            return@post
+                        }
+                        if (req.rating !in 1..5) {
+                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "rating must be 1..5"))
+                            return@post
+                        }
+                        val pharmUuid = UUID.fromString(req.pharmacyId)
+                        val result = transaction {
+                            val pharmacy = Pharmacies.selectAll().where { Pharmacies.id eq pharmUuid }.singleOrNull()
+                                ?: return@transaction null
+                            val existing = Ratings.selectAll().where { (Ratings.userId eq userUuid) and (Ratings.pharmacyId eq pharmUuid) }.singleOrNull()
+                            if (existing != null) {
+                                Ratings.update({ (Ratings.userId eq userUuid) and (Ratings.pharmacyId eq pharmUuid) }) {
+                                    it[Ratings.rating] = req.rating
+                                    it[Ratings.comment] = req.comment
+                                }
+                            } else {
+                                Ratings.insert {
+                                    it[Ratings.id] = UUID.randomUUID()
+                                    it[Ratings.userId] = userUuid
+                                    it[Ratings.pharmacyId] = pharmUuid
+                                    it[Ratings.rating] = req.rating
+                                    it[Ratings.comment] = req.comment
+                                    it[Ratings.createdAt] = Instant.now()
+                                }
+                            }
+                            val allRatings = Ratings.selectAll().where { Ratings.pharmacyId eq pharmUuid }.toList()
+                            val total = allRatings.size
+                            val avg = if (total > 0) allRatings.map { it[Ratings.rating].toDouble() }.average() else 0.0
+                            Pharmacies.update({ Pharmacies.id eq pharmUuid }) {
+                                it[Pharmacies.ratingAvg] = avg.toBigDecimal()
+                                it[Pharmacies.totalRatings] = total
+                                it[Pharmacies.updatedAt] = Instant.now()
+                            }
+                            val saved = Ratings.selectAll().where { (Ratings.userId eq userUuid) and (Ratings.pharmacyId eq pharmUuid) }.single()
+                            val userName = Users.selectAll().where { Users.id eq userUuid }.singleOrNull()?.get(Users.fullName) ?: "User"
+                            RatingDto(
+                                id = saved[Ratings.id].toString(),
+                                userId = userUuid.toString(),
+                                userName = userName,
+                                rating = saved[Ratings.rating],
+                                comment = saved[Ratings.comment],
+                                createdAt = saved[Ratings.createdAt].toString()
+                            )
+                        }
+                        if (result == null) {
+                            call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Pharmacy not found"))
+                        } else {
+                            call.respond(HttpStatusCode.Created, ApiResponse(success = true, data = result))
+                        }
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    }
+                }
+            }
         }
     }
+}
+
+private fun haversineKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+    val r = 6371.0
+    val dLat = Math.toRadians(lat2 - lat1)
+    val dLon = Math.toRadians(lon2 - lon1)
+    val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
+    val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    return r * c
 }

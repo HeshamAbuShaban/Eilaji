@@ -228,6 +228,12 @@ data class CreateReminderRequest(
 )
 
 @Serializable
+data class CreateFavoriteRequest(
+    val medicineId: String? = null,
+    val pharmacyId: String? = null
+)
+
+@Serializable
 data class RatingDto(
     val id: String,
     val userId: String,

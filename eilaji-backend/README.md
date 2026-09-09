@@ -1,6 +1,6 @@
 # Eilaji Backend
 
-Ktor-based backend service for the Eilaji pharmacy delivery platform.
+Ktor-based backend for the Eilaji pharmacy platform. See root [README.md](../README.md) for overview, architecture, and Android setup.
 
 ## Quick Start
 
@@ -174,4 +174,5 @@ backend/src/main/kotlin/com/eilaji/backend/
 
 ## License
 
-Proprietary - Eilaji Inc.
+Portfolio / educational use only — not licensed for commercial use or redistribution.
+© Hesham AbuShaban, 2025. All rights reserved. See [LICENSE](../LICENSE).

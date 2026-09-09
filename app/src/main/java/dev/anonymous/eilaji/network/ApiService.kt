@@ -140,6 +140,21 @@ interface ApiService {
 
     @GET("reminders/{id}")
     fun getReminder(@Path("id") id: String): Call<ApiResponse<MedicationReminderDto>>
+
+    @POST("favorites")
+    fun createFavorite(@Body request: CreateFavoriteRequest): Call<ApiResponse<FavoriteDto>>
+
+    @GET("favorites")
+    fun getFavorites(): Call<ApiResponse<List<FavoriteDto>>>
+
+    @DELETE("favorites/{id}")
+    fun deleteFavorite(@Path("id") id: String): Call<ApiResponse<Any>>
+
+    @POST("ratings")
+    fun createRating(@Body request: CreateRatingRequest): Call<ApiResponse<RatingDto>>
+
+    @GET("pharmacies/{id}/ratings")
+    fun getPharmacyRatings(@Path("id") pharmacyId: String): Call<ApiResponse<List<RatingDto>>>
 }
 
 data class RegisterRequest(
@@ -369,6 +384,37 @@ data class UpdateReminderRequest(
     @SerializedName("notes") val notes: String? = null,
     @SerializedName("isActive") val isActive: Boolean? = null,
     @SerializedName("endDate") val endDate: String? = null
+)
+
+data class CreateFavoriteRequest(
+    @SerializedName("medicineId") val medicineId: String? = null,
+    @SerializedName("pharmacyId") val pharmacyId: String? = null
+)
+
+data class FavoriteDto(
+    @SerializedName("id") val id: String,
+    @SerializedName("type") val type: String,
+    @SerializedName("medicineId") val medicineId: String? = null,
+    @SerializedName("medicineTitleEn") val medicineTitleEn: String? = null,
+    @SerializedName("medicineTitleAr") val medicineTitleAr: String? = null,
+    @SerializedName("pharmacyId") val pharmacyId: String? = null,
+    @SerializedName("pharmacyName") val pharmacyName: String? = null,
+    @SerializedName("createdAt") val createdAt: String
+)
+
+data class CreateRatingRequest(
+    @SerializedName("pharmacyId") val pharmacyId: String,
+    @SerializedName("rating") val rating: Int,
+    @SerializedName("comment") val comment: String? = null
+)
+
+data class RatingDto(
+    @SerializedName("id") val id: String,
+    @SerializedName("userId") val userId: String,
+    @SerializedName("userName") val userName: String,
+    @SerializedName("rating") val rating: Int,
+    @SerializedName("comment") val comment: String?,
+    @SerializedName("createdAt") val createdAt: String
 )
 
 data class ApiResponse<T>(

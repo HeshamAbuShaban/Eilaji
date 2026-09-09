@@ -15,7 +15,11 @@ import java.security.GeneralSecurityException;
 
 public class AppSharedPreferences {
     private enum SharedPreferencesKeys {
-        onBoardingDone, isFirstTime, token, refreshToken, fcmToken, fullName, imageUrl, currentUserChattingUid, userId, phone, role, isVerified, isActive
+        onBoardingDone, isFirstTime, token, refreshToken, fcmToken, fullName, imageUrl, currentUserChattingUid, userId, phone, role, isVerified, isActive, theme
+    }
+
+    public enum Theme {
+        light, dark, system
     }
 
     private static AppSharedPreferences Instance;
@@ -179,6 +183,23 @@ public class AppSharedPreferences {
         editor.apply();
     }
 
+    public String getTheme() {
+        return sharedPreferences.getString(SharedPreferencesKeys.theme.name(), Theme.system.name());
+    }
+
+    public void putTheme(String theme) {
+        if (!theme.equals(Theme.light.name()) && !theme.equals(Theme.dark.name()) && !theme.equals(Theme.system.name())) {
+            theme = Theme.system.name();
+        }
+        editor = sharedPreferences.edit();
+        editor.putString(SharedPreferencesKeys.theme.name(), theme);
+        editor.apply();
+    }
+
+    public void putTheme(Theme theme) {
+        putTheme(theme.name());
+    }
+
     public void clearAll() {
         editor = sharedPreferences.edit();
         editor.clear();
@@ -228,6 +249,46 @@ public class AppSharedPreferences {
     public void clear() {
         editor = sharedPreferences.edit();
         editor.clear();
+        editor.apply();
+    }
+
+    public String getString(String key, String defValue) {
+        return sharedPreferences.getString(key, defValue);
+    }
+
+    public void putString(String key, String value) {
+        editor = sharedPreferences.edit();
+        editor.putString(key, value);
+        editor.apply();
+    }
+
+    public long getLong(String key, long defValue) {
+        return sharedPreferences.getLong(key, defValue);
+    }
+
+    public void putLong(String key, long value) {
+        editor = sharedPreferences.edit();
+        editor.putLong(key, value);
+        editor.apply();
+    }
+
+    public String getCachedNearbyPharmacies() {
+        return sharedPreferences.getString("cached_nearby_pharmacies", null);
+    }
+
+    public void putCachedNearbyPharmacies(String json) {
+        editor = sharedPreferences.edit();
+        editor.putString("cached_nearby_pharmacies", json);
+        editor.apply();
+    }
+
+    public long getCachedNearbyTimestamp() {
+        return sharedPreferences.getLong("cached_nearby_timestamp", 0L);
+    }
+
+    public void putCachedNearbyTimestamp(long timestamp) {
+        editor = sharedPreferences.edit();
+        editor.putLong("cached_nearby_timestamp", timestamp);
         editor.apply();
     }
 
