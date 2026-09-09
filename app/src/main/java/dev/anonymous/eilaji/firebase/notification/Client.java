@@ -2,6 +2,8 @@ package dev.anonymous.eilaji.firebase.notification;
 
 import android.os.Build;
 
+import dev.anonymous.eilaji.BuildConfig;
+
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 

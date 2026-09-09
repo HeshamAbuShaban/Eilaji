@@ -41,8 +41,6 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsAdapter.ChatsViewHol
         return new ChatsViewHolder(ItemChatBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
     }
 
-    @Override public void onBindViewHolder(@NonNull ChatsViewHolder holder, int position, @NonNull ChatModel model) {}
-
     @Override public void onBindViewHolder(@NonNull ChatsViewHolder holder, int position) {
         ChatModel model = chats.get(position);
         holder.bind(position, model, userUid, model.getChatId() != null ? model.getChatId() : "");
