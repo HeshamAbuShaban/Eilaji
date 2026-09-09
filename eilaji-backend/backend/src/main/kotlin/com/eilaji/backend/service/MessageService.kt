@@ -22,8 +22,8 @@ class MessageService {
                 .limit(pageSize, (page * pageSize).toLong())
                 .map { row ->
                     MessageDto(
-                        id = row[Messages.id],
-                        chatId = row[Messages.chatId],
+                        id = row[Messages.id].toString(),
+                        chatId = row[Messages.chatId].toString(),
                         senderId = row[Messages.senderUserId].toString(),
                         senderName = row.getOrNull(Users.fullName),
                         content = row[Messages.messageText],
@@ -67,7 +67,8 @@ class MessageService {
             val chat = Chats.selectAll().where { Chats.id eq chatId }.firstOrNull()
             if (chat != null) {
                 val isPatient = chat[Chats.patientUserId] == senderUuid
-                
+                val currentPharmacyUnread = chat[Chats.unreadCountPharmacy]
+                val currentPatientUnread = chat[Chats.unreadCountPatient]
                 Chats.update({ Chats.id eq chatId }) {
                     it[Chats.lastMessageText] = if (messageType == "TEXT") content else null
                     it[Chats.lastMessageImageUrl] = if (messageType == "IMAGE") attachmentUrl else null
@@ -75,9 +76,9 @@ class MessageService {
                     it[Chats.lastMessageAt] = Instant.now()
                     it[Chats.updatedAt] = Instant.now()
                     if (isPatient) {
-                        it[Chats.unreadCountPharmacy] = Chats.unreadCountPharmacy.plus(1)
+                        it[Chats.unreadCountPharmacy] = currentPharmacyUnread + 1
                     } else {
-                        it[Chats.unreadCountPatient] = Chats.unreadCountPatient.plus(1)
+                        it[Chats.unreadCountPatient] = currentPatientUnread + 1
                     }
                 }
             }
@@ -87,8 +88,8 @@ class MessageService {
                 .where { Messages.id eq messageId }
                 .map { row ->
                     MessageDto(
-                        id = row[Messages.id],
-                        chatId = row[Messages.chatId],
+                        id = row[Messages.id].toString(),
+                        chatId = row[Messages.chatId].toString(),
                         senderId = row[Messages.senderUserId].toString(),
                         senderName = row.getOrNull(Users.fullName),
                         content = row[Messages.messageText],

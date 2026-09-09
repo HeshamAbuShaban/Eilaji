@@ -1,25 +1,6 @@
 package com.eilaji.backend.dto
 
 import kotlinx.serialization.Serializable
-import java.util.UUID
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-
-// UUID serializer
-object UuidSerializer : KSerializer<UUID> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UUID")
-    override fun serialize(encoder: Encoder, value: UUID) {
-        encoder.encodeString(value.toString())
-    }
-    override fun deserialize(decoder: Decoder): UUID {
-        return UUID.fromString(decoder.decodeString())
-    }
-}
-
-// ===== Auth DTOs =====
 
 @Serializable
 data class RegisterRequest(
@@ -51,7 +32,7 @@ data class RefreshTokenRequest(
 
 @Serializable
 data class UserDto(
-    @Contextual(UuidSerializer::class) val id: UUID,
+    val id: String,
     val email: String,
     val fullName: String,
     val phone: String?,
@@ -61,11 +42,9 @@ data class UserDto(
     val createdAt: String
 )
 
-// ===== Medicine DTOs =====
-
 @Serializable
 data class MedicineDto(
-    @Contextual(UuidSerializer::class) val id: UUID,
+    val id: String,
     val titleAr: String,
     val titleEn: String,
     val descriptionAr: String?,
@@ -81,7 +60,7 @@ data class MedicineDto(
 
 @Serializable
 data class CategoryDto(
-    @Contextual(UuidSerializer::class) val id: UUID,
+    val id: String,
     val nameAr: String,
     val nameEn: String,
     val iconUrl: String?,
@@ -92,17 +71,15 @@ data class CategoryDto(
 
 @Serializable
 data class SubcategoryDto(
-    @Contextual(UuidSerializer::class) val id: UUID,
+    val id: String,
     val nameAr: String,
     val nameEn: String,
     val iconUrl: String?
 )
 
-// ===== Pharmacy DTOs =====
-
 @Serializable
 data class PharmacyDto(
-    @Contextual(UuidSerializer::class) val id: UUID,
+    val id: String,
     val name: String,
     val description: String?,
     val imageUrl: String?,
@@ -130,13 +107,11 @@ data class CreatePharmacyRequest(
     val licenseNumber: String?
 )
 
-// ===== Prescription DTOs =====
-
 @Serializable
 data class PrescriptionDto(
-    @Contextual(UuidSerializer::class) val id: UUID,
+    val id: String,
     val userId: String,
-    @Contextual(UuidSerializer::class) val pharmacyId: UUID?,
+    val pharmacyId: String?,
     val pharmacyName: String? = null,
     val imageUrl: String,
     val notes: String?,
@@ -152,7 +127,7 @@ data class PrescriptionDto(
 @Serializable
 data class CreatePrescriptionRequest(
     val notes: String? = null,
-    @Contextual(UuidSerializer::class) val pharmacyId: UUID? = null
+    val pharmacyId: String? = null
 )
 
 @Serializable
@@ -162,13 +137,11 @@ data class UpdatePrescriptionStatusRequest(
     val pharmacistNotes: String? = null
 )
 
-// ===== Chat DTOs =====
-
 @Serializable
 data class ChatDto(
-    @Contextual(UuidSerializer::class) val id: UUID,
-    @Contextual(UuidSerializer::class) val prescriptionId: UUID? = null,
-    @Contextual(UuidSerializer::class) val pharmacyId: UUID? = null,
+    val id: String,
+    val prescriptionId: String? = null,
+    val pharmacyId: String? = null,
     val pharmacyName: String? = null,
     val userId: String,
     val userName: String? = null,
@@ -178,12 +151,10 @@ data class ChatDto(
     val createdAt: String
 )
 
-// ===== Message DTOs =====
-
 @Serializable
 data class MessageDto(
-    @Contextual(UuidSerializer::class) val id: UUID,
-    @Contextual(UuidSerializer::class) val chatId: UUID,
+    val id: String,
+    val chatId: String,
     val senderId: String,
     val senderName: String? = null,
     val content: String?,
@@ -196,19 +167,17 @@ data class MessageDto(
 
 @Serializable
 data class SendMessageRequest(
-    @Contextual(UuidSerializer::class) val chatId: UUID,
+    val chatId: String,
     val messageText: String? = null,
     val messageImageUrl: String? = null
 )
 
-// ===== Order DTOs =====
-
 @Serializable
 data class OrderDto(
-    @Contextual(UuidSerializer::class) val id: UUID,
-    @Contextual(UuidSerializer::class) val prescriptionId: UUID,
+    val id: String,
+    val prescriptionId: String,
     val patientId: String,
-    @Contextual(UuidSerializer::class) val pharmacyId: UUID,
+    val pharmacyId: String,
     val pharmacyName: String? = null,
     val status: String,
     val totalAmount: Double,
@@ -220,25 +189,21 @@ data class OrderDto(
     val updatedAt: String
 )
 
-// ===== Favorites DTOs =====
-
 @Serializable
 data class FavoriteDto(
-    @Contextual(UuidSerializer::class) val id: UUID,
-    val type: String, // MEDICINE or PHARMACY
-    @Contextual(UuidSerializer::class) val medicineId: UUID? = null,
+    val id: String,
+    val type: String,
+    val medicineId: String? = null,
     val medicineTitleAr: String? = null,
     val medicineTitleEn: String? = null,
-    @Contextual(UuidSerializer::class) val pharmacyId: UUID? = null,
+    val pharmacyId: String? = null,
     val pharmacyName: String? = null,
     val createdAt: String
 )
 
-// ===== Reminder DTOs =====
-
 @Serializable
 data class MedicationReminderDto(
-    @Contextual(UuidSerializer::class) val id: UUID,
+    val id: String,
     val medicineName: String,
     val dosage: String?,
     val frequency: String,
@@ -262,12 +227,10 @@ data class CreateReminderRequest(
     val endDate: String? = null
 )
 
-// ===== Rating DTOs =====
-
 @Serializable
 data class RatingDto(
-    @Contextual(UuidSerializer::class) val id: UUID,
-    @Contextual(UuidSerializer::class) val userId: UUID,
+    val id: String,
+    val userId: String,
     val userName: String,
     val rating: Int,
     val comment: String?,
@@ -276,25 +239,21 @@ data class RatingDto(
 
 @Serializable
 data class CreateRatingRequest(
-    @Contextual(UuidSerializer::class) val pharmacyId: UUID,
+    val pharmacyId: String,
     val rating: Int,
     val comment: String? = null
 )
 
-// ===== WebSocket DTOs =====
-
 @Serializable
 data class WebSocketMessage(
     val type: String,
-    @Contextual(UuidSerializer::class) val chatId: UUID? = null,
+    val chatId: String? = null,
     val userId: String? = null,
     val message: MessageDto? = null,
     val timestamp: String? = null,
     val isOnline: Boolean? = null,
     val content: String? = null
 )
-
-// ===== Generic Response =====
 
 @Serializable
 data class ApiResponse<T>(
@@ -307,14 +266,11 @@ data class ApiResponse<T>(
         fun <T> success(data: T, message: String? = null): ApiResponse<T> {
             return ApiResponse(success = true, data = data, message = message)
         }
-
         fun <T> error(error: String, message: String? = null): ApiResponse<T> {
             return ApiResponse(success = false, error = error, message = message)
         }
     }
 }
-
-// ===== Paginated Result =====
 
 @Serializable
 data class PaginatedResult<T>(

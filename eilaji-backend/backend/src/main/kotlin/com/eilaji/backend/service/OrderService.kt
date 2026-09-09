@@ -3,45 +3,18 @@ package com.eilaji.backend.service
 import com.eilaji.backend.data.*
 import com.eilaji.backend.dto.*
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.time.Instant
 import java.util.UUID
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-
-// UUID serializer
-object UuidSerializer : KSerializer<UUID> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UUID")
-    override fun serialize(encoder: Encoder, value: UUID) {
-        encoder.encodeString(value.toString())
-    }
-    override fun deserialize(decoder: Decoder): UUID {
-        return UUID.fromString(decoder.decodeString())
-    }
-}
-
-// Instant serializer
-object InstantSerializer : KSerializer<Instant> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Instant")
-    override fun serialize(encoder: Encoder, value: Instant) {
-        encoder.encodeString(value.toString())
-    }
-    override fun deserialize(decoder: Decoder): Instant {
-        return Instant.parse(decoder.decodeString())
-    }
-}
 
 class OrderService {
 
     @Serializable
     data class OrderCreateRequest(
-        @Contextual(UuidSerializer::class) val prescriptionId: UUID,
-        @Contextual(UuidSerializer::class) val pharmacyId: UUID,
+        val prescriptionId: String,
+        val pharmacyId: String,
         val totalAmount: Double,
         val paymentMethod: String? = null,
         val deliveryAddress: String? = null,
@@ -56,10 +29,10 @@ class OrderService {
 
     @Serializable
     data class OrderResult(
-        @Contextual(UuidSerializer::class) val id: UUID,
-        @Contextual(UuidSerializer::class) val prescriptionId: UUID,
+        val id: String,
+        val prescriptionId: String,
         val patientId: String,
-        @Contextual(UuidSerializer::class) val pharmacyId: UUID,
+        val pharmacyId: String,
         val pharmacyName: String?,
         val status: String,
         val totalAmount: Double,
@@ -67,15 +40,17 @@ class OrderService {
         val paymentStatus: String,
         val deliveryAddress: String?,
         val deliveryNotes: String?,
-        @Contextual(InstantSerializer::class) val createdAt: Instant,
-        @Contextual(InstantSerializer::class) val updatedAt: Instant
+        val createdAt: String,
+        val updatedAt: String
     )
 
     fun createOrder(request: OrderCreateRequest, userId: String): OrderResult? {
         val userUuid = UUID.fromString(userId)
+        val prescriptionUuid = UUID.fromString(request.prescriptionId)
+        val pharmacyUuid = UUID.fromString(request.pharmacyId)
         return transaction {
             val prescription = Prescriptions.selectAll()
-                .where { Prescriptions.id eq request.prescriptionId }
+                .where { Prescriptions.id eq prescriptionUuid }
                 .firstOrNull()
 
             if (prescription == null || prescription[Prescriptions.status] != "ACCEPTED") {
@@ -83,9 +58,9 @@ class OrderService {
             }
 
             val orderId = Orders.insert {
-                it[Orders.prescriptionId] = request.prescriptionId
+                it[Orders.prescriptionId] = prescriptionUuid
                 it[Orders.patientId] = userUuid
-                it[Orders.pharmacyId] = request.pharmacyId
+                it[Orders.pharmacyId] = pharmacyUuid
                 it[Orders.status] = "PENDING"
                 it[Orders.totalAmount] = request.totalAmount.toBigDecimal()
                 it[Orders.paymentMethod] = request.paymentMethod
@@ -96,7 +71,7 @@ class OrderService {
                 it[Orders.updatedAt] = Instant.now()
             } get Orders.id
 
-            getOrderById(orderId, userId, null)
+            getOrderById(orderId.toString(), userId, null)
         }
     }
 
@@ -117,12 +92,13 @@ class OrderService {
         }
     }
 
-    fun getOrderById(orderId: UUID, userId: String, userRole: com.eilaji.backend.data.UserRole?): OrderResult? {
+    fun getOrderById(orderId: String, userId: String, userRole: com.eilaji.backend.data.UserRole?): OrderResult? {
         val userUuid = UUID.fromString(userId)
+        val orderUuid = UUID.fromString(orderId)
         return transaction {
             val query = Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id)
                 .selectAll()
-                .where { Orders.id eq orderId }
+                .where { Orders.id eq orderUuid }
 
             val order = query.firstOrNull() ?: return@transaction null
 
@@ -134,16 +110,17 @@ class OrderService {
         }
     }
 
-    fun updateOrderStatus(orderId: UUID, status: String, paymentStatus: String?, userId: String, userRole: com.eilaji.backend.data.UserRole): OrderResult? {
+    fun updateOrderStatus(orderId: String, status: String, paymentStatus: String?, userId: String, userRole: com.eilaji.backend.data.UserRole): OrderResult? {
+        val orderUuid = UUID.fromString(orderId)
         return transaction {
-            val existingOrder = Orders.selectAll().where { Orders.id eq orderId }.firstOrNull()
+            val existingOrder = Orders.selectAll().where { Orders.id eq orderUuid }.firstOrNull()
                 ?: return@transaction null
 
             if (userRole != com.eilaji.backend.data.UserRole.PHARMACIST && userRole != com.eilaji.backend.data.UserRole.ADMIN) {
                 return@transaction null
             }
 
-            Orders.update({ Orders.id eq orderId }) {
+            Orders.update({ Orders.id eq orderUuid }) {
                 it[Orders.status] = status
                 if (paymentStatus != null) {
                     it[Orders.paymentStatus] = paymentStatus
@@ -155,16 +132,17 @@ class OrderService {
         }
     }
 
-    fun getOrdersForPharmacy(pharmacyId: UUID, status: String? = null, page: Int = 0, pageSize: Int = 20): PaginatedResult<OrderResult> {
+    fun getOrdersForPharmacy(pharmacyId: String, status: String? = null, page: Int = 0, pageSize: Int = 20): PaginatedResult<OrderResult> {
+        val pharmUuid = UUID.fromString(pharmacyId)
         return transaction {
             val query = if (status != null) {
                 Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id)
                     .selectAll()
-                    .where { (Orders.pharmacyId eq pharmacyId) and (Orders.status eq status) }
+                    .where { (Orders.pharmacyId eq pharmUuid) and (Orders.status eq status) }
             } else {
                 Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id)
                     .selectAll()
-                    .where { Orders.pharmacyId eq pharmacyId }
+                    .where { Orders.pharmacyId eq pharmUuid }
             }
 
             val total = query.count()
@@ -214,27 +192,28 @@ class OrderService {
         }
     }
 
-    fun deleteOrder(orderId: UUID, userId: String): Boolean {
+    fun deleteOrder(orderId: String, userId: String): Boolean {
         val userUuid = UUID.fromString(userId)
+        val orderUuid = UUID.fromString(orderId)
         return transaction {
-            val order = Orders.selectAll().where { Orders.id eq orderId }.firstOrNull()
+            val order = Orders.selectAll().where { Orders.id eq orderUuid }.firstOrNull()
                 ?: return@transaction false
 
             if (order[Orders.patientId] != userUuid) {
                 return@transaction false
             }
 
-            Orders.deleteWhere { Orders.id eq orderId }
+            Orders.deleteWhere { Orders.id eq orderUuid }
             true
         }
     }
 
     private fun mapRowToOrder(row: ResultRow): OrderResult {
         return OrderResult(
-            id = row[Orders.id],
-            prescriptionId = row[Orders.prescriptionId],
+            id = row[Orders.id].toString(),
+            prescriptionId = row[Orders.prescriptionId].toString(),
             patientId = row[Orders.patientId].toString(),
-            pharmacyId = row[Orders.pharmacyId],
+            pharmacyId = row[Orders.pharmacyId].toString(),
             pharmacyName = row.getOrNull(Pharmacies.name),
             status = row[Orders.status],
             totalAmount = row[Orders.totalAmount].toDouble(),
@@ -242,8 +221,8 @@ class OrderService {
             paymentStatus = row[Orders.paymentStatus],
             deliveryAddress = row[Orders.deliveryAddress],
             deliveryNotes = row[Orders.deliveryNotes],
-            createdAt = row[Orders.createdAt],
-            updatedAt = row[Orders.updatedAt]
+            createdAt = row[Orders.createdAt].toString(),
+            updatedAt = row[Orders.updatedAt].toString()
         )
     }
 }

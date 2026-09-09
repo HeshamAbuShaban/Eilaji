@@ -109,9 +109,9 @@ class PrescriptionService(
 
     private fun mapRowToPrescriptionDto(row: ResultRow): PrescriptionDto {
         return PrescriptionDto(
-            id = row[Prescriptions.id],
+            id = row[Prescriptions.id].toString(),
             userId = row[Prescriptions.patientUserId].toString(),
-            pharmacyId = row[Prescriptions.selectedPharmacyId],
+            pharmacyId = row[Prescriptions.selectedPharmacyId]?.toString(),
             pharmacyName = row.getOrNull(Pharmacies.name),
             imageUrl = row[Prescriptions.imageUrl],
             notes = row[Prescriptions.notes],

@@ -33,7 +33,7 @@ class EilajiPlusService(
             }
 
             val request = EilajiPlusPrescriptionRequest(
-                prescriptionId = prescriptionId,
+                prescriptionId = prescriptionId.toString(),
                 userId = userId,
                 imageUrl = prescription[Prescriptions.imageUrl],
                 notes = prescription[Prescriptions.notes],

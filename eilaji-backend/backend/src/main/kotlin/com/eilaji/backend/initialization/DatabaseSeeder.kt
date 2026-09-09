@@ -122,9 +122,7 @@ object DatabaseSeeder {
 
     private fun seedPharmacies() {
         println("Seeding pharmacies...")
-        // Get a pharmacist user to use as owner
-        val pharmacistId = Users.selectAll().where { Users.role eq "PHARMACIST" }.first()?[Users.id] ?: UUID.randomUUID()
-        
+        val pharmacistId = Users.selectAll().where { Users.role eq "PHARMACIST" }.firstOrNull()?.get(Users.id) ?: UUID.randomUUID()
         val pharmacyIds = listOf(
             Pharmacies.insert {
                 it[ownerUserId] = pharmacistId

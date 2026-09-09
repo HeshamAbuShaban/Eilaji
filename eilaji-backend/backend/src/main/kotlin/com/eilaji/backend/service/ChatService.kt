@@ -25,9 +25,9 @@ class ChatService {
                 .map { row ->
                     val isPatient = row[Chats.patientUserId] == userUuid
                     ChatDto(
-                        id = row[Chats.id],
-                        prescriptionId = row[Chats.prescriptionId],
-                        pharmacyId = row[Chats.pharmacyUserId],
+                        id = row[Chats.id].toString(),
+                        prescriptionId = row[Chats.prescriptionId]?.toString(),
+                        pharmacyId = row[Chats.pharmacyUserId].toString(),
                         pharmacyName = row.getOrNull(Pharmacies.name),
                         userId = row[Chats.patientUserId].toString(),
                         userName = row.getOrNull(Users.fullName),
@@ -58,9 +58,9 @@ class ChatService {
                 .map { row ->
                     val isPatient = row[Chats.patientUserId] == userUuid
                     ChatDto(
-                        id = row[Chats.id],
-                        prescriptionId = row[Chats.prescriptionId],
-                        pharmacyId = row[Chats.pharmacyUserId],
+                        id = row[Chats.id].toString(),
+                        prescriptionId = row[Chats.prescriptionId]?.toString(),
+                        pharmacyId = row[Chats.pharmacyUserId].toString(),
                         pharmacyName = row.getOrNull(Pharmacies.name),
                         userId = row[Chats.patientUserId].toString(),
                         userName = row.getOrNull(Users.fullName),
@@ -97,9 +97,9 @@ class ChatService {
                 .where { Chats.id eq chatId }
                 .map { row ->
                     ChatDto(
-                        id = row[Chats.id],
-                        prescriptionId = row[Chats.prescriptionId],
-                        pharmacyId = row[Chats.pharmacyUserId],
+                        id = row[Chats.id].toString(),
+                        prescriptionId = row[Chats.prescriptionId]?.toString(),
+                        pharmacyId = row[Chats.pharmacyUserId].toString(),
                         pharmacyName = row.getOrNull(Pharmacies.name),
                         userId = row[Chats.patientUserId].toString(),
                         userName = row.getOrNull(Users.fullName),
@@ -116,8 +116,9 @@ class ChatService {
         val senderUuid = UUID.fromString(senderId)
         transaction {
             val chat = Chats.selectAll().where { Chats.id eq chatId }.firstOrNull()
-            val isPatient = chat?[Chats.patientUserId] == senderUuid
-            
+            val isPatient = chat?.get(Chats.patientUserId) == senderUuid
+            val currentPharmacyUnread = chat?.get(Chats.unreadCountPharmacy) ?: 0
+            val currentPatientUnread = chat?.get(Chats.unreadCountPatient) ?: 0
             Chats.update({ Chats.id eq chatId }) {
                 it[Chats.lastMessageText] = if (messageType == "TEXT") message else null
                 it[Chats.lastMessageImageUrl] = if (messageType == "IMAGE") imageUrl else null
@@ -125,9 +126,9 @@ class ChatService {
                 it[Chats.lastMessageAt] = Instant.now()
                 it[Chats.updatedAt] = Instant.now()
                 if (isPatient) {
-                    it[Chats.unreadCountPharmacy] = Chats.unreadCountPharmacy.plus(1)
+                    it[Chats.unreadCountPharmacy] = currentPharmacyUnread + 1
                 } else {
-                    it[Chats.unreadCountPatient] = Chats.unreadCountPatient.plus(1)
+                    it[Chats.unreadCountPatient] = currentPatientUnread + 1
                 }
             }
         }
