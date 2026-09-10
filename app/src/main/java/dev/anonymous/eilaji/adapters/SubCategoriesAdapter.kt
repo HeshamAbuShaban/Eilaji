@@ -34,7 +34,7 @@ class SubCategoriesAdapter(
         val listModels = listSubCategoriesAdapter[position]
         holder.bind(listModels, lastItemSelected == position) {
             val lastSelected = lastItemSelected
-            val newPos = holder.bindingAdapterPosition
+            val newPos = holder.adapterPosition
             if (newPos == -1) return@bind
             lastItemSelected = newPos
             notifyItemChanged(lastSelected)

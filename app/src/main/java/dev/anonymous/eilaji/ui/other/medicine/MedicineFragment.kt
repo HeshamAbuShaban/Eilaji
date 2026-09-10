@@ -68,11 +68,10 @@ class MedicineFragment : Fragment() {
 
     private fun bindDetails(dto: MedicineDto) {
         currentDto = dto
-        GeneralUtils.getInstance().loadImage(dto.imageUrl ?: "").into(binding.ivMedicineDetail)
+        GeneralUtils.getInstance().loadImage(dto.imageUrl ?: "").into(binding.ivMedicineDetail as android.widget.ImageView)
         binding.textView2.text = dto.titleEn.ifBlank { dto.titleAr }
         binding.textView.text = "${dto.price ?: 0.0}$"
         binding.toolbarMedicine.title = dto.titleEn.ifBlank { dto.titleAr }
-        try { binding.appBar.findViewById<com.google.android.material.appbar.CollapsingToolbarLayout>(R.id.app_bar)?.title = dto.titleEn } catch (_: Exception) {}
         updateFavoriteIcon()
     }
 
