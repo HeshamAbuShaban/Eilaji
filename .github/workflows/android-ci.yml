@@ -46,7 +46,35 @@ jobs:
           name: app-debug-apk
           path: ./apk
 
-      - name: Upload APK to GitHub Release
-        run: gh release upload ${{ github.ref_name }} ./apk/app-debug.apk --clobber
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Release with APK
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./apk/app-debug.apk
+          generate_release_notes: true
+          body: |
+            ## Eilaji ${{ github.ref_name }}
+
+            ### Quick start — Backend (self-hosted, replaces Firebase)
+            ```bash
+            cd eilaji-backend
+            docker-compose up -d          # postgres:5432  redis:6379  minio:9000/9001
+            ./gradlew :backend:build
+            ./gradlew :backend:run        # http://localhost:8080
+            curl http://localhost:8080/health          # {"status":"UP"}
+            curl http://localhost:8080/api/v1/medicines | head
+            ```
+            Default seeded users: `patient@eilaji.com` / `pharmacist1@eilaji.com` / `admin@eilaji.com`  password `password123`
+            Categories: 6 / 12 subcategories / 36 medicines / 10 pharmacies (Damascus/Aleppo/Homs/Latakia/Hama)
+
+            ### Android
+            - Download `app-debug.apk` below (Assets)
+            - `adb install -r app-debug.apk`  or drag into emulator
+            - Emulator backend: `10.0.2.2:8080`  —  Physical device: `adb reverse tcp:8080 tcp:8080` → app uses `http://localhost:8080`
+            - Guest can browse categories/medicines/pharmacies/nearby without signup. Prescriptions/orders/chat require login.
+
+            ### Verify
+            ```bash
+            adb reverse tcp:8080 tcp:8080
+            adb install -r app-debug.apk
+            ```
+            CI built from `${{ github.sha }}`.
