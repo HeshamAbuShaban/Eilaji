@@ -4,12 +4,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
+    android:fillViewport="true"
     android:scrollbars="none"
     tools:context=".ui.main.guard.login.LoginFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
+        <View
+            android:id="@+id/loginHeaderBackground"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/_180sdp"
+            android:background="@drawable/bg_login_gradient"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guidelineEnd"
@@ -33,6 +44,7 @@
             android:layout_marginTop="@dimen/_25sdp"
             android:background="@drawable/ripple_circle_effect"
             android:text="@string/skip"
+            android:textColor="@color/white"
             android:textSize="@dimen/_14sdp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="@+id/guidelineEnd"
@@ -40,15 +52,19 @@
 
         <ImageView
             android:id="@+id/imageView"
-            style="@style/AppIconStyle"
             android:layout_width="@dimen/_110sdp"
             android:layout_height="@dimen/_110sdp"
-            android:layout_marginTop="@dimen/_12sdp"
+            android:background="@drawable/shape_circle_white"
             android:contentDescription="@null"
+            android:elevation="@dimen/_4sdp"
+            android:padding="@dimen/_12sdp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_launcher_foreground"
             android:transitionName="hero_app_logo"
+            app:layout_constraintBottom_toBottomOf="@+id/loginHeaderBackground"
             app:layout_constraintEnd_toEndOf="@+id/guidelineEnd"
             app:layout_constraintStart_toStartOf="@+id/guidelineBegin"
-            app:layout_constraintTop_toBottomOf="@+id/buSkip" />
+            app:layout_constraintTop_toTopOf="@+id/loginHeaderBackground" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputLayoutEmail"

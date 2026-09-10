@@ -7,12 +7,17 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
 import dev.anonymous.eilaji.R
+import dev.anonymous.eilaji.data.repository.CartItem
+import dev.anonymous.eilaji.data.repository.CartRepository
 import dev.anonymous.eilaji.databinding.FragmentMedicineBinding
 import dev.anonymous.eilaji.favorite_system.repository.FavoriteSyncRepository
 import dev.anonymous.eilaji.network.ApiResponse
 import dev.anonymous.eilaji.network.MedicineDto
 import dev.anonymous.eilaji.network.NetworkModule
+import dev.anonymous.eilaji.ui.base.BaseActivity
 import dev.anonymous.eilaji.utils.GeneralUtils
 import retrofit2.Call
 import retrofit2.Callback
@@ -24,6 +29,7 @@ class MedicineFragment : Fragment() {
     private lateinit var medicineViewModel: MedicineViewModel
     private var medicineId: String? = null
     private var currentDto: MedicineDto? = null
+    private var qty = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +55,8 @@ class MedicineFragment : Fragment() {
         }
         setupFavorite()
         setupQuantity()
+        binding.cardCart.setOnClickListener { addToCart() }
+        binding.cardCheckout.setOnClickListener { goCheckout() }
     }
 
     private fun loadDetails(id: String) {
@@ -72,6 +80,10 @@ class MedicineFragment : Fragment() {
         binding.textView2.text = dto.titleEn.ifBlank { dto.titleAr }
         binding.textView.text = "${dto.price ?: 0.0}$"
         binding.toolbarMedicine.title = dto.titleEn.ifBlank { dto.titleAr }
+        binding.tvMedicineManufacturer.text = dto.manufacturer ?: ""
+        binding.tvMedicineManufacturer.visibility = if (dto.manufacturer.isNullOrBlank()) View.GONE else View.VISIBLE
+        binding.tvMedicineDescription.text = dto.descriptionEn?.ifBlank { dto.descriptionAr } ?: dto.descriptionAr ?: ""
+        binding.tvMedicinePrescription.visibility = if (dto.requiresPrescription) View.VISIBLE else View.GONE
         updateFavoriteIcon()
     }
 
@@ -102,8 +114,25 @@ class MedicineFragment : Fragment() {
     }
 
     private fun setupQuantity() {
-        var qty = 1
         binding.buIncrement.setOnClickListener { qty++; binding.tvNumMedicines.text = qty.toString() }
         binding.buDecrease.setOnClickListener { if (qty > 1) qty--; binding.tvNumMedicines.text = qty.toString() }
+    }
+
+    private fun addToCart() {
+        val dto = currentDto ?: return
+        CartRepository.getInstance(requireContext()).addItem(CartItem(dto.id, dto.titleEn.ifBlank { dto.titleAr }, dto.price ?: 0.0, dto.imageUrl, qty))
+        (activity as? BaseActivity)?.refreshCartBadge()
+        Snackbar.make(binding.root, "Added to cart", Snackbar.LENGTH_LONG).setAction("Checkout") { goCheckout() }.show()
+    }
+
+    private fun goCheckout() {
+        val dto = currentDto
+        val bundle = Bundle().apply {
+            putString("medicineId", dto?.id)
+            putInt("quantity", qty)
+            putString("pharmacyId", null)
+            putString("pharmacyName", null)
+        }
+        try { findNavController().navigate(R.id.navigation_checkout, bundle) } catch (_: Exception) {}
     }
 }

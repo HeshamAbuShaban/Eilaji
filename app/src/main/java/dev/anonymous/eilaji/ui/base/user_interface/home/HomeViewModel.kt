@@ -19,6 +19,10 @@ class HomeViewModel : ViewModel() {
     private val _bestSellers = MutableLiveData<List<MedicineDto>>()
     val bestSellers: LiveData<List<MedicineDto>> = _bestSellers
     fun setBestSellers(list: List<MedicineDto>) { _bestSellers.value = list }
+
+    private val _nearbyPharmacies = MutableLiveData<List<dev.anonymous.eilaji.network.PharmacyDto>>()
+    val nearbyPharmacies: LiveData<List<dev.anonymous.eilaji.network.PharmacyDto>> = _nearbyPharmacies
+    fun setNearbyPharmacies(list: List<dev.anonymous.eilaji.network.PharmacyDto>) { _nearbyPharmacies.value = list }
 }
 
 
