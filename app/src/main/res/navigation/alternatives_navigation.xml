@@ -135,4 +135,15 @@
             app:destination="@id/navigation_messaging" />
     </fragment>
 
+    <fragment
+        android:id="@+id/navigation_checkout"
+        android:name="dev.anonymous.eilaji.ui.other.checkout.CheckoutFragment"
+        android:label="fragment_checkout"
+        tools:layout="@layout/fragment_checkout">
+        <argument android:name="medicineId" app:argType="string" app:nullable="true" android:defaultValue="@null" />
+        <argument android:name="quantity" app:argType="integer" android:defaultValue="1" />
+        <argument android:name="pharmacyId" app:argType="string" app:nullable="true" android:defaultValue="@null" />
+        <argument android:name="pharmacyName" app:argType="string" app:nullable="true" android:defaultValue="@null" />
+    </fragment>
+
 </navigation>

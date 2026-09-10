@@ -99,17 +99,63 @@
                 app:layout_constraintTop_toBottomOf="@+id/textView2"
                 tools:ignore="HardcodedText" />
 
+            <TextView
+                android:id="@+id/tvMedicineManufacturer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/_15sdp"
+                android:layout_marginTop="@dimen/_6sdp"
+                android:background="@drawable/bg_chip_freq"
+                android:paddingHorizontal="@dimen/_10sdp"
+                android:paddingVertical="@dimen/_4sdp"
+                android:textColor="@color/primary_color"
+                android:textSize="@dimen/_11ssp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView"
+                tools:text="Bayer" />
+
+            <TextView
+                android:id="@+id/tvMedicinePrescription"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/_8sdp"
+                android:background="@drawable/bg_chip_date"
+                android:paddingHorizontal="@dimen/_10sdp"
+                android:paddingVertical="@dimen/_4sdp"
+                android:text="@string/requires_prescription"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_11ssp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="@+id/tvMedicineManufacturer"
+                app:layout_constraintStart_toEndOf="@+id/tvMedicineManufacturer"
+                app:layout_constraintTop_toTopOf="@+id/tvMedicineManufacturer" />
+
+            <TextView
+                android:id="@+id/tvMedicineDescription"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/_15sdp"
+                android:layout_marginTop="@dimen/_12sdp"
+                android:lineSpacingExtra="4dp"
+                android:textColor="@color/darkGray"
+                android:textSize="@dimen/_13ssp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvMedicineManufacturer"
+                tools:text="Pain reliever and fever reducer, effective for headache and mild pain. Broad-spectrum antibiotic with proven efficacy." />
+
             <net.lucode.hackware.magicindicator.MagicIndicator
                 android:id="@+id/magic_indicator3"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="@dimen/_23sdp"
+                android:layout_marginTop="@dimen/_16sdp"
                 android:layoutDirection="ltr"
                 android:paddingHorizontal="2dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textView" />
+                app:layout_constraintTop_toBottomOf="@+id/tvMedicineDescription" />
 
             <androidx.viewpager.widget.ViewPager
                 android:id="@+id/onBoardingPager"
@@ -125,6 +171,7 @@
     </androidx.core.widget.NestedScrollView>
 
     <LinearLayout
+        android:id="@+id/bottomBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_vertical"
@@ -132,6 +179,7 @@
         android:orientation="horizontal">
 
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardCart"
             style="@style/RippleRectangleEffectCardStyle"
             android:layout_width="@dimen/_48sdp"
             android:layout_height="@dimen/_48sdp"
@@ -149,11 +197,15 @@
         </com.google.android.material.card.MaterialCardView>
 
         <LinearLayout
+            android:id="@+id/cardCheckout"
             android:layout_width="0dp"
             android:layout_height="@dimen/_48sdp"
             android:layout_marginEnd="@dimen/_10sdp"
             android:layout_weight="1"
             android:background="@drawable/shape_radius_pink"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"

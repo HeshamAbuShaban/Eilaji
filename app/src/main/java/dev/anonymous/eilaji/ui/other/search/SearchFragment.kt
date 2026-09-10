@@ -1,6 +1,8 @@
 package dev.anonymous.eilaji.ui.other.search
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -11,6 +13,8 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import dev.anonymous.eilaji.adapters.MedicinesAdapter
 import dev.anonymous.eilaji.adapters.PharmaciesLocationsAdapter
 import dev.anonymous.eilaji.databinding.FragmentSearchBinding
@@ -34,17 +38,22 @@ class SearchFragment : Fragment() {
 
     private val apiService by lazy { NetworkModule.provideApiService(requireContext()) }
 
+    private val searchHandler = Handler(Looper.getMainLooper())
+    private var searchRunnable: Runnable? = null
+    private var cachedPharmacies: ArrayList<Pharmacy> = ArrayList()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        _binding = FragmentSearchBinding.inflate(layoutInflater)
+        _binding = FragmentSearchBinding.inflate(inflater, container, false)
         searchViewModel = ViewModelProvider(this)[SearchViewModel::class.java]
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupRecyclerLayouts()
         fetchMedicinesData()
         displayMedicines()
         fetchPharmaciesData()
@@ -52,17 +61,28 @@ class SearchFragment : Fragment() {
         setupSearchListener()
     }
 
+    private fun setupRecyclerLayouts() {
+        binding.recVSearchMedicines.layoutManager = GridLayoutManager(requireContext(), 2)
+        binding.recVSearchPharmacies.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+    }
+
     private fun setupSearchListener() {
         binding.searchEditText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
+                searchRunnable?.let { searchHandler.removeCallbacks(it) }
                 val q = s?.toString()?.trim().orEmpty()
-                if (q.isEmpty()) {
-                    fetchMedicinesData()
-                } else {
-                    searchMedicines(q)
+                searchRunnable = Runnable {
+                    if (q.isEmpty()) {
+                        fetchMedicinesData()
+                        filterPharmacies("")
+                    } else {
+                        searchMedicines(q)
+                        searchPharmacies(q)
+                    }
                 }
+                searchHandler.postDelayed(searchRunnable!!, 300)
             }
         })
     }
@@ -143,6 +163,7 @@ class SearchFragment : Fragment() {
                 if (response.isSuccessful && response.body()?.success == true) {
                     val dtos = response.body()?.data?.items ?: emptyList()
                     val pharmacies = ArrayList(dtos.map { it.toPharmacy() })
+                    cachedPharmacies = pharmacies
                     searchViewModel.setPharmaciesDataData(pharmacies)
                 } else {
                     val msg = response.body()?.error ?: "Failed to load pharmacies"
@@ -153,6 +174,59 @@ class SearchFragment : Fragment() {
             override fun onFailure(call: Call<ApiResponse<PaginatedResult<PharmacyDto>>>, t: Throwable) {
                 Log.e("SearchFragment", "fetchPharmacies: network error", t)
                 Toast.makeText(requireContext(), "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun searchPharmacies(query: String) {
+        if (cachedPharmacies.isNotEmpty()) {
+            filterPharmacies(query)
+            return
+        }
+        apiService.getPharmacies(page = 0, pageSize = 50).enqueue(object : Callback<ApiResponse<PaginatedResult<PharmacyDto>>> {
+            override fun onResponse(call: Call<ApiResponse<PaginatedResult<PharmacyDto>>>, response: Response<ApiResponse<PaginatedResult<PharmacyDto>>>) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val dtos = response.body()?.data?.items ?: emptyList()
+                    cachedPharmacies = ArrayList(dtos.map { it.toPharmacy() })
+                    filterPharmacies(query)
+                } else {
+                    filterPharmacies(query)
+                }
+            }
+            override fun onFailure(call: Call<ApiResponse<PaginatedResult<PharmacyDto>>>, t: Throwable) {
+                filterPharmacies(query)
+            }
+        })
+    }
+
+    private fun filterPharmacies(query: String) {
+        if (query.isEmpty()) {
+            searchViewModel.setPharmaciesDataData(ArrayList(cachedPharmacies))
+            return
+        }
+        val q = query.lowercase()
+        val filtered = cachedPharmacies.filter {
+            it.pharmacy_name.lowercase().contains(q) || it.address.lowercase().contains(q) || it.uid.lowercase().contains(q)
+        }
+        if (filtered.isNotEmpty()) {
+            searchViewModel.setPharmaciesDataData(ArrayList(filtered))
+            return
+        }
+        apiService.getPharmacies(page = 0, pageSize = 20, city = query).enqueue(object : Callback<ApiResponse<PaginatedResult<PharmacyDto>>> {
+            override fun onResponse(call: Call<ApiResponse<PaginatedResult<PharmacyDto>>>, response: Response<ApiResponse<PaginatedResult<PharmacyDto>>>) {
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val dtos = response.body()?.data?.items ?: emptyList()
+                    if (dtos.isNotEmpty()) {
+                        searchViewModel.setPharmaciesDataData(ArrayList(dtos.map { it.toPharmacy() }))
+                    } else {
+                        searchViewModel.setPharmaciesDataData(ArrayList(filtered))
+                    }
+                } else {
+                    searchViewModel.setPharmaciesDataData(ArrayList(filtered))
+                }
+            }
+            override fun onFailure(call: Call<ApiResponse<PaginatedResult<PharmacyDto>>>, t: Throwable) {
+                searchViewModel.setPharmaciesDataData(ArrayList(filtered))
             }
         })
     }
@@ -190,5 +264,10 @@ class SearchFragment : Fragment() {
             lng = longitude,
             token = ""
         )
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        searchRunnable?.let { searchHandler.removeCallbacks(it) }
     }
 }

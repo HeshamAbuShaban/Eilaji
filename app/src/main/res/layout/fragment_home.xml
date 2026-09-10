@@ -1,299 +1,561 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/swipeRefresh"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ui.base.user_interface.home.HomeFragment">
+    android:layout_height="match_parent">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        tools:context=".ui.base.user_interface.home.HomeFragment">
 
-        <!-- marginTop _28sdp = _18sdp + shape_toolbar  corners 12dp -->
-
-        <!--searchBar TODO: TOBE DELETED-->
-        <View
-            android:id="@+id/searchViewListener"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/_20sdp"
-            android:layout_marginTop="@dimen/_28sdp"
-            android:visibility="gone"
-            android:background="@drawable/shape_searchable_edittext"
-            android:drawableEnd="@drawable/ic_search"
-            android:hint="@string/what_are_you_looking_for"
-            android:inputType="text"
-            android:padding="@dimen/_13sdp"
-            android:textAlignment="viewStart"
-            android:textColorHint="@color/gray_dark"
-            android:textSize="@dimen/_13ssp"
-            app:layout_constraintBottom_toTopOf="@id/adsContainer"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:layout_height="wrap_content">
 
-        <!--AdsContainer-->
-        <LinearLayout
-            android:id="@+id/adsContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toTopOf="@id/linearLayout"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/searchViewListener">
-            <!--ADS Shimmer And A-VP-->
-            <com.facebook.shimmer.ShimmerFrameLayout
-                android:id="@+id/shimmer_ad_container"
+            <View
+                android:id="@+id/searchViewListener"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_8sdp">
+                android:layout_marginHorizontal="@dimen/_20sdp"
+                android:layout_marginTop="@dimen/_28sdp"
+                android:visibility="gone"
+                android:background="@drawable/shape_searchable_edittext"
+                android:drawableEnd="@drawable/ic_search"
+                android:hint="@string/what_are_you_looking_for"
+                android:inputType="text"
+                android:padding="@dimen/_13sdp"
+                android:textAlignment="viewStart"
+                android:textColorHint="@color/gray_dark"
+                android:textSize="@dimen/_13ssp"
+                app:layout_constraintBottom_toTopOf="@id/adsContainer"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-                <include layout="@layout/placeholder_ad_item" />
-
-            </com.facebook.shimmer.ShimmerFrameLayout>
-            <!--Actual-->
-            <androidx.viewpager2.widget.ViewPager2
-                android:id="@+id/pagerAds"
+            <LinearLayout
+                android:id="@+id/adsContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_8sdp" />
-        </LinearLayout>
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/searchViewListener">
 
-        <!--Indicator-->
-        <dev.anonymous.horizontal_indicator.HorizontalIndicator
-            android:id="@+id/indicatorAds"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:horizontalIndicatorSize="@dimen/_3sdp"
-            app:indicatorColor="@color/gray_dark"
-            app:indicatorMargin="@dimen/_4sdp"
-            app:indicatorRadius="@dimen/_5sdp"
-            app:indicatorWidthScale="4"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/adsContainer"
-            app:selectedIndicatorColor="@color/primary_color"
-            app:selectedIndicatorWidthScale="8" />
-
-        <!-- marginEnd _15sdp + TextButton paddingStart _5sdp = _20sdp  -->
-
-        <!--DividerTitle-->
-        <LinearLayout
-            android:id="@+id/linearLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/_20sdp"
-            android:layout_marginTop="@dimen/_5sdp"
-            android:layout_marginEnd="@dimen/_15sdp"
-            android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/indicatorAds">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/categories_pharmaceuticals"
-                android:textSize="@dimen/_13sdp" />
-
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
-
-            <TextView
-                android:id="@+id/buShowAllCategoriesPharmaceuticals"
-                style="@style/TextButtonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/show_all"
-                android:textSize="@dimen/_13sdp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!--Categories Medicines Container-->
-        <LinearLayout
-            android:id="@+id/categoriesPharmaceuticalsContainer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout">
-
-            <!--Shimmer-->
-            <com.facebook.shimmer.ShimmerFrameLayout
-                android:id="@+id/shimmerCategoriesPharmaceuticalsContainer"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <!--FakeScroller-->
-                <HorizontalScrollView
+                <com.facebook.shimmer.ShimmerFrameLayout
+                    android:id="@+id/shimmer_ad_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:scrollbars="none">
-                    <!--PlaceHolder-->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
+                    android:layout_marginTop="@dimen/_8sdp">
+                    <include layout="@layout/placeholder_ad_item" />
+                </com.facebook.shimmer.ShimmerFrameLayout>
 
-                        <include layout="@layout/placeholder_mh_item" />
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/pagerAds"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_8sdp" />
+            </LinearLayout>
 
-                        <Space
-                            android:layout_width="@dimen/_15sdp"
-                            android:layout_height="match_parent" />
+            <dev.anonymous.horizontal_indicator.HorizontalIndicator
+                android:id="@+id/indicatorAds"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:horizontalIndicatorSize="@dimen/_3sdp"
+                app:indicatorColor="@color/gray_dark"
+                app:indicatorMargin="@dimen/_4sdp"
+                app:indicatorRadius="@dimen/_5sdp"
+                app:indicatorWidthScale="4"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/adsContainer"
+                app:selectedIndicatorColor="@color/primary_color"
+                app:selectedIndicatorWidthScale="8" />
 
-                        <include layout="@layout/placeholder_mh_item" />
-
-                        <Space
-                            android:layout_width="@dimen/_15sdp"
-                            android:layout_height="match_parent" />
-
-                        <include layout="@layout/placeholder_mh_item" />
-
-                        <Space
-                            android:layout_width="@dimen/_15sdp"
-                            android:layout_height="match_parent" />
-
-                        <include layout="@layout/placeholder_mh_item" />
-
-                        <Space
-                            android:layout_width="@dimen/_15sdp"
-                            android:layout_height="match_parent" />
-
-                        <include layout="@layout/placeholder_mh_item" />
-
-                    </LinearLayout>
-                </HorizontalScrollView>
-
-            </com.facebook.shimmer.ShimmerFrameLayout>
-
-            <!--Actual-->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerCategoriesPharmaceuticals"
+            <LinearLayout
+                android:id="@+id/linearLayout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/_20sdp"
                 android:layout_marginTop="@dimen/_5sdp"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:itemCount="4"
-                tools:listitem="@layout/item_sub_category"
-                tools:orientation="horizontal" />
-        </LinearLayout>
+                android:layout_marginEnd="@dimen/_15sdp"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/indicatorAds">
 
-        <!--DividerTitleTwo-->
-        <LinearLayout
-            android:id="@+id/linearLayout2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/_20sdp"
-            android:layout_marginTop="@dimen/_5sdp"
-            android:layout_marginEnd="@dimen/_15sdp"
-            android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/categoriesPharmaceuticalsContainer">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/categories_pharmaceuticals"
+                    android:textSize="@dimen/_13sdp" />
 
-            <TextView
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/buShowAllCategoriesPharmaceuticals"
+                    style="@style/TextButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/show_all"
+                    android:textSize="@dimen/_13sdp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/categoriesPharmaceuticalsContainer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/best_seller"
-                android:textSize="@dimen/_13sdp" />
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/linearLayout">
 
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
+                <com.facebook.shimmer.ShimmerFrameLayout
+                    android:id="@+id/shimmerCategoriesPharmaceuticalsContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="none">
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content">
+                            <include layout="@layout/placeholder_mh_item" />
+                            <Space android:layout_width="@dimen/_15sdp" android:layout_height="match_parent" />
+                            <include layout="@layout/placeholder_mh_item" />
+                            <Space android:layout_width="@dimen/_15sdp" android:layout_height="match_parent" />
+                            <include layout="@layout/placeholder_mh_item" />
+                            <Space android:layout_width="@dimen/_15sdp" android:layout_height="match_parent" />
+                            <include layout="@layout/placeholder_mh_item" />
+                            <Space android:layout_width="@dimen/_15sdp" android:layout_height="match_parent" />
+                            <include layout="@layout/placeholder_mh_item" />
+                        </LinearLayout>
+                    </HorizontalScrollView>
+                </com.facebook.shimmer.ShimmerFrameLayout>
 
-            <TextView
-                android:id="@+id/buShowAllBestSeller"
-                style="@style/TextButtonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/show_all"
-                android:textSize="@dimen/_13sdp"
-                android:textStyle="bold" />
-
-        </LinearLayout>
-
-        <!--MedsContainer-->
-        <LinearLayout
-            android:id="@+id/medContainer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
-
-            <!--Shimmer-->
-            <com.facebook.shimmer.ShimmerFrameLayout
-                android:id="@+id/shimmer_med_container"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <!--FakeRecycler-->
-                <HorizontalScrollView
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerCategoriesPharmaceuticals"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:scrollbars="none">
-                    <!--PlaceHolder-->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
+                    android:layout_marginTop="@dimen/_5sdp"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:itemCount="4"
+                    tools:listitem="@layout/item_sub_category"
+                    tools:orientation="horizontal" />
+            </LinearLayout>
 
-                        <include layout="@layout/placeholder_med_item" />
+            <LinearLayout
+                android:id="@+id/linearLayout2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/_20sdp"
+                android:layout_marginTop="@dimen/_5sdp"
+                android:layout_marginEnd="@dimen/_15sdp"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/categoriesPharmaceuticalsContainer">
 
-                        <Space
-                            android:layout_width="@dimen/_15sdp"
-                            android:layout_height="match_parent" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/best_seller"
+                    android:textSize="@dimen/_13sdp" />
 
-                        <include layout="@layout/placeholder_med_item" />
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
 
-                        <Space
-                            android:layout_width="@dimen/_15sdp"
-                            android:layout_height="match_parent" />
+                <TextView
+                    android:id="@+id/buShowAllBestSeller"
+                    style="@style/TextButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/show_all"
+                    android:textSize="@dimen/_13sdp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
-                        <include layout="@layout/placeholder_med_item" />
-
-                        <Space
-                            android:layout_width="@dimen/_15sdp"
-                            android:layout_height="match_parent" />
-
-                        <include layout="@layout/placeholder_med_item" />
-
-                        <Space
-                            android:layout_width="@dimen/_15sdp"
-                            android:layout_height="match_parent" />
-
-                        <include layout="@layout/placeholder_med_item" />
-
-                    </LinearLayout>
-                </HorizontalScrollView>
-
-            </com.facebook.shimmer.ShimmerFrameLayout>
-
-            <!--Actual-->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerBestSeller"
+            <LinearLayout
+                android:id="@+id/medContainer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginTop="@dimen/_5sdp"
-                app:spanCount="5"
-                tools:itemCount="3"
-                tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/item_medicine"
-                tools:orientation="horizontal" />
-        </LinearLayout>
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
 
-        <!--Creating a Space-->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/_60sdp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/medContainer" />
+                <com.facebook.shimmer.ShimmerFrameLayout
+                    android:id="@+id/shimmer_med_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scrollbars="none">
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content">
+                            <include layout="@layout/placeholder_med_item" />
+                            <Space android:layout_width="@dimen/_15sdp" android:layout_height="match_parent" />
+                            <include layout="@layout/placeholder_med_item" />
+                            <Space android:layout_width="@dimen/_15sdp" android:layout_height="match_parent" />
+                            <include layout="@layout/placeholder_med_item" />
+                            <Space android:layout_width="@dimen/_15sdp" android:layout_height="match_parent" />
+                            <include layout="@layout/placeholder_med_item" />
+                            <Space android:layout_width="@dimen/_15sdp" android:layout_height="match_parent" />
+                            <include layout="@layout/placeholder_med_item" />
+                        </LinearLayout>
+                    </HorizontalScrollView>
+                </com.facebook.shimmer.ShimmerFrameLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerBestSeller"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="@dimen/_5sdp"
+                    app:spanCount="5"
+                    tools:itemCount="3"
+                    tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:listitem="@layout/item_medicine"
+                    tools:orientation="horizontal" />
+            </LinearLayout>
 
-</androidx.core.widget.NestedScrollView>
+            <!-- Quick Actions -->
+            <LinearLayout
+                android:id="@+id/quickActionsHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/_20sdp"
+                android:layout_marginTop="@dimen/_12sdp"
+                android:layout_marginEnd="@dimen/_15sdp"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/medContainer">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Quick Actions"
+                    android:textSize="@dimen/_13sdp" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+            </LinearLayout>
+
+            <GridLayout
+                android:id="@+id/quickActionsGrid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/_15sdp"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:columnCount="2"
+                android:rowCount="2"
+                android:useDefaultMargins="true"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/quickActionsHeader">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardUploadPrescription"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_rowWeight="1"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="@dimen/_6sdp"
+                    app:cardCornerRadius="@dimen/_10sdp"
+                    app:cardElevation="@dimen/_3sdp"
+                    app:strokeColor="@color/gray"
+                    app:strokeWidth="0.5dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="@dimen/_12sdp">
+
+                        <ImageView
+                            android:layout_width="@dimen/_32sdp"
+                            android:layout_height="@dimen/_32sdp"
+                            android:src="@drawable/ic_add_photo" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/_6sdp"
+                            android:text="Upload Prescription"
+                            android:textSize="@dimen/_11ssp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardFindPharmacy"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_rowWeight="1"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="@dimen/_6sdp"
+                    app:cardCornerRadius="@dimen/_10sdp"
+                    app:cardElevation="@dimen/_3sdp"
+                    app:strokeColor="@color/gray"
+                    app:strokeWidth="0.5dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="@dimen/_12sdp">
+
+                        <ImageView
+                            android:layout_width="@dimen/_32sdp"
+                            android:layout_height="@dimen/_32sdp"
+                            android:src="@drawable/ic_map" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/_6sdp"
+                            android:text="Find Pharmacy"
+                            android:textSize="@dimen/_11ssp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardChat"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_rowWeight="1"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="@dimen/_6sdp"
+                    app:cardCornerRadius="@dimen/_10sdp"
+                    app:cardElevation="@dimen/_3sdp"
+                    app:strokeColor="@color/gray"
+                    app:strokeWidth="0.5dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="@dimen/_12sdp">
+
+                        <ImageView
+                            android:layout_width="@dimen/_32sdp"
+                            android:layout_height="@dimen/_32sdp"
+                            android:src="@drawable/ic_message" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/_6sdp"
+                            android:text="Chat"
+                            android:textSize="@dimen/_11ssp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardReminders"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_rowWeight="1"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="@dimen/_6sdp"
+                    app:cardCornerRadius="@dimen/_10sdp"
+                    app:cardElevation="@dimen/_3sdp"
+                    app:strokeColor="@color/gray"
+                    app:strokeWidth="0.5dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="@dimen/_12sdp">
+
+                        <ImageView
+                            android:layout_width="@dimen/_32sdp"
+                            android:layout_height="@dimen/_32sdp"
+                            android:src="@drawable/ic_notifications" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/_6sdp"
+                            android:text="Reminders"
+                            android:textSize="@dimen/_11ssp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </GridLayout>
+
+            <!-- Reminders teaser -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardRemindersTeaser"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/_15sdp"
+                android:layout_marginTop="@dimen/_12sdp"
+                app:cardCornerRadius="@dimen/_10sdp"
+                app:cardElevation="@dimen/_2sdp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/quickActionsGrid">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="@dimen/_12sdp">
+
+                    <ImageView
+                        android:layout_width="@dimen/_28sdp"
+                        android:layout_height="@dimen/_28sdp"
+                        android:src="@drawable/ic_notifications" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/_12sdp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Reminders"
+                            android:textSize="@dimen/_12ssp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvReminderCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/_2sdp"
+                            android:text="2 reminders today"
+                            android:textColor="@color/gray_dark"
+                            android:textSize="@dimen/_11ssp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/buShowAllReminders"
+                        style="@style/TextButtonStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/show_all"
+                        android:textSize="@dimen/_11ssp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Nearby Pharmacies Header -->
+            <LinearLayout
+                android:id="@+id/nearbyHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/_20sdp"
+                android:layout_marginTop="@dimen/_12sdp"
+                android:layout_marginEnd="@dimen/_15sdp"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/cardRemindersTeaser">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nearby Pharmacies"
+                    android:textSize="@dimen/_13sdp" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/buShowAllNearby"
+                    style="@style/TextButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/show_all"
+                    android:textSize="@dimen/_13sdp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/nearbyContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/nearbyHeader">
+
+                <com.facebook.shimmer.ShimmerFrameLayout
+                    android:id="@+id/shimmerNearbyContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="none">
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content">
+                            <include layout="@layout/placeholder_mh_item" />
+                            <Space android:layout_width="@dimen/_15sdp" android:layout_height="match_parent" />
+                            <include layout="@layout/placeholder_mh_item" />
+                            <Space android:layout_width="@dimen/_15sdp" android:layout_height="match_parent" />
+                            <include layout="@layout/placeholder_mh_item" />
+                        </LinearLayout>
+                    </HorizontalScrollView>
+                </com.facebook.shimmer.ShimmerFrameLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerNearbyPharmacies"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_5sdp"
+                    android:visibility="gone"
+                    tools:itemCount="3"
+                    tools:listitem="@layout/item_pharmacy_location"
+                    tools:orientation="horizontal" />
+
+                <TextView
+                    android:id="@+id/tvNearbyEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:padding="@dimen/_12sdp"
+                    android:text="No nearby pharmacies"
+                    android:textColor="@color/gray_dark"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_60sdp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/nearbyContainer" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.core.widget.NestedScrollView>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

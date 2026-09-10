@@ -7,7 +7,7 @@
 
     <androidx.cardview.widget.CardView
         android:layout_width="@dimen/_120sdp"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/_165sdp"
         android:layout_margin="@dimen/_7sdp"
         app:cardCornerRadius="@dimen/_13sdp"
         app:cardElevation="@dimen/_2sdp"
@@ -17,13 +17,14 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
             <ImageView
                 android:id="@+id/ivMedicine"
                 android:layout_width="@dimen/_120sdp"
-                android:layout_height="@dimen/_80sdp"
+                android:layout_height="@dimen/_90sdp"
+                android:background="@color/gray"
                 android:contentDescription="@null"
                 android:scaleType="centerCrop"
                 android:src="@drawable/temp_medicine_1"
@@ -33,11 +34,11 @@
 
             <TextView
                 android:id="@+id/tvMedicineName"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/_8sdp"
                 android:layout_marginTop="@dimen/_6sdp"
-                android:ellipsize="marquee"
+                android:ellipsize="end"
                 android:maxLines="1"
                 tools:text=" قطرة مسكنة لآلام الظهر والركب"
                 android:textSize="@dimen/_12ssp"
@@ -58,6 +59,7 @@
                 android:paddingHorizontal="@dimen/_10sdp"
                 android:paddingVertical="@dimen/_8sdp"
                 android:src="@drawable/ic_favorite_border"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tvMedicineName" />
 

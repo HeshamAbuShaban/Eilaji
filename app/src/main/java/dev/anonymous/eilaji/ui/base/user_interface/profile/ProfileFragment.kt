@@ -6,7 +6,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.FragmentProfileBinding
 import dev.anonymous.eilaji.firebase.FirebaseController
 import dev.anonymous.eilaji.network.ApiResponse
@@ -26,10 +28,7 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
     private lateinit var _binding: FragmentProfileBinding
     private val binding get() = _binding
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -43,6 +42,14 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
     private fun setupThemeSelector() {
         val prefs = AppSharedPreferences.getInstance(requireContext())
         fun updateChecks(theme: String) {
+            val checkedId = when (theme) {
+                AppSharedPreferences.Theme.light.name -> R.id.buThemeLight
+                AppSharedPreferences.Theme.dark.name -> R.id.buThemeDark
+                else -> R.id.buThemeSystem
+            }
+            if (binding.toggleThemeGroup.checkedButtonId != checkedId) {
+                binding.toggleThemeGroup.check(checkedId)
+            }
             binding.checkLight.visibility = if (theme == AppSharedPreferences.Theme.light.name) View.VISIBLE else View.GONE
             binding.checkDark.visibility = if (theme == AppSharedPreferences.Theme.dark.name) View.VISIBLE else View.GONE
             binding.checkSystem.visibility = if (theme == AppSharedPreferences.Theme.system.name) View.VISIBLE else View.GONE
@@ -55,6 +62,14 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
             updateChecks(theme)
             requireActivity().recreate()
         }
+        binding.toggleThemeGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            when (checkedId) {
+                R.id.buThemeLight -> selectTheme(AppSharedPreferences.Theme.light.name)
+                R.id.buThemeDark -> selectTheme(AppSharedPreferences.Theme.dark.name)
+                R.id.buThemeSystem -> selectTheme(AppSharedPreferences.Theme.system.name)
+            }
+        }
         binding.buThemeLight.setOnClickListener { selectTheme(AppSharedPreferences.Theme.light.name) }
         binding.buThemeDark.setOnClickListener { selectTheme(AppSharedPreferences.Theme.dark.name) }
         binding.buThemeSystem.setOnClickListener { selectTheme(AppSharedPreferences.Theme.system.name) }
@@ -62,9 +77,7 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
 
     private fun setupListeners() {
         with(binding) {
-            buLogout.setOnClickListener {
-                LogoutDialogFragment().show(childFragmentManager, "LogoutTriggered")
-            }
+            buLogout.setOnClickListener { LogoutDialogFragment().show(childFragmentManager, "LogoutTriggered") }
             buChangePassword.setOnClickListener {
                 val intent = Intent(requireContext(), MainActivity::class.java)
                 intent.putExtra("fragmentType", FragmentsKeys.changePassword.name)
@@ -96,6 +109,27 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
                 }
                 startActivity(emailIntent)
             }
+            buEditProfile.setOnClickListener { Toast.makeText(requireContext(), "Edit Profile coming soon", Toast.LENGTH_SHORT).show() }
+            buOrders.setOnClickListener { Toast.makeText(requireContext(), "My Orders coming soon", Toast.LENGTH_SHORT).show() }
+            buReminders.setOnClickListener {
+                val intent = Intent(requireContext(), AlternativesActivity::class.java)
+                intent.putExtra("fragmentType", FragmentsKeys.reminder.name)
+                startActivity(intent)
+            }
+            buShareApp.setOnClickListener {
+                val share = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, "https://play.google.com/store/apps/details?id=${requireContext().packageName}")
+                }
+                startActivity(Intent.createChooser(share, "Share App"))
+            }
+            buPrivacyPolicy.setOnClickListener {
+                try {
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://eilaji.health/privacy")))
+                } catch (_: Exception) {
+                    Toast.makeText(requireContext(), "Privacy Policy coming soon", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
@@ -105,19 +139,12 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
         api.logout().enqueue(object : Callback<ApiResponse<Any>> {
             override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
                 prefs.clearAll()
-                try {
-                    FirebaseController.getInstance().signOut(requireContext())
-                } catch (_: Exception) {
-                }
+                try { FirebaseController.getInstance().signOut(requireContext()) } catch (_: Exception) {}
                 navigateToLogin()
             }
-
             override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {
                 prefs.clearAll()
-                try {
-                    FirebaseController.getInstance().signOut(requireContext())
-                } catch (_: Exception) {
-                }
+                try { FirebaseController.getInstance().signOut(requireContext()) } catch (_: Exception) {}
                 navigateToLogin()
             }
         })
