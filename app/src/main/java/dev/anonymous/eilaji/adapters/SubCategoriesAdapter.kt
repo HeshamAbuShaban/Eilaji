@@ -10,8 +10,10 @@ import dev.anonymous.eilaji.databinding.ItemSubCategoryBinding
 import dev.anonymous.eilaji.models.server.SubCategory
 import dev.anonymous.eilaji.utils.GeneralUtils
 
-class SubCategoriesAdapter(private var listSubCategoriesAdapter: ArrayList<SubCategory>) :
-    RecyclerView.Adapter<SubCategoriesAdapter.SubCategoriesViewHolder>() {
+class SubCategoriesAdapter(
+    private var listSubCategoriesAdapter: ArrayList<SubCategory>,
+    private val onSelect: ((String) -> Unit)? = null
+) : RecyclerView.Adapter<SubCategoriesAdapter.SubCategoriesViewHolder>() {
 
     private var lastItemSelected: Int = 0
 
@@ -30,17 +32,14 @@ class SubCategoriesAdapter(private var listSubCategoriesAdapter: ArrayList<SubCa
 
     override fun onBindViewHolder(holder: SubCategoriesViewHolder, position: Int) {
         val listModels = listSubCategoriesAdapter[position]
-
-        // نرسل للعنصر اذا كان تم تحديده او لا
         holder.bind(listModels, lastItemSelected == position) {
             val lastSelected = lastItemSelected
-            lastItemSelected = holder.adapterPosition
-
-            // نحدث العنصر السابق حتى يخفي التحديد
+            val newPos = holder.bindingAdapterPosition
+            if (newPos == -1) return@bind
+            lastItemSelected = newPos
             notifyItemChanged(lastSelected)
-
-            // نحدث العنصر الذي تم تحديده
-            notifyItemChanged(position)
+            notifyItemChanged(newPos)
+            onSelect?.invoke(listSubCategoriesAdapter[newPos].id ?: "")
         }
     }
 
@@ -61,7 +60,11 @@ class SubCategoriesAdapter(private var listSubCategoriesAdapter: ArrayList<SubCa
             onSelected: () -> Unit
         ) {
             binding.apply {
-                GeneralUtils.getInstance().loadImage(model.imageUrl).into(ivSubCategories)
+                if (model.imageUrl.isNullOrBlank()) {
+                    ivSubCategories.setImageResource(R.drawable.temp_category_pills)
+                } else {
+                    GeneralUtils.getInstance().loadImage(model.imageUrl).error(R.drawable.temp_category_pills).into(ivSubCategories)
+                }
                 tvSubCategories.text = model.title
 
                 if (itemIsSelected) {

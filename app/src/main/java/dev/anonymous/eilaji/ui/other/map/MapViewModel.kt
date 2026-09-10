@@ -88,32 +88,55 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun getNearbyPharmacies(lat: Double, lng: Double, radius: Double = 10.0) {
+    fun getNearbyPharmacies(lat: Double, lng: Double, radius: Double = 600.0) {
         _isLoading.value = true
         apiService.getNearbyPharmacies(lat, lng, radius).enqueue(object : Callback<ApiResponse<List<PharmacyDto>>> {
             override fun onResponse(call: Call<ApiResponse<List<PharmacyDto>>>, response: Response<ApiResponse<List<PharmacyDto>>>) {
-                _isLoading.value = false
                 if (response.isSuccessful) {
                     val body = response.body()
-                    if (body != null && body.success && body.data != null) {
+                    if (body != null && body.success && body.data != null && body.data!!.isNotEmpty()) {
                         val sorted = body.data!!.sortedWith(compareBy { it.distanceKm ?: haversineKm(lat, lng, it.latitude, it.longitude) })
                         _pharmacies.value = sorted
                         cachePharmacies(sorted)
                         _error.value = null
+                        _isLoading.value = false
                         Log.i("MVM", "getNearbyPharmacies success size=${sorted.size}")
-                    } else {
-                        Log.w("MVM", "getNearbyPharmacies empty or not success, load cache")
-                        loadFromCache()
+                        return
                     }
+                    Log.w("MVM", "getNearbyPharmacies empty, fallback to all")
                 } else {
-                    Log.w("MVM", "getNearbyPharmacies http ${response.code()} load cache")
-                    loadFromCache()
+                    Log.w("MVM", "getNearbyPharmacies http ${response.code()} fallback to all")
                 }
+                fetchAllPharmacies(lat, lng)
             }
 
             override fun onFailure(call: Call<ApiResponse<List<PharmacyDto>>>, t: Throwable) {
+                Log.e("MVM", "getNearbyPharmacies failure ${t.message} fallback to all")
+                fetchAllPharmacies(lat, lng)
+            }
+        })
+    }
+
+    fun fetchAllPharmacies(lat: Double? = null, lng: Double? = null) {
+        _isLoading.value = true
+        apiService.getPharmacies(page = 0, pageSize = 100).enqueue(object : Callback<ApiResponse<dev.anonymous.eilaji.network.PaginatedResult<PharmacyDto>>> {
+            override fun onResponse(call: Call<ApiResponse<dev.anonymous.eilaji.network.PaginatedResult<PharmacyDto>>>, response: Response<ApiResponse<dev.anonymous.eilaji.network.PaginatedResult<PharmacyDto>>>) {
                 _isLoading.value = false
-                Log.e("MVM", "getNearbyPharmacies failure ${t.message} load cache")
+                if (response.isSuccessful && response.body()?.success == true && response.body()?.data?.items != null) {
+                    val items = response.body()!!.data!!.items
+                    val sorted = if (lat != null && lng != null) items.sortedWith(compareBy { it.distanceKm ?: haversineKm(lat, lng, it.latitude, it.longitude) }) else items
+                    _pharmacies.value = sorted
+                    cachePharmacies(sorted)
+                    Log.i("MVM", "fetchAllPharmacies success size=${sorted.size}")
+                } else {
+                    Log.w("MVM", "fetchAllPharmacies empty, load cache")
+                    _isLoading.value = false
+                    loadFromCache()
+                }
+            }
+            override fun onFailure(call: Call<ApiResponse<dev.anonymous.eilaji.network.PaginatedResult<PharmacyDto>>>, t: Throwable) {
+                _isLoading.value = false
+                Log.e("MVM", "fetchAllPharmacies failure ${t.message}")
                 loadFromCache()
             }
         })

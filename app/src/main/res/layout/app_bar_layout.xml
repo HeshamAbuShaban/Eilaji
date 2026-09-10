@@ -12,8 +12,6 @@
         android:background="@drawable/shape_toolbar"
         android:minHeight="?attr/actionBarSize"
         app:contentInsetStartWithNavigation="0dp"
-        app:logo="@mipmap/ic_launcher"
-        app:logoDescription="@string/app_name"
         app:titleMarginStart="12dp"
         app:titleTextAppearance="@style/ToolBarTitleAppearance" />
 

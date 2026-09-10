@@ -32,10 +32,19 @@ public class GeneralUtils {
 
     public RequestBuilder<Drawable> loadImage(@NonNull String link) {
         assert AppController.getInstance() != null;
+        String url = link;
+        if (link != null && link.startsWith("/")) {
+            String base = dev.anonymous.eilaji.network.NetworkModule.getBaseUrlForImages();
+            if (base != null) {
+                url = base.replaceAll("/api/v1/?$", "/") + link.replaceFirst("^/", "");
+            }
+        }
+        if (url == null || url.isEmpty()) url = link;
         return Glide
                 .with(AppController.getInstance())
-                .load(link)
+                .load(url)
                 .placeholder(R.color.place_holder_color)
+                .error(R.drawable.temp_medicine_1)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .centerCrop();
     }

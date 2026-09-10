@@ -14,21 +14,27 @@ class MedicinesAdapter(
     private var medicineModels: ArrayList<Medicine>,
     private val isGridLayout: Boolean = false,
     private val halfScreenWidth: Int = 0,
-    private val onFavClick: ((Medicine) -> Unit)? = null
+    private val onFavClick: ((Medicine) -> Unit)? = null,
+    private val onItemClick: ((Medicine) -> Unit)? = null
 ) : RecyclerView.Adapter<MedicinesAdapter.MedicinesViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MedicinesViewHolder {
         val binding = ItemMedicineBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return MedicinesViewHolder(binding, onFavClick)
+        return MedicinesViewHolder(binding, onFavClick, onItemClick)
     }
 
     override fun onBindViewHolder(holder: MedicinesViewHolder, position: Int) {
         holder.bind(medicineModels[position], isGridLayout, halfScreenWidth, position)
     }
 
+    fun updateList(newList: List<Medicine>) {
+        medicineModels = ArrayList(newList)
+        notifyDataSetChanged()
+    }
+
     override fun getItemCount(): Int = medicineModels.size
 
-    class MedicinesViewHolder(private var binding: ItemMedicineBinding, private val onFavClick: ((Medicine) -> Unit)?) : RecyclerView.ViewHolder(binding.root) {
+    class MedicinesViewHolder(private var binding: ItemMedicineBinding, private val onFavClick: ((Medicine) -> Unit)?, private val onItemClick: ((Medicine) -> Unit)?) : RecyclerView.ViewHolder(binding.root) {
         @SuppressLint("SetTextI18n")
         fun bind(model: Medicine, isGridLayout: Boolean, halfScreenWidth: Int, position: Int) {
             if (isGridLayout) {
@@ -40,6 +46,8 @@ class MedicinesAdapter(
                 tvMedicineName.text = model.title
                 tvMedicineSalary.text = "${model.price}$"
                 setUpFavoriteIcon(model)
+                root.setOnClickListener { onItemClick?.invoke(model) }
+                ivMedicine.setOnClickListener { onItemClick?.invoke(model) }
                 buAddMedicineToFavorite.setOnClickListener {
                     val ctx = it.context
                     try {

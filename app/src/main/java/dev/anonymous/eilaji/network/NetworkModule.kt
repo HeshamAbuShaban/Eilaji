@@ -75,4 +75,9 @@ object NetworkModule {
     fun provideApiService(context: Context): ApiService {
         return provideRetrofit(context).create(ApiService::class.java)
     }
+
+    fun getBaseUrlForImages(): String {
+        val base = if (BuildConfig.DEBUG) DEV_BASE_URL else BASE_URL
+        return base.replace("api/v1/", "")
+    }
 }

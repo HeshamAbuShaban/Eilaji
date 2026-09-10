@@ -33,9 +33,15 @@ class CategoriesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        categoriesViewModel.init(requireContext())
         loadingDialog.show(requireActivity().supportFragmentManager, "Loading")
-        fetchCategories()
         displayCategories()
+        fetchCategories()
+        categoriesViewModel.error.observe(viewLifecycleOwner) { err ->
+            if (err != null) {
+                loadingDialog.dismiss()
+            }
+        }
     }
 
     private fun displayCategories() {

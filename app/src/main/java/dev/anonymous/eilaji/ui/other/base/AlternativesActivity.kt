@@ -26,7 +26,11 @@ class AlternativesActivity : AppCompatActivity() {
                 when (intent.getStringExtra("fragmentType")) {
                     FragmentsKeys.add_address.name -> nonNullNavController.navigate(R.id.navigation_add_address)
                     FragmentsKeys.favorites.name -> nonNullNavController.navigate(R.id.navigation_favorites)
-                    FragmentsKeys.medicine.name -> nonNullNavController.navigate(R.id.navigation_medicine)
+                    FragmentsKeys.medicine.name -> {
+                        val mid = intent.getStringExtra("medicineId")
+                        val b = Bundle().apply { if (mid != null) putString("medicineId", mid) }
+                        nonNullNavController.navigate(R.id.navigation_medicine, b)
+                    }
                     FragmentsKeys.reminder.name -> nonNullNavController.navigate(R.id.navigation_reminders_list)
                     FragmentsKeys.search.name -> nonNullNavController.navigate(R.id.navigation_search)
                     FragmentsKeys.map.name -> nonNullNavController.navigate(R.id.navigation_map)

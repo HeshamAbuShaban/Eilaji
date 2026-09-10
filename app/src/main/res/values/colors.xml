@@ -7,12 +7,14 @@
 
     <!--  16453e  BA324F -->
     <color name="primary_color">#BA324F</color>
-    <color name="gray_light_for_night">#0FFBFBFB</color>
+    <color name="gray_light_for_night">#2C2C2C</color>
     <color name="gray">#EFEFEF</color>
     <color name="gray_dark">#AEAEAE</color>
     <color name="blue_light">#5E70FF</color>
 
     <color name="night_window_background_color">#121212</color>
+    <color name="night_card_background">#1E1E1E</color>
+    <color name="night_surface">#1E1E1E</color>
 
     <color name="primary_pink">#FF74B1</color>
     <color name="gray_light">#FBFBFB</color>

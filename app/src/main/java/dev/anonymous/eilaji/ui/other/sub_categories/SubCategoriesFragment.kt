@@ -70,7 +70,10 @@ class SubCategoriesFragment : Fragment() {
         with(binding.recyclerSubCategories) {
             setHasFixedSize(false)
             layoutManager = LinearLayoutManager(activity, RecyclerView.HORIZONTAL, false)
-            adapter = SubCategoriesAdapter(subCategoriesList)
+            adapter = SubCategoriesAdapter(subCategoriesList) { subId ->
+                selectedSubcategoryId = subId
+                fetchMedicines()
+            }
             itemAnimator = null
         }
     }
@@ -78,7 +81,12 @@ class SubCategoriesFragment : Fragment() {
     private fun setupMedicinesAdapter(medicinesList: ArrayList<Medicine>) {
         with(binding.recSubCategoriesMedicines) {
             setHasFixedSize(false)
-            adapter = MedicinesAdapter(medicinesList)
+            adapter = MedicinesAdapter(medicinesList, onItemClick = { med ->
+                val intent = android.content.Intent(requireContext(), dev.anonymous.eilaji.ui.other.base.AlternativesActivity::class.java)
+                intent.putExtra("fragmentType", dev.anonymous.eilaji.storage.enums.FragmentsKeys.medicine.name)
+                intent.putExtra("medicineId", med.id)
+                startActivity(intent)
+            })
         }
     }
 
@@ -124,6 +132,10 @@ class SubCategoriesFragment : Fragment() {
                 SubCategory(dto.id, categoryId, dto.iconUrl ?: "", dto.nameEn)
             })
             setupSubCategoriesRecycler(uiList)
+            if (uiList.isNotEmpty() && selectedSubcategoryId == null) {
+                selectedSubcategoryId = uiList[0].id
+                fetchMedicines()
+            }
         }
     }
 
