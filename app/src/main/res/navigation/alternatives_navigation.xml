@@ -33,7 +33,9 @@
         android:id="@+id/navigation_medicine"
         android:name="dev.anonymous.eilaji.ui.other.medicine.MedicineFragment"
         android:label="fragment_medicine"
-        tools:layout="@layout/fragment_medicine" />
+        tools:layout="@layout/fragment_medicine">
+        <argument android:name="medicineId" app:argType="string" app:nullable="true" android:defaultValue="@null" />
+    </fragment>
     <fragment
         android:id="@+id/navigation_favorites"
         android:name="dev.anonymous.eilaji.ui.other.favorite.FavoritesFragment"

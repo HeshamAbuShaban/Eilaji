@@ -111,7 +111,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
             latLng?.let {
                 currentLatLngCache = it
                 mapViewModel.animateCameraToPosition(it, 14f)
-                mapViewModel.getNearbyPharmacies(it.latitude, it.longitude, 10.0)
+                mapViewModel.getNearbyPharmacies(it.latitude, it.longitude, 600.0)
             }
         }
     }

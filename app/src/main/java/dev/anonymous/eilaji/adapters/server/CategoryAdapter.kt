@@ -3,6 +3,7 @@ package dev.anonymous.eilaji.adapters.server
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.ItemCategoryBinding
 import dev.anonymous.eilaji.network.CategoryDto
 import dev.anonymous.eilaji.utils.GeneralUtils
@@ -48,9 +49,23 @@ class CategoryAdapter(
                     parentCategoryItem.setPadding(0, 0, 0, 222)
                 }
 
-                GeneralUtils.getInstance()
-                    .loadImage(model.iconUrl ?: "")
-                    .into(ivPharmacyDepartment)
+                val fallbackRes = when (model.nameEn.lowercase()) {
+                    "pain relievers" -> R.drawable.temp_medicine_1
+                    "antibiotics" -> R.drawable.temp_medicine_2
+                    "vitamins & supplements", "vitamins" -> R.drawable.temp_medicine_3
+                    "skin care" -> R.drawable.temp_medicine_4
+                    "cold & flu", "cold" -> R.drawable.temp_category_pills
+                    "digestive health", "digestive" -> R.drawable.temp_medicine_2
+                    else -> R.drawable.temp_category_pills
+                }
+                if (model.iconUrl.isNullOrBlank() || model.iconUrl == "/images/categories/default.png") {
+                    ivPharmacyDepartment.setImageResource(fallbackRes)
+                } else {
+                    GeneralUtils.getInstance()
+                        .loadImage(model.iconUrl ?: "")
+                        .error(fallbackRes)
+                        .into(ivPharmacyDepartment)
+                }
 
                 tvPharmacyDepartment.text = model.nameEn.ifBlank { model.nameAr }
 
