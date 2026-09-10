@@ -72,7 +72,7 @@ class BaseActivity : AppCompatActivity() {
     }
 
     private fun setupFab() {
-        binding.fabPrescription.setOnClickListener {
+        binding.fabPrescription?.setOnClickListener {
             val nav = baseViewModel.navController.value ?: findNavController(R.id.nav_host_fragment_activity_base)
             try {
                 nav.navigate(R.id.navigation_send_prescription)
