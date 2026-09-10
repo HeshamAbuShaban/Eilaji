@@ -55,8 +55,8 @@ class MedicineFragment : Fragment() {
         }
         setupFavorite()
         setupQuantity()
-        binding.cardCart.setOnClickListener { addToCart() }
-        binding.cardCheckout.setOnClickListener { goCheckout() }
+        binding.cardCart?.setOnClickListener { addToCart() }
+        binding.cardCheckout?.setOnClickListener { goCheckout() }
     }
 
     private fun loadDetails(id: String) {
@@ -77,13 +77,13 @@ class MedicineFragment : Fragment() {
     private fun bindDetails(dto: MedicineDto) {
         currentDto = dto
         GeneralUtils.getInstance().loadImage(dto.imageUrl ?: "").into(binding.ivMedicineDetail as android.widget.ImageView)
-        binding.textView2.text = dto.titleEn.ifBlank { dto.titleAr }
-        binding.textView.text = "${dto.price ?: 0.0}$"
-        binding.toolbarMedicine.title = dto.titleEn.ifBlank { dto.titleAr }
-        binding.tvMedicineManufacturer.text = dto.manufacturer ?: ""
-        binding.tvMedicineManufacturer.visibility = if (dto.manufacturer.isNullOrBlank()) View.GONE else View.VISIBLE
-        binding.tvMedicineDescription.text = dto.descriptionEn?.ifBlank { dto.descriptionAr } ?: dto.descriptionAr ?: ""
-        binding.tvMedicinePrescription.visibility = if (dto.requiresPrescription) View.VISIBLE else View.GONE
+        binding.textView2?.text = dto.titleEn.ifBlank { dto.titleAr }
+        binding.textView?.text = "${dto.price ?: 0.0}$"
+        binding.toolbarMedicine?.title = dto.titleEn.ifBlank { dto.titleAr }
+        binding.tvMedicineManufacturer?.text = dto.manufacturer ?: ""
+        binding.tvMedicineManufacturer?.visibility = if (dto.manufacturer.isNullOrBlank()) View.GONE else View.VISIBLE
+        binding.tvMedicineDescription?.text = dto.descriptionEn?.ifBlank { dto.descriptionAr } ?: dto.descriptionAr ?: ""
+        binding.tvMedicinePrescription?.visibility = if (dto.requiresPrescription) View.VISIBLE else View.GONE
         updateFavoriteIcon()
     }
 

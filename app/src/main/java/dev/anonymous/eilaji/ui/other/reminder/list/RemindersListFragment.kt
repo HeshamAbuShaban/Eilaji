@@ -64,7 +64,7 @@ class RemindersListFragment : Fragment(), RemindersAdapter.RemindersListCallback
         val callback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
             override fun onMove(rv: RecyclerView, vh: RecyclerView.ViewHolder, t: RecyclerView.ViewHolder) = false
             override fun onSwiped(vh: RecyclerView.ViewHolder, dir: Int) {
-                val pos = vh.bindingAdapterPosition
+                val pos = vh.adapterPosition
                 if (pos != -1 && pos < adapter.remindersList.size) {
                     pendingDelete = adapter.remindersList[pos]
                     DeleteItemDialogFragment().show(childFragmentManager, "DeleteItemTriggered")
