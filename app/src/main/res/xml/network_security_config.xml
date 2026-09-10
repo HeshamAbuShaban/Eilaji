@@ -17,8 +17,6 @@
         <domain includeSubdomains="true">fcm.googleapis.com</domain>
         <pin-set expiration="2026-12-31">
             <pin digest="SHA-256">fLHfhI36PKTxgSCcSTPo3CYlppw5cLD4JM3IBYaNOM4=</pin>
-            <pin digest="SHA-256">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</pin>
-            <pin digest="SHA-256">BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=</pin>
         </pin-set>
     </domain-config>
 </network-security-config>
