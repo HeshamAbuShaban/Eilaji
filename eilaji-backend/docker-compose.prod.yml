@@ -95,8 +95,8 @@ services:
   # Eilaji Backend Application
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: eilaji-backend
     environment:
       DATABASE_URL: jdbc:postgresql://postgres:5432/eilaji_db
