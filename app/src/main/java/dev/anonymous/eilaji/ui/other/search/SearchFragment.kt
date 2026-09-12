@@ -152,7 +152,47 @@ class SearchFragment : Fragment() {
     private fun displayMedicines(){
         searchViewModel.medicineData.observe(viewLifecycleOwner) {
             setupMedicinesAdapter(it)
+            updateEmptyState()
+            if (it.isNotEmpty()) saveRecent(binding.searchEditText.text.toString())
         }
+    }
+
+    private fun updateEmptyState() {
+        try {
+            val meds = searchViewModel.medicineData.value ?: emptyList()
+            val pharms = searchViewModel.pharmaciesData.value ?: emptyList()
+            val q = binding.searchEditText.text.toString().trim()
+            val showEmpty = q.length >= 2 && meds.isEmpty() && pharms.isEmpty()
+            binding.emptySearchState.visibility = if (showEmpty) android.view.View.VISIBLE else android.view.View.GONE
+            binding.searchResultsScroll.visibility = if (showEmpty) android.view.View.GONE else android.view.View.VISIBLE
+        } catch (_: Exception) {}
+    }
+
+    private fun saveRecent(q: String) {
+        try {
+            val query = q.trim()
+            if (query.length < 2) return
+            val prefs = requireContext().getSharedPreferences("search_prefs", android.content.Context.MODE_PRIVATE)
+            val set = prefs.getStringSet("recent", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
+            set.add(query)
+            while (set.size > 8) set.remove(set.first())
+            prefs.edit().putStringSet("recent", set).apply()
+            renderRecent(set.toList())
+        } catch (_: Exception) {}
+    }
+
+    private fun renderRecent(list: List<String>) {
+        try {
+            binding.chipRecentSearches.removeAllViews()
+            list.reversed().forEach { term ->
+                val chip = com.google.android.material.chip.Chip(requireContext())
+                chip.text = term
+                chip.isClickable = true
+                chip.setOnClickListener { binding.searchEditText.setText(term) }
+                binding.chipRecentSearches.addView(chip)
+            }
+            binding.tvRecentTitle.visibility = if (list.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
+        } catch (_: Exception) {}
     }
 
     private fun fetchPharmaciesData() {
@@ -232,6 +272,7 @@ class SearchFragment : Fragment() {
     private fun displayPharmacies(){
         searchViewModel.pharmaciesData.observe(viewLifecycleOwner) {
             setupPharmaciesAdapter(it)
+            updateEmptyState()
         }
     }
 

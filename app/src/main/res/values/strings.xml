@@ -119,5 +119,18 @@
     <string name="added_to_cart">Added to cart</string>
     <string name="checkout">Checkout</string>
     <string name="order_placed">Order placed</string>
+    <string name="add">Add</string>
+    <string name="search">Search</string>
+    <string name="no_reminders_yet">No reminders yet — tap to add</string>
+    <string name="one_reminder_today">1 reminder today</string>
+    <string name="n_reminders_today">%1$d reminders today</string>
+    <string name="no_results_found">No results found</string>
+    <string name="try_different_search">Try a different search or browse categories</string>
+    <string name="retry">Retry</string>
+    <string name="no_favorites_yet">No favorites yet</string>
+    <string name="browse_medicines">Browse medicines</string>
 
+    <string name="guest_user">Guest User</string>
+    <string name="edit">Edit</string>
+    <string name="recent_searches">Recent searches</string>
 </resources>

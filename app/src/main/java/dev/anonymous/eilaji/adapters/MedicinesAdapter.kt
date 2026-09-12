@@ -44,10 +44,19 @@ class MedicinesAdapter(
             binding.apply {
                 GeneralUtils.getInstance().loadImage(model.imageUrl).into(ivMedicine)
                 tvMedicineName.text = model.title
-                tvMedicineSalary.text = "${model.price}$"
+                tvMedicineSalary.text = "${model.price} $"
                 setUpFavoriteIcon(model)
                 root.setOnClickListener { onItemClick?.invoke(model) }
                 ivMedicine.setOnClickListener { onItemClick?.invoke(model) }
+                buAddToCart.setOnClickListener {
+                    val ctx = it.context
+                    try {
+                        dev.anonymous.eilaji.data.repository.CartRepository.getInstance(ctx).addItem(
+                            dev.anonymous.eilaji.data.repository.CartItem(model.id, model.title, model.price, model.imageUrl, 1)
+                        )
+                        com.google.android.material.snackbar.Snackbar.make(root, ctx.getString(R.string.added_to_cart), com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show()
+                    } catch (_: Exception) {}
+                }
                 buAddMedicineToFavorite.setOnClickListener {
                     val ctx = it.context
                     try {

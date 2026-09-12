@@ -75,7 +75,32 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
         binding.buThemeSystem.setOnClickListener { selectTheme(AppSharedPreferences.Theme.system.name) }
     }
 
+    private fun bindIdentity() {
+        try {
+            val prefs = AppSharedPreferences.getInstance(requireContext())
+            val api = NetworkModule.provideApiService(requireContext())
+            if (prefs.getToken().isNullOrBlank()) {
+                binding.tvProfileName.text = getString(R.string.guest_user)
+                binding.tvProfileEmail.text = getString(R.string.login_subtitle)
+                binding.ivProfileAvatar.setImageResource(R.drawable.ic_default_user)
+                return
+            }
+            api.getCurrentUser().enqueue(object : retrofit2.Callback<dev.anonymous.eilaji.network.ApiResponse<dev.anonymous.eilaji.network.UserDto>> {
+                override fun onResponse(call: retrofit2.Call<dev.anonymous.eilaji.network.ApiResponse<dev.anonymous.eilaji.network.UserDto>>, response: retrofit2.Response<dev.anonymous.eilaji.network.ApiResponse<dev.anonymous.eilaji.network.UserDto>>) {
+                    val u = response.body()?.data
+                    if (u != null) {
+                        binding.tvProfileName.text = u.fullName.ifBlank { getString(R.string.guest_user) }
+                        binding.tvProfileEmail.text = u.email
+                        try { dev.anonymous.eilaji.utils.GeneralUtils.getInstance().loadImage(u.imageUrl ?: "").into(binding.ivProfileAvatar) } catch (_: Exception) {}
+                    }
+                }
+                override fun onFailure(call: retrofit2.Call<dev.anonymous.eilaji.network.ApiResponse<dev.anonymous.eilaji.network.UserDto>>, t: Throwable) {}
+            })
+        } catch (_: Exception) {}
+    }
+
     private fun setupListeners() {
+        bindIdentity()
         with(binding) {
             buLogout.setOnClickListener { LogoutDialogFragment().show(childFragmentManager, "LogoutTriggered") }
             buChangePassword.setOnClickListener {

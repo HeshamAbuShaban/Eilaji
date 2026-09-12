@@ -218,14 +218,21 @@ class HomeFragment : Fragment() {
             val vm = ViewModelProvider(requireActivity())[ReminderDatabaseViewModel::class.java]
             vm.allReminders.observe(viewLifecycleOwner) { list ->
                 val count = list?.size ?: 0
-                binding.tvReminderCount.text = if (count == 0) "2 reminders today" else "$count reminders today"
+                binding.tvReminderCount.text = when (count) {
+                    0 -> getString(R.string.no_reminders_yet)
+                    1 -> getString(R.string.one_reminder_today)
+                    else -> getString(R.string.n_reminders_today, count)
+                }
             }
         } catch (_: Exception) {
-            binding.tvReminderCount.text = "2 reminders today"
+            binding.tvReminderCount.text = getString(R.string.no_reminders_yet)
         }
     }
 
     private fun setupListeners() {
+        try { binding.searchViewListener.setOnClickListener {
+            startActivity(Intent(requireContext(), AlternativesActivity::class.java).apply { putExtra("fragmentType", FragmentsKeys.search.name) })
+        } } catch (_: Exception) {}
         binding.buShowAllBestSeller.setOnClickListener {
             startActivity(Intent(requireContext(), AlternativesActivity::class.java).apply { putExtra("fragmentType", FragmentsKeys.medicine.name) })
         }
