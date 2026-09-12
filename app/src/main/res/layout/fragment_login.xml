@@ -16,7 +16,7 @@
         <View
             android:id="@+id/loginHeaderBackground"
             android:layout_width="0dp"
-            android:layout_height="@dimen/_180sdp"
+            android:layout_height="@dimen/_260sdp"
             android:background="@drawable/bg_login_gradient"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -50,32 +50,60 @@
             app:layout_constraintEnd_toEndOf="@+id/guidelineEnd"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageView
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/imageView"
-            android:layout_width="@dimen/_110sdp"
-            android:layout_height="@dimen/_110sdp"
-            android:background="@drawable/shape_circle_white"
-            android:contentDescription="@null"
+            android:layout_width="@dimen/_96sdp"
+            android:layout_height="@dimen/_96sdp"
+            android:layout_marginTop="@dimen/_36sdp"
+            android:background="@color/white"
+            android:contentDescription="@string/app_name"
             android:elevation="@dimen/_4sdp"
-            android:padding="@dimen/_12sdp"
-            android:scaleType="fitCenter"
+            android:padding="0dp"
+            android:scaleType="centerCrop"
             android:src="@drawable/ic_launcher_foreground"
             android:transitionName="hero_app_logo"
-            app:layout_constraintBottom_toBottomOf="@+id/loginHeaderBackground"
-            app:layout_constraintEnd_toEndOf="@+id/guidelineEnd"
-            app:layout_constraintStart_toStartOf="@+id/guidelineBegin"
-            app:layout_constraintTop_toTopOf="@+id/loginHeaderBackground" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/loginHeaderBackground"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.App.Circle"
+            app:strokeColor="@color/white"
+            app:strokeWidth="3dp" />
+
+        <TextView
+            android:id="@+id/tvLoginTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_8sdp"
+            android:text="@string/app_name"
+            android:textColor="@color/white"
+            android:textSize="@dimen/_20ssp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/imageView" />
+
+        <TextView
+            android:id="@+id/tvLoginSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_2sdp"
+            android:text="@string/login_subtitle"
+            android:textColor="#EFFFFFFF"
+            android:textSize="@dimen/_12ssp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvLoginTitle" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputLayoutEmail"
             style="@style/TextInputAccountInformationStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_60sdp"
+            android:layout_marginTop="@dimen/_24sdp"
             app:hintEnabled="false"
             app:layout_constraintEnd_toEndOf="@+id/guidelineEnd"
             app:layout_constraintStart_toStartOf="@+id/guidelineBegin"
-            app:layout_constraintTop_toBottomOf="@+id/imageView">
+            app:layout_constraintTop_toBottomOf="@+id/tvLoginSubtitle">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/edEmail"

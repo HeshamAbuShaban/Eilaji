@@ -64,15 +64,26 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
         mapViewModel.setRequestPermissionLauncher(requestPermissionLauncher)
     }
 
+    private var permissionDialogShown = false
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         observeCurrentLocation()
         observePharmacies()
         if (mapViewModel.arePermissionsGranted()) {
             obtainGoogleMapInstance()
+        } else if (!permissionDialogShown) {
+            permissionDialogShown = true
+            try {
+                RequestPermissionsDialogFragment.newInstance("Please allow the map permission to be able to use the app properly")
+                    .show(childFragmentManager, "MapPermissions")
+            } catch (_: Exception) {
+                mapViewModel.loadFromCache()
+                mapViewModel.fetchAllPharmacies(31.5, 34.46)
+            }
         } else {
-            RequestPermissionsDialogFragment.newInstance("Please allow the map permission to be able to use the app properly")
-                .show(childFragmentManager, "MapPermissions")
+            mapViewModel.loadFromCache()
+            mapViewModel.fetchAllPharmacies(31.5, 34.46)
         }
     }
 
@@ -176,8 +187,16 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
 
     override fun onAllowClicked() { mapViewModel.requestPermissions() }
     override fun onDenyClicked() {
-        Toast.makeText(requireContext(), getString(R.string.permissions_message_sorry_you_can_not), Toast.LENGTH_SHORT).show()
         mapViewModel.loadFromCache()
+        mapViewModel.fetchAllPharmacies(31.5, 34.46)
+        try {
+            com.google.android.material.snackbar.Snackbar.make(binding.root, getString(R.string.permissions_message_sorry_you_can_not), com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
+                .setAction("Settings") {
+                    try { startActivity(android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply { data = android.net.Uri.parse("package:${requireContext().packageName}") }) } catch (_: Exception) {}
+                }.show()
+        } catch (_: Exception) {
+            try { Toast.makeText(requireContext(), getString(R.string.permissions_message_sorry_you_can_not), Toast.LENGTH_SHORT).show() } catch (_: Exception) {}
+        }
     }
     override fun onDestroyView() {
         super.onDestroyView()
