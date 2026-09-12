@@ -100,7 +100,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_24sdp"
-            app:hintEnabled="false"
+            android:hint="@string/email"
             app:layout_constraintEnd_toEndOf="@+id/guidelineEnd"
             app:layout_constraintStart_toStartOf="@+id/guidelineBegin"
             app:layout_constraintTop_toBottomOf="@+id/tvLoginSubtitle">
@@ -111,7 +111,7 @@
                 android:layout_height="wrap_content"
                 android:drawableEnd="@drawable/ic_email"
                 android:drawablePadding="@dimen/_10sdp"
-                android:hint="@string/email"
+                android:drawableTint="@color/primary_color"
                 android:imeOptions="actionNext"
                 android:inputType="textEmailAddress"
                 android:maxLines="1" />
@@ -123,10 +123,10 @@
             style="@style/TextInputAccountInformationStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_15sdp"
+            android:layout_marginTop="@dimen/_12sdp"
+            android:hint="@string/password"
             app:endIconMode="password_toggle"
             app:endIconTint="@color/primary_color"
-            app:hintEnabled="false"
             app:layout_constraintEnd_toEndOf="@+id/guidelineEnd"
             app:layout_constraintStart_toStartOf="@+id/guidelineBegin"
             app:layout_constraintTop_toBottomOf="@+id/textInputLayoutEmail">
@@ -135,7 +135,6 @@
                 android:id="@+id/edPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/password"
                 android:imeOptions="actionGo"
                 android:inputType="textPassword"
                 android:maxLines="1"

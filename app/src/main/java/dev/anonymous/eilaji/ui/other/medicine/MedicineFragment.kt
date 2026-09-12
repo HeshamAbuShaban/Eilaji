@@ -78,12 +78,12 @@ class MedicineFragment : Fragment() {
         currentDto = dto
         GeneralUtils.getInstance().loadImage(dto.imageUrl ?: "").into(binding.ivMedicineDetail as android.widget.ImageView)
         binding.textView2?.text = dto.titleEn.ifBlank { dto.titleAr }
-        binding.textView?.text = "${dto.price ?: 0.0}$"
         binding.toolbarMedicine?.title = dto.titleEn.ifBlank { dto.titleAr }
         binding.tvMedicineManufacturer?.text = dto.manufacturer ?: ""
         binding.tvMedicineManufacturer?.visibility = if (dto.manufacturer.isNullOrBlank()) View.GONE else View.VISIBLE
         binding.tvMedicineDescription?.text = dto.descriptionEn?.ifBlank { dto.descriptionAr } ?: dto.descriptionAr ?: ""
         binding.tvMedicinePrescription?.visibility = if (dto.requiresPrescription) View.VISIBLE else View.GONE
+        updateTotalLabel()
         updateFavoriteIcon()
     }
 
@@ -114,8 +114,17 @@ class MedicineFragment : Fragment() {
     }
 
     private fun setupQuantity() {
-        binding.buIncrement.setOnClickListener { qty++; binding.tvNumMedicines.text = qty.toString() }
-        binding.buDecrease.setOnClickListener { if (qty > 1) qty--; binding.tvNumMedicines.text = qty.toString() }
+        updateTotalLabel()
+        binding.buIncrement.setOnClickListener { qty++; binding.tvNumMedicines.text = qty.toString(); updateTotalLabel() }
+        binding.buDecrease.setOnClickListener { if (qty > 1) qty--; binding.tvNumMedicines.text = qty.toString(); updateTotalLabel() }
+    }
+
+    private fun updateTotalLabel() {
+        try {
+            val price = currentDto?.price ?: 0.0
+            val total = price * qty
+            binding.textView?.text = String.format("%.2f $", total)
+        } catch (_: Exception) {}
     }
 
     private fun addToCart() {

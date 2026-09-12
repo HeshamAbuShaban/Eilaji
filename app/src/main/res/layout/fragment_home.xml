@@ -15,25 +15,44 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <View
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/searchViewListener"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/_20sdp"
-                android:layout_marginTop="@dimen/_28sdp"
-                android:visibility="gone"
-                android:background="@drawable/shape_searchable_edittext"
-                android:drawableEnd="@drawable/ic_search"
-                android:hint="@string/what_are_you_looking_for"
-                android:inputType="text"
-                android:padding="@dimen/_13sdp"
-                android:textAlignment="viewStart"
-                android:textColorHint="@color/gray_dark"
-                android:textSize="@dimen/_13ssp"
-                app:layout_constraintBottom_toTopOf="@id/adsContainer"
+                android:layout_marginHorizontal="@dimen/_16sdp"
+                android:layout_marginTop="@dimen/_12sdp"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="0dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="@dimen/_14sdp"
+                    android:paddingVertical="@dimen/_12sdp">
+
+                    <ImageView
+                        android:layout_width="@dimen/_20sdp"
+                        android:layout_height="@dimen/_20sdp"
+                        android:contentDescription="@string/search"
+                        android:src="@drawable/ic_search" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/_10sdp"
+                        android:layout_weight="1"
+                        android:text="@string/what_are_you_looking_for"
+                        android:textColor="@color/gray_dark"
+                        android:textSize="@dimen/_13ssp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <LinearLayout
                 android:id="@+id/adsContainer"
@@ -90,7 +109,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/categories_pharmaceuticals"
-                    android:textSize="@dimen/_13sdp" />
+                    android:textSize="@dimen/_16ssp"
+                    android:textStyle="bold" />
 
                 <Space
                     android:layout_width="0dp"
@@ -167,7 +187,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/best_seller"
-                    android:textSize="@dimen/_13sdp" />
+                    android:textSize="@dimen/_16ssp"
+                    android:textStyle="bold" />
 
                 <Space
                     android:layout_width="0dp"

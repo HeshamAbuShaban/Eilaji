@@ -80,16 +80,17 @@
     <!--  #############################################################  -->
 
     <style name="TextInputAccountInformationStyle" parent="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-        <item name="boxCornerRadiusTopEnd">@dimen/_4sdp</item>
-        <item name="boxCornerRadiusTopStart">@dimen/_4sdp</item>
-        <item name="boxCornerRadiusBottomStart">0dp</item>
-        <item name="boxCornerRadiusBottomEnd">0dp</item>
+        <item name="boxCornerRadiusTopEnd">14dp</item>
+        <item name="boxCornerRadiusTopStart">14dp</item>
+        <item name="boxCornerRadiusBottomStart">14dp</item>
+        <item name="boxCornerRadiusBottomEnd">14dp</item>
         <item name="boxBackgroundColor">@color/gray</item>
         <item name="boxStrokeColor">@drawable/selector_text_input_account_information</item>
         <item name="boxStrokeWidth">0dp</item>
         <item name="boxStrokeWidthFocused">@dimen/_1sdp</item>
         <item name="android:textColorHint">@color/gray_dark</item>
         <item name="android:textColor">@color/black</item>
+        <item name="hintTextColor">@color/primary_color</item>
     </style>
 
     <style name="PrimaryButton" parent="Widget.MaterialComponents.Button">
