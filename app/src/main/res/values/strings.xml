@@ -119,7 +119,6 @@
     <string name="added_to_cart">Added to cart</string>
     <string name="checkout">Checkout</string>
     <string name="order_placed">Order placed</string>
-    <string name="search">Search</string>
     <string name="no_reminders_yet">No reminders yet — tap to add</string>
     <string name="one_reminder_today">1 reminder today</string>
     <string name="n_reminders_today">%1$d reminders today</string>
