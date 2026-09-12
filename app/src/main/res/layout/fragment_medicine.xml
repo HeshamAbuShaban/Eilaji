@@ -39,14 +39,7 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/gradient_transparent"
-                android:fitsSystemWindows="true"
-                android:rotationX="180" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="@dimen/_110sdp"
                 android:layout_gravity="bottom"
                 android:background="@drawable/gradient_transparent"
                 android:fitsSystemWindows="true" />
@@ -77,7 +70,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/_15sdp"
-                android:layout_marginTop="45dp"
+                android:layout_marginTop="@dimen/_16sdp"
                 android:text="مثبط هرمونات"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_20ssp"
@@ -161,7 +154,7 @@
                 android:id="@+id/onBoardingPager"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_220sdp"
-                android:layout_marginTop="@dimen/_26sdp"
+                android:layout_marginTop="@dimen/_12sdp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/magic_indicator3" />
