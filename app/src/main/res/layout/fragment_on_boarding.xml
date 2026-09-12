@@ -54,7 +54,7 @@
                 android:layout_margin="@dimen/_14sdp"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_arrow_forward"
-                app:tint="@color/white" />
+                app:tint="@color/white_fixed" />
 
         </androidx.cardview.widget.CardView>
 

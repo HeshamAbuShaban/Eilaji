@@ -91,9 +91,9 @@ class ReminderScheduler(private val context: Context) {
 
     private fun enqueueFallbackPeriodic(r: Reminder, interval: Long, unit: TimeUnit) {
         val data = Data.Builder().putString(KEY_REMINDER_NotificationId, r.notificationId.toString()).putString(KEY_REMINDER_ID, r.id).putString(KEY_REMINDER_TEXT, r.medicineName ?: r.text).putInt(KEY_REMINDER_SOUND, soundNumber).build()
-        val mins = ReminderTimeUtils.parseScheduleTime(r.scheduleTime ?: "08:00:00")?.let { 1440L } ?: 1440L
+        val mins = try { unit.toMinutes(interval).coerceAtLeast(15L) } catch (_: Exception) { 1440L }
         val req = PeriodicWorkRequestBuilder<ReminderWorker>(mins, TimeUnit.MINUTES).addTag(r.id + "_wm_periodic").setInputData(data).build()
-        WorkManager.getInstance(context).enqueue(req)
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(r.id + "_wm_periodic", androidx.work.ExistingPeriodicWorkPolicy.UPDATE, req)
     }
 
     fun cancelReminderById(reminder: Reminder) {
