@@ -117,7 +117,7 @@
                 android:paddingHorizontal="@dimen/_10sdp"
                 android:paddingVertical="@dimen/_4sdp"
                 android:text="@string/requires_prescription"
-                android:textColor="@color/white"
+                android:textColor="@color/white_fixed"
                 android:textSize="@dimen/_11ssp"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="@+id/tvMedicineManufacturer"
@@ -146,6 +146,7 @@
                 android:layout_marginTop="@dimen/_16sdp"
                 android:layoutDirection="ltr"
                 android:paddingHorizontal="2dp"
+                android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tvMedicineDescription" />
@@ -155,9 +156,120 @@
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_220sdp"
                 android:layout_marginTop="@dimen/_12sdp"
+                android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/magic_indicator3" />
+
+            <LinearLayout
+                android:id="@+id/availabilityHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/_15sdp"
+                android:layout_marginTop="@dimen/_16sdp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvMedicineDescription">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/available_nearby"
+                    android:textSize="@dimen/_15ssp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvAvailabilityCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_chip_freq"
+                    android:paddingHorizontal="@dimen/_10sdp"
+                    android:paddingVertical="@dimen/_4sdp"
+                    android:textColor="@color/primary_color"
+                    android:textSize="@dimen/_11ssp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerAvailablePharmacies"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:clipToPadding="false"
+                android:orientation="horizontal"
+                android:paddingHorizontal="@dimen/_8sdp"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:itemCount="2"
+                tools:listitem="@layout/item_pharmacy_location"
+                tools:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/availabilityHeader" />
+
+            <TextView
+                android:id="@+id/tvAlternativesTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/_15sdp"
+                android:layout_marginTop="@dimen/_16sdp"
+                android:text="@string/alternatives_title"
+                android:textSize="@dimen/_15ssp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/recyclerAvailablePharmacies" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerAlternatives"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:clipToPadding="false"
+                android:orientation="horizontal"
+                android:paddingHorizontal="@dimen/_8sdp"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:itemCount="3"
+                tools:listitem="@layout/item_medicine"
+                tools:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvAlternativesTitle" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/_15sdp"
+                android:layout_marginTop="@dimen/_16sdp"
+                android:layout_marginBottom="@dimen/_90sdp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/recyclerAlternatives">
+
+                <RatingBar
+                    android:id="@+id/ratingPharmacy"
+                    style="?android:attr/ratingBarStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:numStars="5"
+                    android:stepSize="1.0" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buRatePharmacy"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_8sdp"
+                    android:text="@string/rate_pharmacy"
+                    android:textSize="@dimen/_12ssp"
+                    app:cornerRadius="10dp" />
+
+            </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -211,7 +323,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/_11sdp"
                 android:text="@string/total_price"
-                android:textColor="@color/white"
+                android:textColor="@color/white_fixed"
                 android:textSize="@dimen/_14ssp"
                 android:textStyle="bold" />
 
@@ -244,7 +356,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/_7sdp"
                 android:text="1"
-                android:textColor="@color/white"
+                android:textColor="@color/white_fixed"
                 android:textSize="@dimen/_15ssp"
                 android:textStyle="bold"
                 tools:ignore="HardcodedText" />
@@ -276,7 +388,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/_15sdp"
-        android:backgroundTint="@color/white"
+        android:backgroundTint="@color/white_fixed"
         android:contentDescription="@null"
         android:src="@drawable/ic_favorite_border"
         app:layout_anchor="@id/app_bar"

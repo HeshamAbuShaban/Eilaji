@@ -106,4 +106,8 @@
     <string name="tap_heart_to_save">اضغط على القلب لحفظ الدواء هنا</string>
     <string name="no_reminders_yet">لا توجد تذكيرات — اضغط للإضافة</string>
     <string name="login_subtitle">صيدليتك حتى باب البيت</string>
+    <string name="dosage_hint">الجرعة</string>
+    <string name="dosage_example">مثال: 500مجم بعد الأكل</string>
+    <string name="available_nearby">متوفر بالقرب منك</string>
+    <string name="rate_pharmacy">قيّم الصيدلية</string>
 </resources>

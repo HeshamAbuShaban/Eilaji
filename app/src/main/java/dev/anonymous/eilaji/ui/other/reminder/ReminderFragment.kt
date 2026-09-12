@@ -119,13 +119,14 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
     private fun createOneTimeReminder() {
         var txt = binding.reminderNameEditText.text.toString().trim()
         if (txt.isEmpty()) txt = getString(R.string.placeholder)
+        val dosage = try { binding.reminderDosageEditText.text.toString().trim().ifBlank { null } } catch (_: Exception) { null }
         val delay = reminderViewModel.calculateDelay(binding)
         val scheduleTime = reminderViewModel.buildScheduleTime(binding)
         val isActive = try { binding.switchIsActive.isChecked } catch (_: Exception) { true }
         val id = "eilaji_reminder_${reminderViewModel.randomUUIDString()}"
-        val reminder = Reminder(id, txt, delay, if (selectedFrequency == "DAILY") 1 else 2)
+        val reminder = Reminder(id, if (dosage != null) "$txt — $dosage" else txt, delay, if (selectedFrequency == "DAILY") 1 else 2)
         reminder.medicineName = txt
-        reminder.dosage = null
+        reminder.dosage = dosage
         reminder.frequency = selectedFrequency
         reminder.scheduleTime = scheduleTime
         reminder.setCustomDaysList(customDays)
@@ -142,16 +143,23 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
                     }
                 }
             } catch (_: Exception) {}
-            if (selectedFrequency == "DAILY" || selectedFrequency == "WEEKLY" || selectedFrequency == "CUSTOM") {
+            val sub15min = try { pendingUnit.toMinutes(pendingInterval) < 15 } catch (_: Exception) { false }
+            if (selectedFrequency == "DAILY" || selectedFrequency == "WEEKLY" || (selectedFrequency == "CUSTOM" && !sub15min)) {
                 reminderViewModel.reminderScheduler.value?.scheduleReminderPeriodicWorkRequest(pendingInterval, pendingUnit)
                 try { reminderViewModel.reminderScheduler.value?.scheduleExact(reminder.id, reminder.medicineName ?: txt, reminder.notificationId, selectedFrequency, customDays.toString(), scheduleTime) } catch (_: Exception) {}
-            } else reminderViewModel.reminderScheduler.value?.scheduleReminderOneTimeWorkRequest()
+            } else {
+                try { reminderViewModel.reminderScheduler.value?.scheduleExact(reminder.id, reminder.medicineName ?: txt, reminder.notificationId, selectedFrequency, customDays.toString(), scheduleTime) } catch (_: Exception) {}
+                reminderViewModel.reminderScheduler.value?.scheduleReminderOneTimeWorkRequest()
+            }
         }
         reminderViewModel.storeReminderIntoDatabase(reminder)
         syncRepo.syncCreate(reminder) { ok -> if (ok) reminder.syncStatus = "SYNCED" }
         reminderViewModel.showRemainingTime(binding)
-        Toast.makeText(requireContext(), "Reminder Saved.", Toast.LENGTH_SHORT).show()
+        try {
+            com.google.android.material.snackbar.Snackbar.make(binding.root, "Reminder saved", com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show()
+        } catch (_: Exception) { Toast.makeText(requireContext(), "Reminder Saved.", Toast.LENGTH_SHORT).show() }
         reminderViewModel.clearInputs(binding)
+        try { binding.reminderDosageEditText.text?.clear() } catch (_: Exception) {}
     }
     override fun collectUserPeriodicReminderListenerInputs(repeatInterval: Long?, timeUnit: TimeUnit?) {
         if (arePermissionsGranted()) createPeriodicReminder(repeatInterval, timeUnit) else RequestPermissionsDialogFragment.newInstance(getString(R.string.permissions_message_we_are_sorry)).show(childFragmentManager, "WeAreSorry")

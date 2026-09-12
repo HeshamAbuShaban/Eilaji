@@ -67,7 +67,7 @@
         android:layout_margin="16dp"
         android:fontFamily="@font/cairo_medium"
         android:text="@string/add"
-        android:textColor="@color/white"
+        android:textColor="@color/white_fixed"
         android:textSize="13sp"
         app:backgroundTint="@color/primary_color"
         app:elevation="2dp"

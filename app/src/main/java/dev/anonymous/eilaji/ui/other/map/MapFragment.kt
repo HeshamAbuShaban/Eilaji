@@ -140,15 +140,15 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
         gm.clear()
         currentLatLngCache?.let { gm.addMarker(MarkerOptions().position(it).title("My Location").snippet("You are here")) }
         pharmacyDtos.forEach { dto ->
-            val opts = MarkerOptions().position(LatLng(dto.latitude, dto.longitude)).title(dto.name).snippet(dto.phone ?: dto.address).icon(getMarkerIconFromDrawable(requireContext(), R.drawable.ic_hospital))
+            val snippet = "${if (dto.isOpen) "Open" else "Closed"} • ${String.format("%.1f", dto.ratingAvg)}★ • ${dto.phone ?: dto.address}"
+            val opts = MarkerOptions().position(LatLng(dto.latitude, dto.longitude)).title(dto.name).snippet(snippet).icon(getMarkerIconFromDrawable(requireContext(), R.drawable.ic_hospital))
             val m = gm.addMarker(opts)
             m?.tag = dto
         }
     }
 
     private fun setupPager() {
-        // Fixed: inline Pharmacy mapping to avoid private extension receiver mismatch
-        val list = ArrayList(pharmacyDtos.map { dto -> Pharmacy(uid = dto.id, pharmacy_image_url = dto.imageUrl ?: "", pharmacy_name = dto.name, phone = dto.phone ?: "", address = dto.address, lat = dto.latitude, lng = dto.longitude, token = "") })
+        val list = ArrayList(pharmacyDtos.map { dto -> Pharmacy(uid = dto.id, pharmacy_image_url = dto.imageUrl ?: "", pharmacy_name = dto.name, phone = dto.phone ?: "", address = dto.address, lat = dto.latitude, lng = dto.longitude, token = "", ratingAvg = dto.ratingAvg, totalRatings = dto.totalRatings, isOpen = dto.isOpen, distanceKm = dto.distanceKm) })
         binding.pharmaciesLocationsPager.adapter = PharmaciesLocationsAdapter(list) {
             val b = android.os.Bundle().apply {
                 putString("receiverUid", it.uid)

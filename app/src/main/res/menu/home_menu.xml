@@ -22,4 +22,10 @@
         android:title="@string/search"
         app:showAsAction="always" />
 
+    <item
+        android:id="@+id/cart_menu_item"
+        android:icon="@drawable/ic_shopping_cart"
+        android:title="@string/checkout"
+        app:showAsAction="always" />
+
 </menu>

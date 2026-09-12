@@ -132,4 +132,16 @@
     <string name="edit">Edit</string>
     <string name="recent_searches">Recent searches</string>
     <string name="tap_heart_to_save">Tap the heart on any medicine to save it here</string>
+    <string name="dosage_hint">Dosage</string>
+    <string name="dosage_example">e.g. 500mg after food</string>
+    <string name="call_pharmacy">Call pharmacy</string>
+    <string name="open_now">Open</string>
+    <string name="closed_now">Closed</string>
+    <string name="use_my_location">Use my location</string>
+    <string name="save_address">Save address</string>
+    <string name="tap_map_to_move_pin">Tap the map to move the pin</string>
+    <string name="available_nearby">Available nearby</string>
+    <string name="rate_pharmacy">Rate pharmacy</string>
+    <string name="thanks_for_rating">Thanks for rating!</string>
+    <string name="alternatives_title">You may also need</string>
 </resources>

@@ -9,4 +9,6 @@
     <color name="primary_color">#BA324F</color>
     <color name="ic_launcher_background">#121212</color>
     <color name="night_window_background_color">#121212</color>
+    <color name="white_fixed">#FFFFFF</color>
+    <color name="light_gray">#D3D3D3</color>
 </resources>

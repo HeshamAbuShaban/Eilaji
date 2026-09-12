@@ -27,7 +27,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/_25sdp"
             android:text="Omar mustafa"
-            android:textColor="@color/white"
+            android:textColor="@color/white_fixed"
             android:textSize="@dimen/_13ssp"
             android:textStyle="bold"
             tools:ignore="HardcodedText" />

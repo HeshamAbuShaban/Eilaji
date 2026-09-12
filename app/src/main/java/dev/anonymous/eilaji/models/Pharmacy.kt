@@ -8,7 +8,11 @@ data class Pharmacy(
     var address: String,
     var lat: Double,
     var lng: Double,
-    var token: String
+    var token: String,
+    var ratingAvg: Double = 0.0,
+    var totalRatings: Int = 0,
+    var isOpen: Boolean = true,
+    var distanceKm: Double? = null
 ) {
     constructor() : this("", "", "", "", "", 0.0, 0.0, "")
     // Secondary constructor for Fire-store deserialization

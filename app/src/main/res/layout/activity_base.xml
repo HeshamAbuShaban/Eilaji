@@ -64,6 +64,6 @@
         app:layout_anchor="@id/bottomAppBar"
         app:layout_anchorGravity="top|center"
         app:maxImageSize="24dp"
-        app:tint="@color/white" />
+        app:tint="@color/white_fixed" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

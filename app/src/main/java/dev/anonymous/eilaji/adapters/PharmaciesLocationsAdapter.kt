@@ -1,7 +1,9 @@
 package dev.anonymous.eilaji.adapters
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import dev.anonymous.eilaji.R
 import androidx.recyclerview.widget.RecyclerView
 import dev.anonymous.eilaji.databinding.ItemPharmacyLocationBinding
 import dev.anonymous.eilaji.models.Pharmacy
@@ -35,17 +37,31 @@ class PharmaciesLocationsAdapter(
         RecyclerView.ViewHolder(
             binding.root
         ) {
+        @SuppressLint("SetTextI18n")
         fun bind(model: Pharmacy, navigateToChat: (model: Pharmacy) -> Unit) {
             binding.apply {
-
-                GeneralUtils.getInstance().loadImage(model.pharmacy_image_url).into(ivPharmacyLocation)
+                if (model.pharmacy_image_url.isBlank()) ivPharmacyLocation.setImageResource(R.drawable.temp_ads_image)
+                else try { GeneralUtils.getInstance().loadImage(model.pharmacy_image_url).into(ivPharmacyLocation) } catch (_: Exception) {}
 
                 tvPharmacyNameLocation.text = model.pharmacy_name
-                tvPharmacyDistanceLocation.text = model.address
+                tvPharmacyAddress.text = model.address
+                tvPharmacyRating.text = if (model.totalRatings > 0) String.format("%.1f (%d)", model.ratingAvg, model.totalRatings) else "New"
+                tvPharmacyDistanceLocation.text = model.distanceKm?.let { String.format("%.1f km", it) } ?: ""
+                tvPharmacyOpenBadge.text = root.context.getString(if (model.isOpen) R.string.open_now else R.string.closed_now)
+                tvPharmacyOpenBadge.setTextColor(
+                    androidx.core.content.ContextCompat.getColor(root.context, if (model.isOpen) R.color.primary_color else R.color.gray_dark)
+                )
 
-                buPharmacyChatLocation.setOnClickListener {
-                    navigateToChat(model)
-                }
+                buPharmacyChatLocation.setOnClickListener { navigateToChat(model) }
+                try {
+                    buPharmacyCallLocation.setOnClickListener {
+                        val ctx = it.context
+                        if (model.phone.isBlank()) return@setOnClickListener
+                        try {
+                            ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_DIAL, android.net.Uri.parse("tel:${model.phone}")))
+                        } catch (_: Exception) {}
+                    }
+                } catch (_: Exception) {}
             }
         }
     }

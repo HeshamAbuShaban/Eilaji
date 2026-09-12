@@ -57,6 +57,120 @@ class MedicineFragment : Fragment() {
         setupQuantity()
         binding.cardCart?.setOnClickListener { addToCart() }
         binding.cardCheckout?.setOnClickListener { goCheckout() }
+        setupAvailability()
+        setupRating()
+        setupAlternatives()
+    }
+
+    private fun setupAlternatives() {
+        try {
+            binding.recyclerAlternatives?.layoutManager =
+                androidx.recyclerview.widget.LinearLayoutManager(requireContext(), androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false)
+        } catch (_: Exception) {}
+        NetworkModule.provideApiService(requireContext()).getMedicines(page = 0, pageSize = 12)
+            .enqueue(object : Callback<ApiResponse<dev.anonymous.eilaji.network.PaginatedResult<MedicineDto>>> {
+                override fun onResponse(call: Call<ApiResponse<dev.anonymous.eilaji.network.PaginatedResult<MedicineDto>>>, response: Response<ApiResponse<dev.anonymous.eilaji.network.PaginatedResult<MedicineDto>>>) {
+                    val items = (response.body()?.data?.items ?: emptyList()).filter { it.id != currentDto?.id }.take(8)
+                    if (items.isEmpty()) {
+                        try { binding.tvAlternativesTitle?.visibility = View.GONE; binding.recyclerAlternatives?.visibility = View.GONE } catch (_: Exception) {}
+                        return
+                    }
+                    val ui = ArrayList(items.map { dto ->
+                        dev.anonymous.eilaji.models.server.Medicine(dto.id, dto.imageUrl ?: "", dto.titleEn.ifBlank { dto.titleAr }, dto.price ?: 0.0, dto.descriptionEn ?: "", ArrayList(), "", dto.subcategoryNameEn ?: "", false)
+                    })
+                    binding.recyclerAlternatives?.adapter = dev.anonymous.eilaji.adapters.MedicinesAdapter(ui, onItemClick = { med ->
+                        val b = Bundle().apply { putString("medicineId", med.id) }
+                        try { findNavController().navigate(R.id.navigation_medicine, b) } catch (_: Exception) {
+                            loadDetails(med.id)
+                        }
+                    })
+                }
+                override fun onFailure(call: Call<ApiResponse<dev.anonymous.eilaji.network.PaginatedResult<MedicineDto>>>, t: Throwable) {
+                    try { binding.tvAlternativesTitle?.visibility = View.GONE; binding.recyclerAlternatives?.visibility = View.GONE } catch (_: Exception) {}
+                }
+            })
+    }
+
+    private fun userLatLng(): Pair<Double, Double> {
+        return try {
+            val prefs = dev.anonymous.eilaji.storage.AppSharedPreferences.getInstance(requireContext())
+            val lat = prefs.getString("delivery_lat", null)?.toDoubleOrNull()
+            val lng = prefs.getString("delivery_lng", null)?.toDoubleOrNull()
+            if (lat != null && lng != null) lat to lng else 31.5 to 34.46
+        } catch (_: Exception) { 31.5 to 34.46 }
+    }
+
+    private fun setupAvailability() {
+        try {
+            binding.recyclerAvailablePharmacies?.layoutManager =
+                androidx.recyclerview.widget.LinearLayoutManager(requireContext(), androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false)
+        } catch (_: Exception) {}
+        val (lat, lng) = userLatLng()
+        NetworkModule.provideApiService(requireContext()).getNearbyPharmacies(lat, lng, 600.0)
+            .enqueue(object : Callback<ApiResponse<List<dev.anonymous.eilaji.network.PharmacyDto>>> {
+                override fun onResponse(call: Call<ApiResponse<List<dev.anonymous.eilaji.network.PharmacyDto>>>, response: Response<ApiResponse<List<dev.anonymous.eilaji.network.PharmacyDto>>>) {
+                    val items = if (response.isSuccessful && response.body()?.success == true) response.body()?.data ?: emptyList() else emptyList()
+                    bindAvailability(items)
+                }
+                override fun onFailure(call: Call<ApiResponse<List<dev.anonymous.eilaji.network.PharmacyDto>>>, t: Throwable) { bindAvailability(emptyList()) }
+            })
+    }
+
+    private fun bindAvailability(items: List<dev.anonymous.eilaji.network.PharmacyDto>) {
+        try {
+            val top = items.take(5)
+            if (top.isEmpty()) {
+                binding.tvAvailabilityCount?.visibility = View.GONE
+                binding.recyclerAvailablePharmacies?.visibility = View.GONE
+                return
+            }
+            binding.tvAvailabilityCount?.visibility = View.VISIBLE
+            binding.tvAvailabilityCount?.text = "${top.size} nearby"
+            val ui = ArrayList(top.map { dto ->
+                dev.anonymous.eilaji.models.Pharmacy(uid = dto.id, pharmacy_image_url = dto.imageUrl ?: "", pharmacy_name = dto.name, phone = dto.phone ?: "", address = dto.address, lat = dto.latitude, lng = dto.longitude, token = "", ratingAvg = dto.ratingAvg, totalRatings = dto.totalRatings, isOpen = dto.isOpen, distanceKm = dto.distanceKm)
+            })
+            binding.recyclerAvailablePharmacies?.adapter = dev.anonymous.eilaji.adapters.PharmaciesLocationsAdapter(ui) { model ->
+                val intent = android.content.Intent(requireContext(), dev.anonymous.eilaji.ui.other.base.AlternativesActivity::class.java)
+                intent.putExtra("fragmentType", dev.anonymous.eilaji.storage.enums.FragmentsKeys.messaging.name)
+                intent.putExtra("receiverUid", model.uid)
+                intent.putExtra("receiverFullName", model.pharmacy_name)
+                intent.putExtra("receiverUrlImage", model.pharmacy_image_url)
+                startActivity(intent)
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun setupRating() {
+        binding.buRatePharmacy?.setOnClickListener {
+            val stars = (binding.ratingPharmacy?.rating ?: 4f).toInt().coerceIn(1, 5)
+            val (lat, lng) = userLatLng()
+            NetworkModule.provideApiService(requireContext()).getNearbyPharmacies(lat, lng, 600.0)
+                .enqueue(object : Callback<ApiResponse<List<dev.anonymous.eilaji.network.PharmacyDto>>> {
+                    override fun onResponse(call: Call<ApiResponse<List<dev.anonymous.eilaji.network.PharmacyDto>>>, response: Response<ApiResponse<List<dev.anonymous.eilaji.network.PharmacyDto>>>) {
+                        val first = response.body()?.data?.firstOrNull()
+                        if (first == null) {
+                            Toast.makeText(requireContext(), "No pharmacy nearby to rate", Toast.LENGTH_SHORT).show()
+                            return
+                        }
+                        NetworkModule.provideApiService(requireContext())
+                            .createRating(dev.anonymous.eilaji.network.CreateRatingRequest(first.id, stars, null))
+                            .enqueue(object : Callback<ApiResponse<dev.anonymous.eilaji.network.RatingDto>> {
+                                override fun onResponse(call: Call<ApiResponse<dev.anonymous.eilaji.network.RatingDto>>, r2: Response<ApiResponse<dev.anonymous.eilaji.network.RatingDto>>) {
+                                    if (r2.isSuccessful && r2.body()?.success == true) {
+                                        Snackbar.make(binding.root, getString(R.string.thanks_for_rating), Snackbar.LENGTH_SHORT).show()
+                                        setupAvailability()
+                                    } else Toast.makeText(requireContext(), r2.body()?.error ?: "Rating failed — login required", Toast.LENGTH_SHORT).show()
+                                }
+                                override fun onFailure(call: Call<ApiResponse<dev.anonymous.eilaji.network.RatingDto>>, t: Throwable) {
+                                    Toast.makeText(requireContext(), "Network error", Toast.LENGTH_SHORT).show()
+                                }
+                            })
+                    }
+                    override fun onFailure(call: Call<ApiResponse<List<dev.anonymous.eilaji.network.PharmacyDto>>>, t: Throwable) {
+                        Toast.makeText(requireContext(), "Network error", Toast.LENGTH_SHORT).show()
+                    }
+                })
+        }
     }
 
     private fun loadDetails(id: String) {
@@ -85,6 +199,7 @@ class MedicineFragment : Fragment() {
         binding.tvMedicinePrescription?.visibility = if (dto.requiresPrescription) View.VISIBLE else View.GONE
         updateTotalLabel()
         updateFavoriteIcon()
+        setupAlternatives()
     }
 
     private fun setupFavorite() {
