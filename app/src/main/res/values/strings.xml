@@ -131,4 +131,5 @@
     <string name="guest_user">Guest User</string>
     <string name="edit">Edit</string>
     <string name="recent_searches">Recent searches</string>
+    <string name="tap_heart_to_save">Tap the heart on any medicine to save it here</string>
 </resources>
