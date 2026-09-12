@@ -142,7 +142,7 @@ class MedicineFragment : Fragment() {
 
     private fun setupRating() {
         binding.buRatePharmacy?.setOnClickListener {
-            val stars = binding.ratingPharmacy?.rating.toInt().coerceIn(1, 5)
+            val stars = (binding.ratingPharmacy?.rating ?: 4f).toInt().coerceIn(1, 5)
             val (lat, lng) = userLatLng()
             NetworkModule.provideApiService(requireContext()).getNearbyPharmacies(lat, lng, 600.0)
                 .enqueue(object : Callback<ApiResponse<List<dev.anonymous.eilaji.network.PharmacyDto>>> {
