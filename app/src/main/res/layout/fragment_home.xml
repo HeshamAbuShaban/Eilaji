@@ -296,9 +296,9 @@
                     android:layout_columnWeight="1"
                     android:layout_margin="@dimen/_6sdp"
                     app:cardCornerRadius="@dimen/_10sdp"
-                    app:cardElevation="@dimen/_3sdp"
+                    app:cardElevation="@dimen/_2sdp"
                     app:strokeColor="@color/gray"
-                    app:strokeWidth="0.5dp">
+                    app:strokeWidth="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -330,9 +330,9 @@
                     android:layout_columnWeight="1"
                     android:layout_margin="@dimen/_6sdp"
                     app:cardCornerRadius="@dimen/_10sdp"
-                    app:cardElevation="@dimen/_3sdp"
+                    app:cardElevation="@dimen/_2sdp"
                     app:strokeColor="@color/gray"
-                    app:strokeWidth="0.5dp">
+                    app:strokeWidth="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -364,9 +364,9 @@
                     android:layout_columnWeight="1"
                     android:layout_margin="@dimen/_6sdp"
                     app:cardCornerRadius="@dimen/_10sdp"
-                    app:cardElevation="@dimen/_3sdp"
+                    app:cardElevation="@dimen/_2sdp"
                     app:strokeColor="@color/gray"
-                    app:strokeWidth="0.5dp">
+                    app:strokeWidth="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -398,9 +398,9 @@
                     android:layout_columnWeight="1"
                     android:layout_margin="@dimen/_6sdp"
                     app:cardCornerRadius="@dimen/_10sdp"
-                    app:cardElevation="@dimen/_3sdp"
+                    app:cardElevation="@dimen/_2sdp"
                     app:strokeColor="@color/gray"
-                    app:strokeWidth="0.5dp">
+                    app:strokeWidth="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"

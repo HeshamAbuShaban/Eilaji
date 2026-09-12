@@ -95,4 +95,15 @@
     <string name="medicines">الأدوية</string>
     <string name="pharmacies">صيدليات</string>
     <string name="do_you_really_want_to_delete">هل تريد حقا الحذف !؟</string>
+    <string name="recent_searches">عمليات البحث الأخيرة</string>
+    <string name="no_results_found">لا توجد نتائج</string>
+    <string name="try_different_search">جرّب بحثاً مختلفاً أو تصفح الفئات</string>
+    <string name="retry">إعادة المحاولة</string>
+    <string name="no_favorites_yet">لا توجد مفضلة بعد</string>
+    <string name="browse_medicines">تصفح الأدوية</string>
+    <string name="guest_user">زائر</string>
+    <string name="edit">تعديل</string>
+    <string name="tap_heart_to_save">اضغط على القلب لحفظ الدواء هنا</string>
+    <string name="no_reminders_yet">لا توجد تذكيرات — اضغط للإضافة</string>
+    <string name="login_subtitle">صيدليتك حتى باب البيت</string>
 </resources>
