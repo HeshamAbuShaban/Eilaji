@@ -63,12 +63,9 @@ class BaseActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigationView() {
-        baseViewModel.navController.value?.let { nonNullNavController ->
-            binding.navView.setupWithNavController(nonNullNavController)
-        }
-        baseViewModel.navController.observe(this) { controller ->
-            controller?.let { refreshCartBadge() }
-        }
+        val navController = findNavController(R.id.nav_host_fragment_activity_base)
+        binding.navView.setupWithNavController(navController)
+        navController.addOnDestinationChangedListener { _, _, _ -> refreshCartBadge() }
     }
 
     private fun setupFab() {
@@ -83,37 +80,35 @@ class BaseActivity : AppCompatActivity() {
     }
 
     fun refreshCartBadge() {
-        val count = CartRepository.getInstance(this).getCount()
-        val badge = binding.navView.getOrCreateBadge(R.id.navigation_home)
+        val count = try { CartRepository.getInstance(this).getCount() } catch (_: Exception) { 0 }
         if (count > 0) {
+            val badge = binding.navView.getOrCreateBadge(R.id.navigation_chatting)
             badge.isVisible = true
             badge.number = count
             badge.backgroundColor = getColor(R.color.primary_color)
             badge.badgeTextColor = getColor(R.color.white)
         } else {
-            badge.isVisible = false
-            badge.clearNumber()
+            try { binding.navView.removeBadge(R.id.navigation_chatting) } catch (_: Exception) {}
+            try { binding.navView.removeBadge(R.id.navigation_home) } catch (_: Exception) {}
         }
     }
 
+    private var toolbarListenerRegistered = false
+
     private fun updateToolbarMenu() {
+        if (toolbarListenerRegistered) return
+        toolbarListenerRegistered = true
         val toolbar = binding.includeAppBarLayoutBase.toolbarApp
-        baseViewModel.navController.value?.let { nonNullNavController ->
-            nonNullNavController.addOnDestinationChangedListener { _, destination, _ ->
-                val menuResource = when (destination.id) {
-                    R.id.navigation_home -> R.menu.home_menu
-                    R.id.navigation_categories -> R.menu.category_menu
-                    else -> 0
-                }
-                toolbar.menu.clear()
-                if (menuResource != 0) {
-                    toolbar.inflateMenu(menuResource)
-                }
+        val navController = findNavController(R.id.nav_host_fragment_activity_base)
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            val menuResource = when (destination.id) {
+                R.id.navigation_home -> R.menu.home_menu
+                R.id.navigation_categories -> R.menu.category_menu
+                else -> 0
             }
-            binding.navView.setOnItemSelectedListener { menuItem ->
-                val handled = NavigationUI.onNavDestinationSelected(menuItem, nonNullNavController)
-                if (handled) invalidateOptionsMenu()
-                handled
+            toolbar.menu.clear()
+            if (menuResource != 0) {
+                toolbar.inflateMenu(menuResource)
             }
         }
     }

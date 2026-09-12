@@ -11,5 +11,6 @@ public enum FragmentsKeys {
     reminder,
     search,
     map,
+    checkout,
     logout
 }

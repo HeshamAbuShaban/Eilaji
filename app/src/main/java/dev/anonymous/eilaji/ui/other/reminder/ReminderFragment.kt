@@ -93,14 +93,27 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
             fabChangeSound.setOnClickListener { ChangeSoundDialogFragment().show(childFragmentManager, "ChangeReminderSound") }
         }
     }
+    private var pendingInterval: Long = 1
+    private var pendingUnit: TimeUnit = TimeUnit.DAYS
+
     private fun createPeriodicReminder(repeatInterval: Long?, timeUnit: TimeUnit?) {
-        selectedFrequency = when (timeUnit) {
-            TimeUnit.DAYS -> "WEEKLY"
-            TimeUnit.HOURS -> "DAILY"
-            else -> if (repeatInterval != null && repeatInterval > 1) "CUSTOM" else "DAILY"
+        val interval = (repeatInterval ?: 1L).coerceAtLeast(1L)
+        val unit = timeUnit ?: TimeUnit.DAYS
+        pendingInterval = interval
+        pendingUnit = unit
+        selectedFrequency = when {
+            unit == TimeUnit.DAYS && interval == 1L -> "DAILY"
+            unit == TimeUnit.DAYS && interval == 7L -> "WEEKLY"
+            unit == TimeUnit.HOURS && interval == 24L -> "DAILY"
+            else -> "CUSTOM"
         }
-        if (selectedFrequency == "CUSTOM") customDays = listOf("MONDAY","WEDNESDAY","FRIDAY") else customDays = emptyList()
-        binding.textFrequencyPill.text = selectedFrequency
+        customDays = if (selectedFrequency == "CUSTOM") {
+            when {
+                unit == TimeUnit.DAYS -> listOf("MONDAY", "WEDNESDAY", "FRIDAY")
+                else -> emptyList()
+            }
+        } else emptyList()
+        binding.textFrequencyPill.text = if (selectedFrequency == "CUSTOM") "EVERY $interval ${unit.name}" else selectedFrequency
         createOneTimeReminder()
     }
     private fun createOneTimeReminder() {
@@ -121,8 +134,18 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
         reminder.syncStatus = "PENDING"
         reminderViewModel.reminderScheduler.value?.setReminderObject(reminder)
         if (isActive) {
-            if (selectedFrequency == "DAILY" || selectedFrequency == "WEEKLY" || selectedFrequency == "CUSTOM") reminderViewModel.reminderScheduler.value?.scheduleReminderPeriodicWorkRequest(1, TimeUnit.DAYS)
-            else reminderViewModel.reminderScheduler.value?.scheduleReminderOneTimeWorkRequest()
+            try {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                    val am = requireContext().getSystemService(android.content.Context.ALARM_SERVICE) as android.app.AlarmManager
+                    if (!am.canScheduleExactAlarms()) {
+                        try { startActivity(android.content.Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)) } catch (_: Exception) {}
+                    }
+                }
+            } catch (_: Exception) {}
+            if (selectedFrequency == "DAILY" || selectedFrequency == "WEEKLY" || selectedFrequency == "CUSTOM") {
+                reminderViewModel.reminderScheduler.value?.scheduleReminderPeriodicWorkRequest(pendingInterval, pendingUnit)
+                try { reminderViewModel.reminderScheduler.value?.scheduleExact(reminder.id, reminder.medicineName ?: txt, reminder.notificationId, selectedFrequency, customDays.toString(), scheduleTime) } catch (_: Exception) {}
+            } else reminderViewModel.reminderScheduler.value?.scheduleReminderOneTimeWorkRequest()
         }
         reminderViewModel.storeReminderIntoDatabase(reminder)
         syncRepo.syncCreate(reminder) { ok -> if (ok) reminder.syncStatus = "SYNCED" }

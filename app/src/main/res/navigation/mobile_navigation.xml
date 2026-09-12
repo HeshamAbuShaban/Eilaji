@@ -18,15 +18,18 @@
         android:label="@string/title_send_prescription"
         tools:layout="@layout/fragment_send_prescription" />
 
+    <action
+        android:id="@+id/action_global_send_prescription"
+        app:destination="@id/navigation_send_prescription"
+        app:launchSingleTop="true"
+        app:popUpTo="@id/navigation_home"
+        app:popUpToInclusive="false" />
+
     <fragment
         android:id="@+id/navigation_chatting"
         android:name="dev.anonymous.eilaji.ui.base.user_interface.chatting.ChattingFragment"
         android:label="@string/chats"
-        tools:layout="@layout/fragment_chatting">
-        <action
-            android:id="@+id/action_navigation_chatting_to_navigation_messaging"
-            app:destination="@id/navigation_messaging" />
-    </fragment>
+        tools:layout="@layout/fragment_chatting" />
 
     <fragment
         android:id="@+id/navigation_categories"

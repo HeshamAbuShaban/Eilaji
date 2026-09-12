@@ -31,17 +31,33 @@ class CategoriesFragment : Fragment() {
         return binding.root
     }
 
+    private var dialogShown = false
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         categoriesViewModel.init(requireContext())
-        loadingDialog.show(requireActivity().supportFragmentManager, "Loading")
+        if (categoriesViewModel.categoryList.value == null && !dialogShown) {
+            try { loadingDialog.show(requireActivity().supportFragmentManager, "Loading"); dialogShown = true } catch (_: Exception) {}
+            view.postDelayed({
+                try { loadingDialog.dismiss() } catch (_: Exception) {}
+                if (categoriesViewModel.categoryList.value == null) showRetry("Couldn't load categories")
+            }, 8000)
+        }
         displayCategories()
         fetchCategories()
         categoriesViewModel.error.observe(viewLifecycleOwner) { err ->
             if (err != null) {
-                loadingDialog.dismiss()
+                try { loadingDialog.dismiss() } catch (_: Exception) {}
+                showRetry(err)
             }
         }
+    }
+
+    private fun showRetry(msg: String) {
+        try {
+            com.google.android.material.snackbar.Snackbar.make(binding.root, msg, com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
+                .setAction("Retry") { fetchCategories() }.show()
+        } catch (_: Exception) {}
     }
 
     private fun displayCategories() {

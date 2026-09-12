@@ -36,12 +36,19 @@ class SubCategoriesFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        loadingDialog.show(childFragmentManager, "FetchingData")
         val arguments = arguments
         if (arguments != null) {
-            val args = SubCategoriesFragmentArgs.fromBundle(arguments)
-            categoryId = args.categoryId
-            categoryTitle = args.categoryTitle
+            try {
+                val args = SubCategoriesFragmentArgs.fromBundle(arguments)
+                categoryId = args.categoryId ?: ""
+                categoryTitle = args.categoryTitle ?: "Category"
+            } catch (_: Exception) {
+                categoryId = arguments.getString("categoryId") ?: ""
+                categoryTitle = arguments.getString("categoryTitle") ?: "Category"
+            }
+        } else {
+            categoryId = ""
+            categoryTitle = "Category"
         }
     }
 
@@ -60,10 +67,13 @@ class SubCategoriesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.includeAppBarLayoutAlternatives.toolbarApp.title = categoryTitle
+        try { binding.includeAppBarLayoutAlternatives.toolbarApp.title = categoryTitle } catch (_: Exception) {}
         displaySubCategories()
         displayMedicines()
-        loadingDialog.dismiss()
+        try { loadingDialog.dismiss() } catch (_: Exception) {}
+        view.postDelayed({
+            try { loadingDialog.dismiss() } catch (_: Exception) {}
+        }, 5000)
     }
 
     private fun setupSubCategoriesRecycler(subCategoriesList: ArrayList<SubCategory>) {

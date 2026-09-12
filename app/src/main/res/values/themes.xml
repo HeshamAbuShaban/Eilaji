@@ -187,4 +187,13 @@
     <style name="item_image_profile_tint">
         <item name="android:backgroundTint">@color/black</item>
     </style>
+
+    <style name="ShapeAppearance.App.Circle" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <style name="ShapeAppearance.App.Medium" parent="ShapeAppearance.Material3.Corner.Medium">
+        <item name="cornerSize">16dp</item>
+    </style>
 </resources>

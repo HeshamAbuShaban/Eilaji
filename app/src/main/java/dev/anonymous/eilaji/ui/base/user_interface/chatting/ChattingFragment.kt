@@ -103,7 +103,17 @@ class ChattingFragment : Fragment(), ChatListCallback, AccountAccessListener {
         val packageName = requireContext().packageName
         val intent = packageManager.getLaunchIntentForPackage(packageName)
         if (intent != null) { intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); startActivity(intent); requireActivity().finish() }
-        else { val navOptions = NavOptions.Builder().setPopUpTo(R.id.navigation_chatting, true).build(); findNavController().navigate(R.id.navigation_Login, null, navOptions) }
+        else { try { findNavController().navigate(R.id.navigation_Login) } catch (_: Exception) {} }
     }
-    override fun onDenyClicked() { loadingDialog.show(childFragmentManager, "Load4ever") }
+    override fun onDenyClicked() {
+        try { loadingDialog.dismiss() } catch (_: Exception) {}
+        removeChatShimmer()
+        binding.recyclerChats.visibility = View.VISIBLE
+        try {
+            com.google.android.material.snackbar.Snackbar.make(binding.root, "Guest mode — browse medicines & pharmacies", com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
+                .setAction("Browse") {
+                    try { findNavController().navigate(R.id.navigation_categories) } catch (_: Exception) {}
+                }.show()
+        } catch (_: Exception) {}
+    }
 }
