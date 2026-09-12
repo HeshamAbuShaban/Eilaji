@@ -64,7 +64,7 @@ class MedicineFragment : Fragment() {
 
     private fun setupAlternatives() {
         try {
-            binding.recyclerAlternatives.layoutManager =
+            binding.recyclerAlternatives?.layoutManager =
                 androidx.recyclerview.widget.LinearLayoutManager(requireContext(), androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false)
         } catch (_: Exception) {}
         NetworkModule.provideApiService(requireContext()).getMedicines(page = 0, pageSize = 12)
@@ -72,13 +72,13 @@ class MedicineFragment : Fragment() {
                 override fun onResponse(call: Call<ApiResponse<dev.anonymous.eilaji.network.PaginatedResult<MedicineDto>>>, response: Response<ApiResponse<dev.anonymous.eilaji.network.PaginatedResult<MedicineDto>>>) {
                     val items = (response.body()?.data?.items ?: emptyList()).filter { it.id != currentDto?.id }.take(8)
                     if (items.isEmpty()) {
-                        try { binding.tvAlternativesTitle.visibility = View.GONE; binding.recyclerAlternatives.visibility = View.GONE } catch (_: Exception) {}
+                        try { binding.tvAlternativesTitle?.visibility = View.GONE; binding.recyclerAlternatives?.visibility = View.GONE } catch (_: Exception) {}
                         return
                     }
                     val ui = ArrayList(items.map { dto ->
                         dev.anonymous.eilaji.models.server.Medicine(dto.id, dto.imageUrl ?: "", dto.titleEn.ifBlank { dto.titleAr }, dto.price ?: 0.0, dto.descriptionEn ?: "", ArrayList(), "", dto.subcategoryNameEn ?: "", false)
                     })
-                    binding.recyclerAlternatives.adapter = dev.anonymous.eilaji.adapters.MedicinesAdapter(ui, onItemClick = { med ->
+                    binding.recyclerAlternatives?.adapter = dev.anonymous.eilaji.adapters.MedicinesAdapter(ui, onItemClick = { med ->
                         val b = Bundle().apply { putString("medicineId", med.id) }
                         try { findNavController().navigate(R.id.navigation_medicine, b) } catch (_: Exception) {
                             loadDetails(med.id)
@@ -86,7 +86,7 @@ class MedicineFragment : Fragment() {
                     })
                 }
                 override fun onFailure(call: Call<ApiResponse<dev.anonymous.eilaji.network.PaginatedResult<MedicineDto>>>, t: Throwable) {
-                    try { binding.tvAlternativesTitle.visibility = View.GONE; binding.recyclerAlternatives.visibility = View.GONE } catch (_: Exception) {}
+                    try { binding.tvAlternativesTitle?.visibility = View.GONE; binding.recyclerAlternatives?.visibility = View.GONE } catch (_: Exception) {}
                 }
             })
     }
@@ -102,7 +102,7 @@ class MedicineFragment : Fragment() {
 
     private fun setupAvailability() {
         try {
-            binding.recyclerAvailablePharmacies.layoutManager =
+            binding.recyclerAvailablePharmacies?.layoutManager =
                 androidx.recyclerview.widget.LinearLayoutManager(requireContext(), androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false)
         } catch (_: Exception) {}
         val (lat, lng) = userLatLng()
@@ -120,16 +120,16 @@ class MedicineFragment : Fragment() {
         try {
             val top = items.take(5)
             if (top.isEmpty()) {
-                binding.tvAvailabilityCount.visibility = View.GONE
-                binding.recyclerAvailablePharmacies.visibility = View.GONE
+                binding.tvAvailabilityCount?.visibility = View.GONE
+                binding.recyclerAvailablePharmacies?.visibility = View.GONE
                 return
             }
-            binding.tvAvailabilityCount.visibility = View.VISIBLE
-            binding.tvAvailabilityCount.text = "${top.size} nearby"
+            binding.tvAvailabilityCount?.visibility = View.VISIBLE
+            binding.tvAvailabilityCount?.text = "${top.size} nearby"
             val ui = ArrayList(top.map { dto ->
                 dev.anonymous.eilaji.models.Pharmacy(uid = dto.id, pharmacy_image_url = dto.imageUrl ?: "", pharmacy_name = dto.name, phone = dto.phone ?: "", address = dto.address, lat = dto.latitude, lng = dto.longitude, token = "", ratingAvg = dto.ratingAvg, totalRatings = dto.totalRatings, isOpen = dto.isOpen, distanceKm = dto.distanceKm)
             })
-            binding.recyclerAvailablePharmacies.adapter = dev.anonymous.eilaji.adapters.PharmaciesLocationsAdapter(ui) { model ->
+            binding.recyclerAvailablePharmacies?.adapter = dev.anonymous.eilaji.adapters.PharmaciesLocationsAdapter(ui) { model ->
                 val intent = android.content.Intent(requireContext(), dev.anonymous.eilaji.ui.other.base.AlternativesActivity::class.java)
                 intent.putExtra("fragmentType", dev.anonymous.eilaji.storage.enums.FragmentsKeys.messaging.name)
                 intent.putExtra("receiverUid", model.uid)
@@ -141,8 +141,8 @@ class MedicineFragment : Fragment() {
     }
 
     private fun setupRating() {
-        binding.buRatePharmacy.setOnClickListener {
-            val stars = binding.ratingPharmacy.rating.toInt().coerceIn(1, 5)
+        binding.buRatePharmacy?.setOnClickListener {
+            val stars = binding.ratingPharmacy?.rating.toInt().coerceIn(1, 5)
             val (lat, lng) = userLatLng()
             NetworkModule.provideApiService(requireContext()).getNearbyPharmacies(lat, lng, 600.0)
                 .enqueue(object : Callback<ApiResponse<List<dev.anonymous.eilaji.network.PharmacyDto>>> {

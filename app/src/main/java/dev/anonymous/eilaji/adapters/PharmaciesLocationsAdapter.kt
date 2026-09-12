@@ -3,6 +3,7 @@ package dev.anonymous.eilaji.adapters
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import dev.anonymous.eilaji.R
 import androidx.recyclerview.widget.RecyclerView
 import dev.anonymous.eilaji.databinding.ItemPharmacyLocationBinding
 import dev.anonymous.eilaji.models.Pharmacy
