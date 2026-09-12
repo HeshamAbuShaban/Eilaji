@@ -121,7 +121,6 @@ class BaseActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
         R.id.search_menu_item -> {
-            showToast("search_menu")
             with(window) {
                 enterTransition = Explode()
                 exitTransition = Explode()
@@ -132,22 +131,30 @@ class BaseActivity : AppCompatActivity() {
             true
         }
         R.id.notification_menu_item -> {
-            showToast("notification_menu")
             val intent = Intent(this, AlternativesActivity::class.java)
             intent.putExtra("fragmentType", FragmentsKeys.reminder.name)
             startActivity(intent)
             true
         }
         R.id.pharmacies_map_menu_item -> {
-            showToast("pharmacies_map_menu")
             Intent(this@BaseActivity, AlternativesActivity::class.java).apply {
                 putExtra("fragmentType", FragmentsKeys.map.name)
                 startActivity(this)
             }
             true
         }
+        R.id.cart_menu_item -> {
+            val count = try { CartRepository.getInstance(this).getCount() } catch (_: Exception) { 0 }
+            if (count == 0) {
+                Toast.makeText(this, "Cart is empty — add medicines first", Toast.LENGTH_SHORT).show()
+            }
+            Intent(this@BaseActivity, AlternativesActivity::class.java).apply {
+                putExtra("fragmentType", FragmentsKeys.checkout.name)
+                startActivity(this)
+            }
+            true
+        }
         R.id.share_menu_item -> {
-            showToast("share_menu_item")
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"
                 putExtra(Intent.EXTRA_SUBJECT, "Check out this app!")

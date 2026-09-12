@@ -61,7 +61,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/guest_user"
-                            android:textColor="@color/white"
+                            android:textColor="@color/white_fixed"
                             android:textSize="@dimen/_16ssp"
                             android:textStyle="bold" />
 
