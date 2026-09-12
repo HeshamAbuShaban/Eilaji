@@ -97,16 +97,13 @@ class SearchFragment : Fragment() {
         with(binding.recVSearchPharmacies) {
             adapter = PharmaciesLocationsAdapter(pharmacy,
                 navigateToChat = {
-                    val action = SearchFragmentDirections.actionNavigationSearchToNavigationMessaging(
-                        null,
-                        it.uid,
-                        it.pharmacy_name,
-                        it.pharmacy_image_url,
-                        it.token,
-                        null,
-                        null
-                    )
-                    findNavController().navigate(action)
+                    val b = android.os.Bundle().apply {
+                        putString("receiverUid", it.uid)
+                        putString("receiverFullName", it.pharmacy_name)
+                        putString("receiverUrlImage", it.pharmacy_image_url)
+                        putString("receiverToken", it.token)
+                    }
+                    try { findNavController().navigate(R.id.action_navigation_search_to_navigation_messaging, b) } catch (_: Exception) {}
             })
         }
     }

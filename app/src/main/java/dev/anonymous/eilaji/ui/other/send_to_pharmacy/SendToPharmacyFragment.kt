@@ -120,18 +120,15 @@ class SendToPharmacyFragment : Fragment() {
             setHasFixedSize(false)
             layoutManager = LinearLayoutManager(activity)
             adapter = SendToPharmacyAdapter(pharmacies, myLocation) {
-                findNavController().navigate(
-                    SendToPharmacyFragmentDirections
-                        .actionNavigationSendToPharmacyFragmentToNavigationMessaging(
-                            null,
-                            it.uid,
-                            it.pharmacy_name,
-                            it.pharmacy_image_url,
-                            it.token,
-                            stringUri,
-                            description
-                        )
-                )
+                val b = android.os.Bundle().apply {
+                    putString("receiverUid", it.uid)
+                    putString("receiverFullName", it.pharmacy_name)
+                    putString("receiverUrlImage", it.pharmacy_image_url)
+                    putString("receiverToken", it.token)
+                    putString("stringUri", stringUri)
+                    putString("description", description)
+                }
+                try { findNavController().navigate(R.id.action_navigation_send_to_pharmacy_fragment_to_navigation_messaging, b) } catch (_: Exception) {}
             }
         }
     }

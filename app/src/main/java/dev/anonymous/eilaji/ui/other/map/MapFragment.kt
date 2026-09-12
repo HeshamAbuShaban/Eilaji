@@ -150,8 +150,13 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
         // Fixed: inline Pharmacy mapping to avoid private extension receiver mismatch
         val list = ArrayList(pharmacyDtos.map { dto -> Pharmacy(uid = dto.id, pharmacy_image_url = dto.imageUrl ?: "", pharmacy_name = dto.name, phone = dto.phone ?: "", address = dto.address, lat = dto.latitude, lng = dto.longitude, token = "") })
         binding.pharmaciesLocationsPager.adapter = PharmaciesLocationsAdapter(list) {
-            val action = MapFragmentDirections.actionNavigationMapToNavigationMessaging(null, it.uid, it.pharmacy_name, it.pharmacy_image_url, it.token, null, null)
-            findNavController().navigate(action)
+            val b = android.os.Bundle().apply {
+                putString("receiverUid", it.uid)
+                putString("receiverFullName", it.pharmacy_name)
+                putString("receiverUrlImage", it.pharmacy_image_url)
+                putString("receiverToken", it.token)
+            }
+            try { findNavController().navigate(R.id.action_navigation_map_to_navigation_messaging, b) } catch (_: Exception) {}
         }
         if (!pagerCallbackRegistered) {
             pagerCallbackRegistered = true
