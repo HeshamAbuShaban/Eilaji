@@ -61,13 +61,15 @@ class CategoriesFragment : Fragment() {
     }
 
     private fun displayCategories() {
+        try { binding.btnRetryCategories.setOnClickListener { binding.emptyCategoriesView.visibility = View.GONE; fetchCategories() } } catch (_: Exception) {}
         categoriesViewModel.categoryList.observe(viewLifecycleOwner) { categoryList ->
-            loadingDialog.dismiss()
+            try { loadingDialog.dismiss() } catch (_: Exception) {}
             if (categoryList.isNullOrEmpty()) {
-                // Show empty state
                 binding.recyclerPharmacyDepartments.visibility = View.GONE
-                // You might want to show an empty state view here
+                binding.emptyCategoriesView.visibility = View.VISIBLE
             } else {
+                binding.emptyCategoriesView.visibility = View.GONE
+                binding.recyclerPharmacyDepartments.visibility = View.VISIBLE
                 setupPharmacyDepartmentsRecycler(categoryList)
             }
         }
