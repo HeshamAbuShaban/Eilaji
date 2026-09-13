@@ -51,7 +51,10 @@ class AlternativesActivity : AppCompatActivity() {
                     FragmentsKeys.favorites.name -> navWithPop(R.id.navigation_favorites, null)
                     FragmentsKeys.medicine.name -> {
                         val mid = intent.getStringExtra("medicineId")
-                        val b = Bundle().apply { if (mid != null) putString("medicineId", mid) }
+                        val b = Bundle().apply {
+                            if (mid != null) putString("medicineId", mid)
+                            putString("sharedTransitionName", intent.getStringExtra("sharedTransitionName") ?: mid?.let { "medicine_image_$it" })
+                        }
                         navWithPop(R.id.navigation_medicine, b)
                     }
                     FragmentsKeys.reminder.name -> navWithPop(R.id.navigation_reminders_list, null)
@@ -60,6 +63,7 @@ class AlternativesActivity : AppCompatActivity() {
                     FragmentsKeys.messaging.name -> navWithPop(R.id.navigation_messaging, getArgsMessaging())
                     FragmentsKeys.subCategories.name -> navWithPop(R.id.navigation_sub_categories_fragment, getArgsSubCategories())
                     FragmentsKeys.sendToPharmacy.name -> navWithPop(R.id.navigation_send_to_pharmacy_fragment, getArgsSendToPharmacy())
+                    "orders" -> navWithPop(R.id.navigation_orders, null)
                     FragmentsKeys.checkout.name -> {
                         val b = Bundle().apply {
                             putString("medicineId", intent.getStringExtra("medicineId"))

@@ -193,7 +193,7 @@ data class ChangePasswordRequest(
 )
 
 data class CreateOrderRequest(
-    @SerializedName("prescriptionId") val prescriptionId: String,
+    @SerializedName("prescriptionId") val prescriptionId: String? = null,
     @SerializedName("pharmacyId") val pharmacyId: String,
     @SerializedName("totalAmount") val totalAmount: Double? = null,
     @SerializedName("paymentMethod") val paymentMethod: String? = null,
@@ -295,7 +295,7 @@ data class PrescriptionDto(
 
 data class OrderDto(
     @SerializedName("id") val id: String,
-    @SerializedName("prescriptionId") val prescriptionId: String,
+    @SerializedName("prescriptionId") val prescriptionId: String? = null,
     @SerializedName("patientId") val patientId: String,
     @SerializedName("pharmacyId") val pharmacyId: String,
     @SerializedName("pharmacyName") val pharmacyName: String?,

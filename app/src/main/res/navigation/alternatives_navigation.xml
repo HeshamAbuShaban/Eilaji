@@ -155,6 +155,12 @@
     </fragment>
 
     <fragment
+        android:id="@+id/navigation_orders"
+        android:name="dev.anonymous.eilaji.ui.other.orders.OrdersFragment"
+        android:label="fragment_orders"
+        tools:layout="@layout/fragment_orders" />
+
+    <fragment
         android:id="@+id/navigation_checkout"
         android:name="dev.anonymous.eilaji.ui.other.checkout.CheckoutFragment"
         android:label="fragment_checkout"

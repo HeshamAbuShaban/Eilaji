@@ -136,7 +136,11 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
             }
             try { buEditProfileHeader.setOnClickListener { Toast.makeText(requireContext(), "Edit Profile coming soon", Toast.LENGTH_SHORT).show() } } catch (_: Exception) {}
             try { buEditProfile.setOnClickListener { Toast.makeText(requireContext(), "Edit Profile coming soon", Toast.LENGTH_SHORT).show() } } catch (_: Exception) {}
-            buOrders.setOnClickListener { Toast.makeText(requireContext(), "My Orders coming soon", Toast.LENGTH_SHORT).show() }
+            buOrders.setOnClickListener {
+                val intent = Intent(requireContext(), AlternativesActivity::class.java)
+                intent.putExtra("fragmentType", "orders")
+                startActivity(intent)
+            }
             buReminders.setOnClickListener {
                 val intent = Intent(requireContext(), AlternativesActivity::class.java)
                 intent.putExtra("fragmentType", FragmentsKeys.reminder.name)

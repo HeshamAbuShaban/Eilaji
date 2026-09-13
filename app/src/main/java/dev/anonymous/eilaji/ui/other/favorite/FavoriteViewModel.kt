@@ -44,7 +44,7 @@ class FavoriteViewModel : ViewModel() {
 
     fun setupFavoritesRecycler(context: Activity) {
         val halfScreenWidth: Int = UtilsScreen.screenWidth / 2
-        adapter = MedicinesAdapter(arrayListOf(), true, halfScreenWidth) { med -> toggleFavorite(med) }
+        adapter = MedicinesAdapter(arrayListOf(), true, halfScreenWidth, onFavClick = { med -> toggleFavorite(med) })
         with(binding.recyclerFavorites) {
             setHasFixedSize(false)
             layoutManager = GridLayoutManager(context, 2)

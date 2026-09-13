@@ -244,6 +244,24 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun openMedicineDetails(medicineId: String, sharedView: View? = null) {
+        try {
+            val intent = Intent(requireContext(), AlternativesActivity::class.java)
+            intent.putExtra("fragmentType", FragmentsKeys.medicine.name)
+            intent.putExtra("medicineId", medicineId)
+            if (sharedView != null) {
+                try {
+                    val opts = androidx.core.app.ActivityOptionsCompat.makeSceneTransitionAnimation(
+                        requireActivity(), sharedView, sharedView.transitionName ?: "medicine_image_$medicineId"
+                    )
+                    startActivity(intent, opts.toBundle())
+                    return
+                } catch (_: Exception) {}
+            }
+            startActivity(intent)
+        } catch (_: Exception) {}
+    }
+
     private fun setupListeners() {
         try { binding.searchViewListener.setOnClickListener {
             startActivity(Intent(requireContext(), AlternativesActivity::class.java).apply { putExtra("fragmentType", FragmentsKeys.search.name) })
@@ -307,11 +325,8 @@ class HomeFragment : Fragment() {
                     Medicine(dto.id, dto.imageUrl ?: "", dto.titleEn.ifBlank { dto.titleAr }, dto.price ?: 0.0, dto.descriptionEn ?: "", ArrayList(), "", dto.subcategoryNameEn ?: "", false)
                 })
                 binding.recyclerBestSeller.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-                binding.recyclerBestSeller.adapter = MedicinesAdapter(uiList, onItemClick = { med ->
-                    val intent = Intent(requireContext(), AlternativesActivity::class.java)
-                    intent.putExtra("fragmentType", FragmentsKeys.medicine.name)
-                    intent.putExtra("medicineId", med.id)
-                    startActivity(intent)
+                binding.recyclerBestSeller.adapter = MedicinesAdapter(uiList, onItemClick = { med, sharedView ->
+                    openMedicineDetails(med.id, sharedView)
                 })
             }
             if (hasAllData()) { cancelTimeout(); binding.swipeRefresh.isRefreshing = false }

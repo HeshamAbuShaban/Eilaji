@@ -110,4 +110,6 @@
     <string name="dosage_example">مثال: 500مجم بعد الأكل</string>
     <string name="available_nearby">متوفر بالقرب منك</string>
     <string name="rate_pharmacy">قيّم الصيدلية</string>
+    <string name="my_orders">طلباتي</string>
+    <string name="no_orders_yet">لا توجد طلبات بعد</string>
 </resources>

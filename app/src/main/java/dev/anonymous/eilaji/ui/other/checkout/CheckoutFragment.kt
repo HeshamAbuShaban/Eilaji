@@ -17,6 +17,7 @@ import dev.anonymous.eilaji.databinding.FragmentCheckoutBinding
 import dev.anonymous.eilaji.network.ApiResponse
 import dev.anonymous.eilaji.network.MedicineDto
 import dev.anonymous.eilaji.network.NetworkModule
+import dev.anonymous.eilaji.network.PharmacyDto
 import dev.anonymous.eilaji.storage.AppSharedPreferences
 import dev.anonymous.eilaji.ui.base.BaseActivity
 import retrofit2.Call
@@ -134,11 +135,13 @@ class CheckoutFragment : Fragment() {
     private fun observeVm() {
         vm.loading.observe(viewLifecycleOwner) { binding.btnPlaceOrder.isEnabled = it != true; binding.progressPlaceOrder.visibility = if (it == true) View.VISIBLE else View.GONE }
         vm.orderResult.observe(viewLifecycleOwner) { res ->
-            res.onSuccess {
-                Snackbar.make(binding.root, "Order placed", Snackbar.LENGTH_LONG).show()
+            res.onSuccess { order ->
                 cartRepo.clear()
                 (activity as? BaseActivity)?.refreshCartBadge()
-                view?.postDelayed({ try { findNavController().popBackStack() } catch (_: Exception) {} }, 1200)
+                celebrate(order.id.take(8))
+            }
+            res.onFailure {
+                Snackbar.make(binding.root, it.message ?: "Order failed", Snackbar.LENGTH_LONG).show()
             }
         }
         vm.error.observe(viewLifecycleOwner) { msg -> if (!msg.isNullOrBlank()) Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show() }
@@ -152,9 +155,57 @@ class CheckoutFragment : Fragment() {
             return
         }
         val total = binding.tvTotalAmount.text.toString().replace("$","").trim().toDoubleOrNull()
-        val prescId = medicineId ?: cartRepo.getAll().firstOrNull()?.medicineId ?: "direct-order"
-        val pharmId = pharmacyId ?: cartRepo.getAll().firstOrNull()?.pharmacyId ?: "default-pharmacy"
+        // Direct OTC order: no prescription. Never send medicine IDs or placeholders as prescriptionId.
+        val prescId: String? = null
+        val pharmId = pharmacyId ?: cartRepo.getAll().firstOrNull()?.pharmacyId
+        if (pharmId.isNullOrBlank()) {
+            resolveNearestPharmacy { resolved ->
+                if (resolved == null) {
+                    Snackbar.make(binding.root, "No pharmacy available right now", Snackbar.LENGTH_SHORT).show()
+                } else {
+                    vm.placeOrder(requireContext(), prescId, resolved, total, selectedPayment, address)
+                }
+            }
+            return
+        }
         vm.placeOrder(requireContext(), prescId, pharmId, total, selectedPayment, address)
+    }
+
+    private fun resolveNearestPharmacy(done: (String?) -> Unit) {
+        try {
+            val prefs = AppSharedPreferences.getInstance(requireContext())
+            val lat = prefs.getString("delivery_lat", null)?.toDoubleOrNull() ?: 31.5
+            val lng = prefs.getString("delivery_lng", null)?.toDoubleOrNull() ?: 34.46
+            NetworkModule.provideApiService(requireContext()).getNearbyPharmacies(lat, lng, 600.0)
+                .enqueue(object : retrofit2.Callback<ApiResponse<List<PharmacyDto>>> {
+                    override fun onResponse(call: retrofit2.Call<ApiResponse<List<PharmacyDto>>>, response: retrofit2.Response<ApiResponse<List<PharmacyDto>>>) {
+                        done(response.body()?.data?.firstOrNull()?.id)
+                    }
+                    override fun onFailure(call: retrofit2.Call<ApiResponse<List<PharmacyDto>>>, t: Throwable) { done(null) }
+                })
+        } catch (_: Exception) { done(null) }
+    }
+
+    private fun celebrate(orderShortId: String?) {
+        try {
+            if (!orderShortId.isNullOrBlank()) binding.tvOrderId.text = "Order #${orderShortId.uppercase()}"
+            binding.successOverlay.visibility = View.VISIBLE
+            binding.successOverlay.alpha = 0f
+            binding.successOverlay.scaleX = 0.85f
+            binding.successOverlay.scaleY = 0.85f
+            binding.successOverlay.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(320)
+                .setInterpolator(android.view.animation.OvershootInterpolator(1.4f)).start()
+            binding.ivSuccessCheck.scaleX = 0.4f
+            binding.ivSuccessCheck.scaleY = 0.4f
+            binding.ivSuccessCheck.animate().scaleX(1f).scaleY(1f).setDuration(420)
+                .setInterpolator(android.view.animation.OvershootInterpolator(2f)).start()
+            binding.confettiView.burst(110)
+            binding.root.postDelayed({
+                try { if (isAdded) findNavController().popBackStack() } catch (_: Exception) {}
+            }, 2200)
+        } catch (_: Exception) {
+            try { findNavController().popBackStack() } catch (_: Exception) {}
+        }
     }
 
     override fun onDestroyView() { super.onDestroyView(); _binding = null }

@@ -65,7 +65,7 @@ fun Route.apiRoutes(
         route("/medicines") {
             get {
                 val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
-                val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20
+                val pageSize = (call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20).coerceIn(1, 50)
                 val subcategoryId = call.request.queryParameters["subcategoryId"]?.let { UUID.fromString(it) }
 
                 try {
@@ -114,7 +114,7 @@ fun Route.apiRoutes(
             get("/search") {
                 val query = call.request.queryParameters["q"] ?: ""
                 val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
-                val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20
+                val pageSize = (call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20).coerceIn(1, 50)
 
                 if (query.isBlank()) {
                     call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Search query required"))
@@ -274,7 +274,7 @@ fun Route.apiRoutes(
 
             get {
                 val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
-                val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20
+                val pageSize = (call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20).coerceIn(1, 50)
                 val city = call.request.queryParameters["city"]
 
                 try {
@@ -585,7 +585,7 @@ fun Route.apiRoutes(
 
                     val status = call.request.queryParameters["status"]
                     val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
-                    val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20
+                    val pageSize = (call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20).coerceIn(1, 50)
 
                     try {
                         val result = prescriptionService.getPrescriptionsForUser(userId, status, page, pageSize)
@@ -625,7 +625,7 @@ fun Route.apiRoutes(
                     val principal = call.principal<JWTPrincipal>()
                     val userId = principal!!.payload.subject
                     val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
-                    val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20
+                    val pageSize = (call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20).coerceIn(1, 50)
 
                     try {
                         val result = chatService.getChatsForUser(userId, page, pageSize)
@@ -662,7 +662,7 @@ fun Route.apiRoutes(
                     }
 
                     val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
-                    val pageSize = call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 50
+                    val pageSize = (call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 50).coerceIn(1, 50)
 
                     try {
                         val result = messageService.getMessagesForChat(chatId, userId, page, pageSize)

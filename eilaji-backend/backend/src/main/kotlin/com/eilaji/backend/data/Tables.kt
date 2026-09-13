@@ -227,13 +227,13 @@ object EilajiPlusSync : Table("eilaji_plus_sync") {
 
 object Orders : Table("orders") {
     val id = uuid("id").autoGenerate()
-    val prescriptionId = reference("prescription_id", Prescriptions.id)
+    val prescriptionId = reference("prescription_id", Prescriptions.id).nullable()
     val patientId = reference("patient_id", Users.id)
     val pharmacyId = reference("pharmacy_id", Pharmacies.id)
-    val status = varchar("status", 50) // PENDING, PAID, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+    val status = varchar("status", 50) // PENDING, CONFIRMED, PREPARING, SHIPPED, DELIVERED, CANCELLED
     val totalAmount = decimal("total_amount", 12, 2)
     val paymentMethod = varchar("payment_method", 50).nullable()
-    val paymentStatus = varchar("payment_status", 50) // PENDING, PAID, FAILED, REFUNDED
+    val paymentStatus = varchar("payment_status", 50) // PENDING, PAID, FAILED, REFUNDED, COD_COLLECTED
     val deliveryAddress = text("delivery_address").nullable()
     val deliveryNotes = text("delivery_notes").nullable()
     val createdAt = jdaTimestamp("created_at").clientDefault { Instant.now() }

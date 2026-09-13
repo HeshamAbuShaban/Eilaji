@@ -13,13 +13,35 @@ class OrderService {
 
     @Serializable
     data class OrderCreateRequest(
-        val prescriptionId: String,
+        val prescriptionId: String? = null,
         val pharmacyId: String,
         val totalAmount: Double,
         val paymentMethod: String? = null,
         val deliveryAddress: String? = null,
         val deliveryNotes: String? = null
     )
+
+    companion object {
+        val ORDER_STATUSES = setOf("PENDING", "CONFIRMED", "PREPARING", "SHIPPED", "DELIVERED", "CANCELLED")
+        // Legacy aliases accepted from older clients
+        private val STATUS_ALIASES = mapOf("PAID" to "CONFIRMED", "PROCESSING" to "PREPARING")
+        val PAYMENT_STATUSES = setOf("PENDING", "PAID", "FAILED", "REFUNDED", "COD_COLLECTED")
+        private val TERMINAL = setOf("DELIVERED", "CANCELLED")
+        private val TRANSITIONS = mapOf(
+            "PENDING" to setOf("CONFIRMED", "CANCELLED"),
+            "CONFIRMED" to setOf("PREPARING", "CANCELLED"),
+            "PREPARING" to setOf("SHIPPED", "CANCELLED"),
+            "SHIPPED" to setOf("DELIVERED", "CANCELLED"),
+            "DELIVERED" to emptySet(),
+            "CANCELLED" to emptySet()
+        )
+
+        fun normalizeStatus(raw: String): String? {
+            val s = raw.trim().uppercase()
+            if (ORDER_STATUSES.contains(s)) return s
+            return STATUS_ALIASES[s]
+        }
+    }
 
     @Serializable
     data class OrderUpdateStatusRequest(
@@ -30,7 +52,7 @@ class OrderService {
     @Serializable
     data class OrderResult(
         val id: String,
-        val prescriptionId: String,
+        val prescriptionId: String? = null,
         val patientId: String,
         val pharmacyId: String,
         val pharmacyName: String?,
@@ -45,17 +67,24 @@ class OrderService {
     )
 
     fun createOrder(request: OrderCreateRequest, userId: String): OrderResult? {
-        val userUuid = UUID.fromString(userId)
-        val prescriptionUuid = UUID.fromString(request.prescriptionId)
-        val pharmacyUuid = UUID.fromString(request.pharmacyId)
+        val userUuid = try { UUID.fromString(userId) } catch (_: Exception) { return null }
+        val pharmacyUuid = try { UUID.fromString(request.pharmacyId) } catch (_: Exception) { return null }
+        // Prescription-linked flow: must reference an ACCEPTED prescription.
+        // Direct OTC flow: null/blank prescriptionId creates a prescription-less order.
+        val prescriptionUuid = request.prescriptionId?.trim()?.takeIf { it.isNotEmpty() }?.let {
+            try { UUID.fromString(it) } catch (_: Exception) { return null }
+        }
         return transaction {
-            val prescription = Prescriptions.selectAll()
-                .where { Prescriptions.id eq prescriptionUuid }
-                .firstOrNull()
-
-            if (prescription == null || prescription[Prescriptions.status] != "ACCEPTED") {
-                return@transaction null
+            if (prescriptionUuid != null) {
+                val prescription = Prescriptions.selectAll()
+                    .where { Prescriptions.id eq prescriptionUuid }
+                    .firstOrNull()
+                if (prescription == null || prescription[Prescriptions.status] != "ACCEPTED") {
+                    return@transaction null
+                }
             }
+            val pharmacyExists = Pharmacies.selectAll().where { Pharmacies.id eq pharmacyUuid }.singleOrNull() != null
+            if (!pharmacyExists) return@transaction null
 
             val orderId = Orders.insert {
                 it[Orders.prescriptionId] = prescriptionUuid
@@ -76,14 +105,22 @@ class OrderService {
     }
 
     fun getUserOrders(userId: String, userRole: com.eilaji.backend.data.UserRole): List<OrderResult> {
-        val userUuid = UUID.fromString(userId)
+        val userUuid = try { UUID.fromString(userId) } catch (_: Exception) { return emptyList() }
         return transaction {
-            val query = if (userRole == com.eilaji.backend.data.UserRole.PHARMACIST || userRole == com.eilaji.backend.data.UserRole.ADMIN) {
-                Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id).selectAll()
-            } else {
-                Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id)
-                    .selectAll()
-                    .where { Orders.patientId eq userUuid }
+            val query = when (userRole) {
+                com.eilaji.backend.data.UserRole.ADMIN ->
+                    Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id).selectAll()
+                com.eilaji.backend.data.UserRole.PHARMACIST -> {
+                    // Scope to pharmacies owned by this pharmacist
+                    val owned = Pharmacies.selectAll().where { Pharmacies.ownerUserId eq userUuid }.map { it[Pharmacies.id] }
+                    Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id)
+                        .selectAll()
+                        .where { Orders.pharmacyId inList owned }
+                }
+                else ->
+                    Orders.join(Pharmacies, JoinType.LEFT, Orders.pharmacyId, Pharmacies.id)
+                        .selectAll()
+                        .where { Orders.patientId eq userUuid }
             }
 
             query.orderBy(Orders.createdAt, SortOrder.DESC).map { row ->
@@ -111,7 +148,12 @@ class OrderService {
     }
 
     fun updateOrderStatus(orderId: String, status: String, paymentStatus: String?, userId: String, userRole: com.eilaji.backend.data.UserRole): OrderResult? {
-        val orderUuid = UUID.fromString(orderId)
+        val orderUuid = try { UUID.fromString(orderId) } catch (_: Exception) { return null }
+        val userUuid = try { UUID.fromString(userId) } catch (_: Exception) { return null }
+        val next = normalizeStatus(status) ?: return null
+        val pay = paymentStatus?.trim()?.uppercase()?.takeIf { it.isNotEmpty() }?.let {
+            if (!PAYMENT_STATUSES.contains(it)) return null else it
+        }
         return transaction {
             val existingOrder = Orders.selectAll().where { Orders.id eq orderUuid }.firstOrNull()
                 ?: return@transaction null
@@ -119,11 +161,20 @@ class OrderService {
             if (userRole != com.eilaji.backend.data.UserRole.PHARMACIST && userRole != com.eilaji.backend.data.UserRole.ADMIN) {
                 return@transaction null
             }
+            // Pharmacists may only transition orders of pharmacies they own
+            if (userRole == com.eilaji.backend.data.UserRole.PHARMACIST) {
+                val owned = Pharmacies.selectAll().where { Pharmacies.ownerUserId eq userUuid }.map { it[Pharmacies.id] }
+                if (!owned.contains(existingOrder[Orders.pharmacyId])) return@transaction null
+            }
+            val current = existingOrder[Orders.status].uppercase()
+            if (TERMINAL.contains(current)) return@transaction null
+            val allowed = TRANSITIONS[current] ?: return@transaction null
+            if (!allowed.contains(next)) return@transaction null
 
             Orders.update({ Orders.id eq orderUuid }) {
-                it[Orders.status] = status
-                if (paymentStatus != null) {
-                    it[Orders.paymentStatus] = paymentStatus
+                it[Orders.status] = next
+                if (pay != null) {
+                    it[Orders.paymentStatus] = pay
                 }
                 it[Orders.updatedAt] = Instant.now()
             }
@@ -211,7 +262,7 @@ class OrderService {
     private fun mapRowToOrder(row: ResultRow): OrderResult {
         return OrderResult(
             id = row[Orders.id].toString(),
-            prescriptionId = row[Orders.prescriptionId].toString(),
+            prescriptionId = row.getOrNull(Orders.prescriptionId)?.toString(),
             patientId = row[Orders.patientId].toString(),
             pharmacyId = row[Orders.pharmacyId].toString(),
             pharmacyName = row.getOrNull(Pharmacies.name),

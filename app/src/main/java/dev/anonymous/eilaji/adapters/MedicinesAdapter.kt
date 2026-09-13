@@ -15,7 +15,7 @@ class MedicinesAdapter(
     private val isGridLayout: Boolean = false,
     private val halfScreenWidth: Int = 0,
     private val onFavClick: ((Medicine) -> Unit)? = null,
-    private val onItemClick: ((Medicine) -> Unit)? = null
+    private val onItemClick: ((Medicine, android.view.View) -> Unit)? = null
 ) : RecyclerView.Adapter<MedicinesAdapter.MedicinesViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MedicinesViewHolder {
@@ -51,7 +51,7 @@ class MedicinesAdapter(
 
     override fun getItemCount(): Int = medicineModels.size
 
-    class MedicinesViewHolder(private var binding: ItemMedicineBinding, private val onFavClick: ((Medicine) -> Unit)?, private val onItemClick: ((Medicine) -> Unit)?) : RecyclerView.ViewHolder(binding.root) {
+    class MedicinesViewHolder(private var binding: ItemMedicineBinding, private val onFavClick: ((Medicine) -> Unit)?, private val onItemClick: ((Medicine, android.view.View) -> Unit)?) : RecyclerView.ViewHolder(binding.root) {
         @SuppressLint("SetTextI18n")
         fun bind(model: Medicine, isGridLayout: Boolean, halfScreenWidth: Int, position: Int) {
             if (isGridLayout) {
@@ -63,8 +63,9 @@ class MedicinesAdapter(
                 tvMedicineName.text = model.title
                 tvMedicineSalary.text = "${model.price} $"
                 setUpFavoriteIcon(model)
-                root.setOnClickListener { onItemClick?.invoke(model) }
-                ivMedicine.setOnClickListener { onItemClick?.invoke(model) }
+                try { ivMedicine.transitionName = "medicine_image_${model.id}" } catch (_: Exception) {}
+                root.setOnClickListener { onItemClick?.invoke(model, ivMedicine) }
+                ivMedicine.setOnClickListener { onItemClick?.invoke(model, ivMedicine) }
                 buAddToCart.setOnClickListener {
                     pop(it)
                     val ctx = it.context

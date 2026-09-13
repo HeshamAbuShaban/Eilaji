@@ -34,10 +34,12 @@ fun Route.adminRoutes() {
 
                 try {
                     val users = transaction {
-                        val query = if (roleFilter != null) {
-                            Users.selectAll().where { Users.role eq roleFilter }
-                        } else {
-                            Users.selectAll()
+                        var query: Query = Users.selectAll()
+                        if (roleFilter != null) {
+                            query = query.andWhere { Users.role eq roleFilter }
+                        }
+                        if (verifiedFilter != null) {
+                            query = query.andWhere { Users.isVerified eq verifiedFilter }
                         }
 
                         query.orderBy(Users.createdAt, SortOrder.DESC).map { row ->

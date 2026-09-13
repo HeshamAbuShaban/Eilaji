@@ -20,7 +20,7 @@ class CheckoutViewModel : ViewModel() {
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
 
-    fun placeOrder(context: Context, prescriptionId: String, pharmacyId: String, totalAmount: Double?, paymentMethod: String, deliveryAddress: String?, notes: String? = null) {
+    fun placeOrder(context: Context, prescriptionId: String?, pharmacyId: String, totalAmount: Double?, paymentMethod: String, deliveryAddress: String?, notes: String? = null) {
         _loading.value = true
         val req = CreateOrderRequest(
             prescriptionId = prescriptionId,
