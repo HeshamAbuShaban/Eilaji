@@ -34,17 +34,19 @@ import dev.anonymous.eilaji.ui.other.dialogs.permissions.RequestPermissionsDialo
 
 class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
-    private lateinit var _binding: FragmentMapBinding
-    private val binding get() = _binding
+    private var _binding: FragmentMapBinding? = null
+    private val binding get() = _binding!!
+    private val bindingOrNull get() = _binding
     private lateinit var mapViewModel: MapViewModel
     private var googleMap: GoogleMap? = null
     private var pharmacyDtos: List<PharmacyDto> = emptyList()
     private var currentLatLngCache: LatLng? = null
     private var pagerCallbackRegistered = false
+    private var mapReady = false
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = FragmentMapBinding.inflate(layoutInflater)
-        MapsInitializer.initialize(requireContext(), MapsInitializer.Renderer.LATEST) { _: MapsInitializer.Renderer? -> }
+        _binding = FragmentMapBinding.inflate(inflater, container, false)
+        try { MapsInitializer.initialize(requireContext(), MapsInitializer.Renderer.LATEST) { _: MapsInitializer.Renderer? -> } } catch (_: Exception) {}
         setupVMComponent()
         return binding.root
     }
@@ -52,16 +54,18 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
     private fun setupVMComponent() {
         mapViewModel = ViewModelProvider(this)[MapViewModel::class.java]
         requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            if (!isAdded) return@registerForActivityResult
             val allGranted = permissions.all { it.value }
             if (allGranted) {
-                Toast.makeText(requireContext(), "Location permission granted", Toast.LENGTH_SHORT).show()
+                try { Toast.makeText(requireContext(), "Location permission granted", Toast.LENGTH_SHORT).show() } catch (_: Exception) {}
                 obtainGoogleMapInstance()
             } else {
-                Toast.makeText(requireContext(), "Permission denied. Cannot show nearby pharmacies.", Toast.LENGTH_SHORT).show()
-                mapViewModel.loadFromCache()
+                try { Toast.makeText(requireContext(), "Permission denied. Cannot show nearby pharmacies.", Toast.LENGTH_SHORT).show() } catch (_: Exception) {}
+                try { mapViewModel.loadFromCache() } catch (_: Exception) {}
+                try { mapViewModel.fetchAllPharmacies(31.5, 34.46) } catch (_: Exception) {}
             }
         }
-        mapViewModel.setRequestPermissionLauncher(requestPermissionLauncher)
+        try { mapViewModel.setRequestPermissionLauncher(requestPermissionLauncher) } catch (_: Exception) {}
     }
 
     private var permissionDialogShown = false
@@ -89,8 +93,10 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
 
     @SuppressLint("MissingPermission")
     override fun onMapReady(gMap: GoogleMap) {
+        if (!isAdded || _binding == null) { googleMap = gMap; return }
         googleMap = gMap
-        mapViewModel.setMap(gMap)
+        mapReady = true
+        try { mapViewModel.setMap(gMap) } catch (_: Exception) {}
         try {
             if (mapViewModel.arePermissionsGranted()) {
                 gMap.isMyLocationEnabled = true
@@ -99,13 +105,15 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
         } catch (_: SecurityException) {}
         gMap.uiSettings.isZoomControlsEnabled = true
         gMap.setOnMarkerClickListener { marker ->
-            val tag = marker.tag as? PharmacyDto
-            val idx = if (tag != null) pharmacyDtos.indexOfFirst { it.id == tag.id } else -1
-            if (idx != -1) {
-                binding.pharmaciesLocationsPager.currentItem = idx
-                mapViewModel.animateCameraToPosition(LatLng(pharmacyDtos[idx].latitude, pharmacyDtos[idx].longitude), 15f)
-            }
-            marker.showInfoWindow()
+            try {
+                val tag = marker.tag as? PharmacyDto
+                val idx = if (tag != null) pharmacyDtos.indexOfFirst { it.id == tag.id } else -1
+                if (idx != -1) {
+                    try { bindingOrNull?.pharmaciesLocationsPager?.currentItem = idx } catch (_: Exception) {}
+                    try { mapViewModel.animateCameraToPosition(LatLng(pharmacyDtos[idx].latitude, pharmacyDtos[idx].longitude), 15f) } catch (_: Exception) {}
+                }
+                try { marker.showInfoWindow() } catch (_: Exception) {}
+            } catch (_: Exception) {}
             true
         }
         mapViewModel.getUserLastLocation()
@@ -113,22 +121,27 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
     }
 
     private fun obtainGoogleMapInstance() {
-        val mapFragment = childFragmentManager.findFragmentById(R.id.mapFragment) as? SupportMapFragment ?: return
-        mapFragment.getMapAsync(this)
+        try {
+            if (!isAdded || _binding == null) return
+            val mapFragment = childFragmentManager.findFragmentById(R.id.mapFragment) as? SupportMapFragment ?: return
+            mapFragment.getMapAsync(this)
+        } catch (_: Exception) {}
     }
 
     private fun observeCurrentLocation() {
         mapViewModel.currentLocation.observe(viewLifecycleOwner) { latLng ->
+            if (!isAdded || _binding == null) return@observe
             latLng?.let {
                 currentLatLngCache = it
-                mapViewModel.animateCameraToPosition(it, 14f)
-                mapViewModel.getNearbyPharmacies(it.latitude, it.longitude, 600.0)
+                try { mapViewModel.animateCameraToPosition(it, 14f) } catch (_: Exception) {}
+                try { mapViewModel.getNearbyPharmacies(it.latitude, it.longitude, 600.0) } catch (_: Exception) {}
             }
         }
     }
 
     private fun observePharmacies() {
         mapViewModel.pharmacies.observe(viewLifecycleOwner) { list ->
+            if (!isAdded || _binding == null) { pharmacyDtos = list ?: emptyList(); return@observe }
             pharmacyDtos = list ?: emptyList()
             renderMarkers()
             setupPager()
@@ -136,20 +149,30 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
     }
 
     private fun renderMarkers() {
-        val gm = googleMap ?: return
-        gm.clear()
-        currentLatLngCache?.let { gm.addMarker(MarkerOptions().position(it).title("My Location").snippet("You are here")) }
-        pharmacyDtos.forEach { dto ->
-            val snippet = "${if (dto.isOpen) "Open" else "Closed"} • ${String.format("%.1f", dto.ratingAvg)}★ • ${dto.phone ?: dto.address}"
-            val opts = MarkerOptions().position(LatLng(dto.latitude, dto.longitude)).title(dto.name).snippet(snippet).icon(getMarkerIconFromDrawable(requireContext(), R.drawable.ic_hospital))
-            val m = gm.addMarker(opts)
-            m?.tag = dto
-        }
+        try {
+            val gm = googleMap ?: return
+            if (!isAdded) return
+            gm.clear()
+            currentLatLngCache?.let {
+                try { gm.addMarker(MarkerOptions().position(it).title("My Location").snippet("You are here")) } catch (_: Exception) {}
+            }
+            val ctx = context ?: return
+            pharmacyDtos.forEach { dto ->
+                try {
+                    val snippet = "${if (dto.isOpen) "Open" else "Closed"} • ${String.format("%.1f", dto.ratingAvg)}★ • ${dto.phone ?: dto.address}"
+                    val opts = MarkerOptions().position(LatLng(dto.latitude, dto.longitude)).title(dto.name).snippet(snippet).icon(getMarkerIconFromDrawable(ctx, R.drawable.ic_hospital))
+                    val m = gm.addMarker(opts)
+                    m?.tag = dto
+                } catch (_: Exception) {}
+            }
+        } catch (_: Exception) {}
     }
 
     private fun setupPager() {
+        val b = bindingOrNull ?: return
+        if (!isAdded) return
         val list = ArrayList(pharmacyDtos.map { dto -> Pharmacy(uid = dto.id, pharmacy_image_url = dto.imageUrl ?: "", pharmacy_name = dto.name, phone = dto.phone ?: "", address = dto.address, lat = dto.latitude, lng = dto.longitude, token = "", ratingAvg = dto.ratingAvg, totalRatings = dto.totalRatings, isOpen = dto.isOpen, distanceKm = dto.distanceKm) })
-        binding.pharmaciesLocationsPager.adapter = PharmaciesLocationsAdapter(list) {
+        try { b.pharmaciesLocationsPager.adapter = PharmaciesLocationsAdapter(list) {
             val b = android.os.Bundle().apply {
                 putString("receiverUid", it.uid)
                 putString("receiverFullName", it.pharmacy_name)
@@ -157,45 +180,49 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
                 putString("receiverToken", it.token)
             }
             try { findNavController().navigate(R.id.action_navigation_map_to_navigation_messaging, b) } catch (_: Exception) {}
-        }
-        if (!pagerCallbackRegistered) {
-            pagerCallbackRegistered = true
-            var dragging = false
-            binding.pharmaciesLocationsPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-                override fun onPageScrollStateChanged(state: Int) { dragging = state == ViewPager2.SCROLL_STATE_DRAGGING }
-                override fun onPageSelected(position: Int) {
-                    if (position in pharmacyDtos.indices) {
-                        val dto = pharmacyDtos[position]
-                        mapViewModel.animateCameraToPosition(LatLng(dto.latitude, dto.longitude), 15f)
+        } } catch (_: Exception) {}
+        try {
+            if (!pagerCallbackRegistered) {
+                pagerCallbackRegistered = true
+                b.pharmaciesLocationsPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+                    override fun onPageSelected(position: Int) {
+                        if (!isAdded || _binding == null) return
+                        if (position in pharmacyDtos.indices) {
+                            val dto = pharmacyDtos[position]
+                            try { mapViewModel.animateCameraToPosition(LatLng(dto.latitude, dto.longitude), 15f) } catch (_: Exception) {}
+                        }
                     }
-                }
-            })
-        }
-        if (pharmacyDtos.isNotEmpty()) {
-            val first = pharmacyDtos[0]
-            mapViewModel.animateCameraToPosition(LatLng(first.latitude, first.longitude), 13f)
-        }
+                })
+            }
+            if (pharmacyDtos.isNotEmpty()) {
+                val first = pharmacyDtos[0]
+                try { mapViewModel.animateCameraToPosition(LatLng(first.latitude, first.longitude), 13f) } catch (_: Exception) {}
+            }
+        } catch (_: Exception) {}
     }
 
     private fun getMarkerIconFromDrawable(context: Context, resId: Int): BitmapDescriptor {
         return try {
-            val d = ContextCompat.getDrawable(context, resId)!!
-            val w = (d.intrinsicWidth * 0.2).toInt().coerceAtLeast(48)
-            val h = (d.intrinsicHeight * 0.2).toInt().coerceAtLeast(48)
-            val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+            val d = ContextCompat.getDrawable(context, resId)
+                ?: return BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
+            val base = 96
+            val w = base.coerceIn(48, 144)
+            val bmp = Bitmap.createBitmap(w, w, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bmp)
-            d.setBounds(0, 0, w, h)
+            d.setBounds(0, 0, w, w)
             d.draw(canvas)
             BitmapDescriptorFactory.fromBitmap(bmp)
         } catch (_: Exception) { BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED) }
     }
 
-    override fun onAllowClicked() { mapViewModel.requestPermissions() }
+    override fun onAllowClicked() { try { mapViewModel.requestPermissions() } catch (_: Exception) {} }
     override fun onDenyClicked() {
-        mapViewModel.loadFromCache()
-        mapViewModel.fetchAllPharmacies(31.5, 34.46)
+        try { mapViewModel.loadFromCache() } catch (_: Exception) {}
+        try { mapViewModel.fetchAllPharmacies(31.5, 34.46) } catch (_: Exception) {}
+        val b = bindingOrNull ?: return
+        if (!isAdded) return
         try {
-            com.google.android.material.snackbar.Snackbar.make(binding.root, getString(R.string.permissions_message_sorry_you_can_not), com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
+            com.google.android.material.snackbar.Snackbar.make(b.root, getString(R.string.permissions_message_sorry_you_can_not), com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
                 .setAction("Settings") {
                     try { startActivity(android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply { data = android.net.Uri.parse("package:${requireContext().packageName}") }) } catch (_: Exception) {}
                 }.show()
@@ -204,9 +231,12 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
         }
     }
     override fun onDestroyView() {
+        try { mapViewModel.currentLocation.removeObservers(viewLifecycleOwner) } catch (_: Exception) {}
+        try { mapViewModel.pharmacies.removeObservers(viewLifecycleOwner) } catch (_: Exception) {}
+        googleMap = null
+        mapReady = false
+        _binding = null
         super.onDestroyView()
-        mapViewModel.currentLocation.removeObservers(viewLifecycleOwner)
-        mapViewModel.pharmacies.removeObservers(viewLifecycleOwner)
     }
 }
 // trigger rebuild Thu Sep 10 02:47:34 AM EEST 2026

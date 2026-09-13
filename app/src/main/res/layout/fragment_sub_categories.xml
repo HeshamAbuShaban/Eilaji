@@ -58,4 +58,34 @@
         tools:itemCount="3"
         tools:listitem="@layout/item_medicine" />
 
+    <LinearLayout
+        android:id="@+id/emptySubMedicines"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout3">
+
+        <ImageView
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:contentDescription="@string/no_results_found"
+            android:src="@drawable/bg_empty_1" />
+
+        <TextView
+            android:id="@+id/tvEmptySubMedicines"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/no_results_found"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
