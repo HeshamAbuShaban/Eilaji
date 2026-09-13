@@ -199,7 +199,8 @@
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                     tools:itemCount="4"
                     tools:listitem="@layout/item_sub_category"
-                    tools:orientation="horizontal" />
+                    tools:orientation="horizontal" 
+                android:layoutAnimation="@anim/layout_animation_fall_down"/>
             </LinearLayout>
 
             <LinearLayout
@@ -278,7 +279,8 @@
                     tools:itemCount="3"
                     tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                     tools:listitem="@layout/item_medicine"
-                    tools:orientation="horizontal" />
+                    tools:orientation="horizontal" 
+                android:layoutAnimation="@anim/layout_animation_fall_down"/>
             </LinearLayout>
 
             <!-- Quick Actions -->

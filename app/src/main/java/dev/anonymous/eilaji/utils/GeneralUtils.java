@@ -45,6 +45,7 @@ public class GeneralUtils {
                 .load(url)
                 .placeholder(R.color.place_holder_color)
                 .error(R.drawable.temp_medicine_1)
+                .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(220))
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .centerCrop();
     }

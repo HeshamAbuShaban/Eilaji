@@ -361,6 +361,8 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private var adsAutoScroll: Runnable? = null
+
     private fun setupAdsPager(adsList: ArrayList<Ad>) {
         if (adsList.isEmpty()) {
             removeAdsShimmer(false)
@@ -374,11 +376,38 @@ class HomeFragment : Fragment() {
                 startActivity(intent)
             }
             adapter = adsAdapter
-            setPageTransformer(DepthPageTransformer())
+            offscreenPageLimit = 1
+            try {
+                val margin = (12 * resources.displayMetrics.density).toInt()
+                setPageTransformer(androidx.viewpager2.widget.CompositePageTransformer().apply {
+                    addTransformer(androidx.viewpager2.widget.MarginPageTransformer(margin))
+                    addTransformer(DepthPageTransformer())
+                })
+            } catch (_: Exception) { setPageTransformer(DepthPageTransformer()) }
             adsAdapter.setListAds(adsList)
             binding.indicatorAds.setupViewPager2(this, adsList.size, 0)
+            startAdsAutoplay(adsList.size)
         }
         removeAdsShimmer(true)
+    }
+
+    private fun startAdsAutoplay(size: Int) {
+        try { adsAutoScroll?.let { binding.pagerAds.removeCallbacks(it) } } catch (_: Exception) {}
+        if (size <= 1) return
+        adsAutoScroll = object : Runnable {
+            override fun run() {
+                try {
+                    val next = ((binding.pagerAds.currentItem + 1) % size)
+                    binding.pagerAds.setCurrentItem(next, true)
+                    binding.pagerAds.postDelayed(this, 4000)
+                } catch (_: Exception) {}
+            }
+        }
+        try { binding.pagerAds.postDelayed(adsAutoScroll!!, 4000) } catch (_: Exception) {}
+    }
+
+    private fun stopAdsAutoplay() {
+        try { adsAutoScroll?.let { binding.pagerAds.removeCallbacks(it) } } catch (_: Exception) {}
     }
 
     private fun fetchAds() {
@@ -461,8 +490,19 @@ class HomeFragment : Fragment() {
         })
     }
 
+    override fun onResume() {
+        super.onResume()
+        try { if (homeViewModel.adsList.value?.isNotEmpty() == true) startAdsAutoplay(homeViewModel.adsList.value!!.size) } catch (_: Exception) {}
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopAdsAutoplay()
+    }
+
     override fun onStop() {
         super.onStop()
+        stopAdsAutoplay()
         binding.shimmerAdContainer.stopShimmer()
         binding.shimmerMedContainer.stopShimmer()
         binding.shimmerCategoriesPharmaceuticalsContainer.stopShimmer()

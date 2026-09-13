@@ -118,7 +118,8 @@
                 app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
                 app:spanCount="2"
                 tools:itemCount="3"
-                tools:listitem="@layout/item_medicine" />
+                tools:listitem="@layout/item_medicine" 
+                android:layoutAnimation="@anim/layout_animation_fall_down"/>
 
             <TextView
                 android:layout_width="match_parent"
