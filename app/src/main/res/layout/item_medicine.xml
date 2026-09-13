@@ -6,6 +6,7 @@
     android:layout_height="wrap_content">
 
     <com.google.android.material.card.MaterialCardView
+        android:stateListAnimator="@animator/card_press"
         android:layout_width="@dimen/_148sdp"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/_6sdp"
