@@ -37,6 +37,49 @@ class LoginFragment : Fragment() {
         setupViewModel()
         setupListeners()
         observeLoginResult()
+        playEntrance()
+    }
+
+    private fun playEntrance() {
+        try {
+            val b = binding
+            // Gentle infinite float on the logo
+            b.imageView.animate().translationY(-10f).setDuration(1600)
+                .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator())
+                .withEndAction {
+                    try {
+                        b.imageView.animate().translationY(0f).setDuration(1600)
+                            .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator())
+                            .withEndAction { try { playFloatLoop() } catch (_: Exception) {} }.start()
+                    } catch (_: Exception) {}
+                }.start()
+            // Staggered form entrance
+            val seq = listOf(b.textInputLayoutEmail, b.textInputLayoutPassword, b.buLogin)
+            seq.forEachIndexed { i, v ->
+                try {
+                    v.alpha = 0f
+                    v.translationY = 28f
+                    v.animate().alpha(1f).translationY(0f).setDuration(380)
+                        .setStartDelay((120 + i * 110).toLong())
+                        .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
+                } catch (_: Exception) {}
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun playFloatLoop() {
+        try {
+            val b = binding
+            b.imageView.animate().translationY(-10f).setDuration(1600)
+                .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator())
+                .withEndAction {
+                    try {
+                        b.imageView.animate().translationY(0f).setDuration(1600)
+                            .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator())
+                            .withEndAction { try { playFloatLoop() } catch (_: Exception) {} }.start()
+                    } catch (_: Exception) {}
+                }.start()
+        } catch (_: Exception) {}
     }
 
     private fun setupViewModel() {

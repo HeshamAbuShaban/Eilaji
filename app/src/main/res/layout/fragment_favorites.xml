@@ -20,7 +20,8 @@
         app:layout_constraintTop_toBottomOf="@+id/includeAppBarLayoutAlternatives"
         app:spanCount="2"
         tools:itemCount="4"
-        tools:listitem="@layout/item_medicine" />
+        tools:listitem="@layout/item_medicine" 
+                android:layoutAnimation="@anim/layout_animation_fall_down"/>
 
     <include
         android:id="@+id/includeAppBarLayoutAlternatives"

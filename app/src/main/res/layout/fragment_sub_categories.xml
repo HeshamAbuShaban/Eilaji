@@ -56,7 +56,8 @@
         app:layout_constraintTop_toBottomOf="@+id/linearLayout3"
         app:spanCount="2"
         tools:itemCount="3"
-        tools:listitem="@layout/item_medicine" />
+        tools:listitem="@layout/item_medicine" 
+                android:layoutAnimation="@anim/layout_animation_fall_down"/>
 
     <LinearLayout
         android:id="@+id/emptySubMedicines"

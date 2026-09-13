@@ -32,6 +32,23 @@ class MedicinesAdapter(
         notifyDataSetChanged()
     }
 
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        try { recyclerView.scheduleLayoutAnimation() } catch (_: Exception) {}
+    }
+
+    companion object {
+        fun pop(v: android.view.View) {
+            try {
+                v.animate().scaleX(0.82f).scaleY(0.82f).setDuration(80)
+                    .withEndAction {
+                        v.animate().scaleX(1f).scaleY(1f).setDuration(180)
+                            .setInterpolator(android.view.animation.OvershootInterpolator(2.2f)).start()
+                    }.start()
+            } catch (_: Exception) {}
+        }
+    }
+
     override fun getItemCount(): Int = medicineModels.size
 
     class MedicinesViewHolder(private var binding: ItemMedicineBinding, private val onFavClick: ((Medicine) -> Unit)?, private val onItemClick: ((Medicine) -> Unit)?) : RecyclerView.ViewHolder(binding.root) {
@@ -49,6 +66,7 @@ class MedicinesAdapter(
                 root.setOnClickListener { onItemClick?.invoke(model) }
                 ivMedicine.setOnClickListener { onItemClick?.invoke(model) }
                 buAddToCart.setOnClickListener {
+                    pop(it)
                     val ctx = it.context
                     try {
                         dev.anonymous.eilaji.data.repository.CartRepository.getInstance(ctx).addItem(
@@ -69,6 +87,7 @@ class MedicinesAdapter(
                             repo.syncCreateLocalFirst(model.id, null)
                         }
                     } catch (_: Exception) {}
+                    pop(it)
                     onFavClick?.invoke(model)
                     model.isFavorite = !model.isFavorite
                     setUpFavoriteIcon(model)
