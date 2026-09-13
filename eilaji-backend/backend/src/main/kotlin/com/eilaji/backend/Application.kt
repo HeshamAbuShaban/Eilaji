@@ -86,6 +86,8 @@ fun main() {
             Ratings, MedicationReminders, EilajiPlusSync,
             Orders, AuditLogs
         )
+        // Migration: allow direct OTC orders without a prescription
+        try { exec("ALTER TABLE orders ALTER COLUMN prescription_id DROP NOT NULL") } catch (_: Exception) {}
     }
 
     val seedDatabase = config.getBoolean("database.seed-on-startup")

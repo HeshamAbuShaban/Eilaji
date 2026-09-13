@@ -144,4 +144,6 @@
     <string name="rate_pharmacy">Rate pharmacy</string>
     <string name="thanks_for_rating">Thanks for rating!</string>
     <string name="alternatives_title">You may also need</string>
+    <string name="my_orders">My Orders</string>
+    <string name="no_orders_yet">No orders yet</string>
 </resources>
