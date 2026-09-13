@@ -75,6 +75,7 @@ class SearchFragment : Fragment() {
                 searchRunnable?.let { searchHandler.removeCallbacks(it) }
                 val q = s?.toString()?.trim().orEmpty()
                 searchRunnable = Runnable {
+                    showSearchSkeleton()
                     if (q.isEmpty()) {
                         fetchMedicinesData()
                         filterPharmacies("")
@@ -149,10 +150,28 @@ class SearchFragment : Fragment() {
         })
     }
 
+    private fun showSearchSkeleton() {
+        try {
+            binding.shimmerSearch.visibility = View.VISIBLE
+            binding.shimmerSearch.startShimmer()
+            binding.searchResultsScroll.alpha = 0.35f
+        } catch (_: Exception) {}
+    }
+
+    private fun hideSearchSkeletonMorph() {
+        try {
+            binding.shimmerSearch.stopShimmer()
+            binding.shimmerSearch.visibility = View.GONE
+            binding.searchResultsScroll.animate().alpha(1f).setDuration(240)
+                .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
+        } catch (_: Exception) {}
+    }
+
     private fun displayMedicines(){
         searchViewModel.medicineData.observe(viewLifecycleOwner) {
             setupMedicinesAdapter(it)
             updateEmptyState()
+            hideSearchSkeletonMorph()
             if (it.isNotEmpty()) saveRecent(binding.searchEditText.text.toString())
         }
     }

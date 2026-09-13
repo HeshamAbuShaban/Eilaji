@@ -175,7 +175,7 @@ data class SendMessageRequest(
 @Serializable
 data class OrderDto(
     val id: String,
-    val prescriptionId: String,
+    val prescriptionId: String? = null,
     val patientId: String,
     val pharmacyId: String,
     val pharmacyName: String? = null,

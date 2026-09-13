@@ -35,9 +35,15 @@ class MedicineFragment : Fragment() {
     private var extrasCall: Call<ApiResponse<dev.anonymous.eilaji.network.PaginatedResult<MedicineDto>>>? = null
     private var nearbyCall: Call<ApiResponse<List<dev.anonymous.eilaji.network.PharmacyDto>>>? = null
 
+    private var sharedTransitionName: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         medicineId = arguments?.getString("medicineId") ?: activity?.intent?.getStringExtra("medicineId")
+        sharedTransitionName = arguments?.getString("sharedTransitionName")
+            ?: activity?.intent?.getStringExtra("sharedTransitionName")
+            ?: medicineId?.let { "medicine_image_$it" }
+        try { postponeEnterTransition(400, java.util.concurrent.TimeUnit.MILLISECONDS) } catch (_: Exception) {}
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -96,12 +102,12 @@ class MedicineFragment : Fragment() {
                         dev.anonymous.eilaji.models.server.Medicine(dto.id, dto.imageUrl ?: "", dto.titleEn.ifBlank { dto.titleAr }, dto.price ?: 0.0, dto.descriptionEn ?: "", ArrayList(), "", dto.subcategoryNameEn ?: "", false)
                     })
                     try {
-                        bindingOrNull?.recyclerAlternatives?.adapter = dev.anonymous.eilaji.adapters.MedicinesAdapter(ui, onItemClick = { med ->
-                            val b = Bundle().apply { putString("medicineId", med.id) }
-                            try { findNavController().navigate(R.id.navigation_medicine, b) } catch (_: Exception) {
-                                try { medicineId = med.id; loadDetails(med.id) } catch (_: Exception) {}
-                            }
-                        })
+                    bindingOrNull?.recyclerAlternatives?.adapter = dev.anonymous.eilaji.adapters.MedicinesAdapter(ui, onItemClick = { med, _ ->
+                        val b = Bundle().apply { putString("medicineId", med.id) }
+                        try { findNavController().navigate(R.id.navigation_medicine, b) } catch (_: Exception) {
+                            try { medicineId = med.id; loadDetails(med.id) } catch (_: Exception) {}
+                        }
+                    })
                     } catch (_: Exception) {}
                 }
                 override fun onFailure(call: Call<ApiResponse<dev.anonymous.eilaji.network.PaginatedResult<MedicineDto>>>, t: Throwable) {
@@ -238,8 +244,20 @@ class MedicineFragment : Fragment() {
         currentDto = dto
         try {
             val iv = bindingOrNull?.ivMedicineDetail ?: return
-            GeneralUtils.getInstance().loadImage(dto.imageUrl ?: "").into(iv as android.widget.ImageView)
-        } catch (_: Exception) {}
+            try { iv.transitionName = sharedTransitionName ?: "medicine_image_${dto.id}" } catch (_: Exception) {}
+            GeneralUtils.getInstance().loadImage(dto.imageUrl ?: "")
+                .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
+                    override fun onLoadFailed(e: com.bumptech.glide.load.engine.GlideException?, model: Any?, target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
+                        try { startPostponedEnterTransition() } catch (_: Exception) {}
+                        return false
+                    }
+                    override fun onResourceReady(resource: android.graphics.drawable.Drawable, model: Any, target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?, dataSource: com.bumptech.glide.load.DataSource, isFirstResource: Boolean): Boolean {
+                        try { startPostponedEnterTransition() } catch (_: Exception) {}
+                        return false
+                    }
+                })
+                .into(iv as android.widget.ImageView)
+        } catch (_: Exception) { try { startPostponedEnterTransition() } catch (_: Exception) {} }
         bindingOrNull?.textView2?.text = dto.titleEn.ifBlank { dto.titleAr }
         bindingOrNull?.toolbarMedicine?.title = dto.titleEn.ifBlank { dto.titleAr }
         bindingOrNull?.tvMedicineManufacturer?.text = dto.manufacturer ?: ""
