@@ -1,95 +1,124 @@
-# Eilaji (علاجي) — Pharmacy, Delivered
+<p align="center">
+  <img src="docs/assets/logo.png" width="120" alt="Eilaji logo" />
+</p>
 
-Bilingual (AR/EN), RTL-first pharmacy platform for Gaza, Palestine and MENA: browse medicines as a guest, find nearby pharmacies on a live map, upload prescriptions, chat with pharmacists in real time, order to your door, and never miss a dose with exact-alarm reminders — online or off.
+<h1 align="center">Eilaji (علاجي)</h1>
 
-[![Android CI](https://github.com/HeshamAbuShaban/Eilaji/actions/workflows/android-ci.yml/badge.svg)](https://github.com/HeshamAbuShaban/Eilaji/actions/workflows/android-ci.yml)
-[![Backend CI](https://github.com/HeshamAbuShaban/Eilaji/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/HeshamAbuShaban/Eilaji/actions/workflows/backend-ci.yml)
-![Kotlin](https://img.shields.io/badge/Kotlin-2.0-7F52FF?logo=kotlin&logoColor=white)
-![Ktor](https://img.shields.io/badge/Ktor-3.0-087CFA)
-![Android](https://img.shields.io/badge/Android-23%2B-3DDC84?logo=android&logoColor=white)
+<p align="center">Pharmacy catalog, nearby search, prescriptions, chat, orders and reminders — one self-hosted stack.</p>
 
-> **Try it in 5 minutes:** download `app-debug.apk` from [Releases](https://github.com/HeshamAbuShaban/Eilaji/releases/latest), start the backend with one compose file, log in as `patient@eilaji.com` / `password123` — details below.
+<p align="center">
+  <a href="https://github.com/HeshamAbuShaban/Eilaji/actions/workflows/android-ci.yml"><img src="https://github.com/HeshamAbuShaban/Eilaji/actions/workflows/android-ci.yml/badge.svg" alt="Android CI" /></a>
+  <a href="https://github.com/HeshamAbuShaban/Eilaji/actions/workflows/backend-ci.yml"><img src="https://github.com/HeshamAbuShaban/Eilaji/actions/workflows/backend-ci.yml/badge.svg" alt="Backend CI" /></a>
+  <a href="https://github.com/HeshamAbuShaban/Eilaji/releases/latest"><img src="https://img.shields.io/github/v/release/HeshamAbuShaban/Eilaji?label=release" alt="Latest release" /></a>
+  <img src="https://img.shields.io/badge/Kotlin-2.0-7F52FF?logo=kotlin&logoColor=white" alt="Kotlin" />
+  <img src="https://img.shields.io/badge/Ktor-3.0-087CFA" alt="Ktor" />
+  <img src="https://img.shields.io/badge/Android-23%2B-3DDC84?logo=android&logoColor=white" alt="Android" />
+  <img src="https://img.shields.io/badge/license-see_LICENSE-lightgrey" alt="License" />
+</p>
 
-## Why Eilaji
+## Contents
 
-Walk-in and phone-based pharmacy breaks down under closures, stockouts and distance. Firebase-based prototypes hit query limits (no geo-search, weak transactions), regional latency/cost, and lock-in. Eilaji replaces that with a self-hosted **Ktor + Postgres + Redis + MinIO** backend and a native Kotlin client: relational geo-search, real transactions, S3-compatible prescription storage, JWT auth, persisted WebSocket chat, and Room + WorkManager offline-first on device.
+- [Features](#features)
+- [Architecture](#architecture)
+- [Quickstart](#quickstart)
+- [Configuration](#configuration)
+- [API](#api)
+- [Demo data](#demo-data)
+- [Project layout](#project-layout)
+- [CI & releases](#ci--releases)
+- [Roadmap](#roadmap)
+- [License](#license)
 
-## What it does
+## Features
 
-| Area | Experience |
-|---|---|
-| Catalog | 6 categories, 12 subcategories, 36 medicines (AR/EN, manufacturer, price, Rx flag, alternatives rail) |
-| Nearby | Haversine search with radius, live map markers + bottom-sheet pager (rating, distance, Open/Closed, call & chat) |
-| Prescriptions | Photo upload to MinIO, `PENDING → SENT → QUOTED → ACCEPTED → COMPLETED`, Rx gate blocks Rx checkout until a pharmacist confirms |
-| Chat | WebSocket with heartbeat + offline queue, history persisted in Postgres, ghost Gaza threads seeded for testing |
-| Orders & cart | Cart with badge, checkout (address + COD/card), order tracking timeline |
-| Reminders | Exact alarms + WorkManager fallback, DAILY/WEEKLY/CUSTOM with real intervals, dosage field, reboot-safe, backend sync |
-| Favorites & ratings | Favorite medicines/pharmacies (offline-first sync), 1–5 star pharmacy ratings with rollup |
-| Guest-first | Browse catalog, search, map without signup; auth only for prescriptions, chat, orders |
-| Theming | Cairo font, SDP/SSP responsive sizing, full dark mode, `values-ar` RTL layouts |
+- **Catalog** — categories, subcategories and medicines with manufacturer, pricing, prescription flags and alternatives.
+- **Nearby search** — radius-based pharmacy search, map markers with a detail pager (rating, distance, open status, call and chat actions).
+- **Prescriptions** — photo upload with status lifecycle through quote, acceptance and completion.
+- **Chat** — WebSocket messaging with history persistence and offline queueing.
+- **Cart & orders** — cart with badge, checkout with delivery address and payment method, order tracking.
+- **Reminders** — exact alarms with WorkManager fallback, daily/weekly/custom intervals, dosage support, reboot-safe, backend sync.
+- **Favorites & ratings** — offline-first favorites, 1–5 star pharmacy ratings with rollup averages.
+- **Guest browsing** — catalog, search and map work without an account; sign-in required for prescriptions, chat and orders.
+- **Two languages** — English and Arabic UI with dark-mode support.
 
 ## Architecture
 
-```
-Android (Kotlin, MVVM) ──HTTPS/WSS (JWT)──► Ktor (REST + WebSocket, Exposed)
-                                                    ├── Postgres 16 (geo + transactions)
-                                                    ├── Redis 7 (cache / pub-sub)
-                                                    └── MinIO (prescriptions, images)
-On-device: Room + WorkManager + AlarmManager (reminders, favorites, cart cache)
+```mermaid
+flowchart LR
+    App["Android app\nKotlin · MVVM"] <-->|HTTPS / WSS · JWT| API["Ktor backend\nREST + WebSocket"]
+    API <--> DB[("PostgreSQL 16")]
+    API <--> Cache[("Redis 7")]
+    API <--> Store[("MinIO · S3")]
+    App <--> Local[("Room + WorkManager")]
 ```
 
-Guest browses → signs in (JWT) → sets delivery pin on an interactive map → uploads prescription → pharmacist quotes over chat → orders → adheres with reminders.
+| Component | Role |
+|---|---|
+| `app/` | Native Android client (MVVM, ViewBinding, Navigation, Retrofit, Room) |
+| `eilaji-backend/` | Ktor service: auth, catalog, pharmacies, prescriptions, orders, chat, ratings |
+| Postgres | Relational data, geo-search, transactions |
+| Redis | Cache and pub/sub |
+| MinIO | Prescription and image storage |
 
 ## Quickstart
 
 **Prerequisites:** JDK 17+ (backend CI uses 21), Android SDK 34, Docker & Compose.
 
 ```bash
-# 1. Backend + infra
+# 1. Backend + infrastructure
 cd eilaji-backend
-docker-compose up -d        # postgres:5432, redis:6379, minio:9000/9001
+docker-compose up -d        # postgres:5432 · redis:6379 · minio:9000/9001
 ./gradlew :backend:run      # http://localhost:8080
 
-# 2. Health + smoke test
+# 2. Verify
 curl http://localhost:8080/health
 curl "http://localhost:8080/api/v1/medicines?page=0&pageSize=2"
 curl "http://localhost:8080/api/v1/pharmacies/nearby?lat=31.5&lng=34.46&radius=10"
+```
 
-# 3. App (physical device)
-adb reverse tcp:8080 tcp:8080   # app talks to http://localhost:8080
+```bash
+# 3. App — download app-debug.apk from Releases, then:
+adb reverse tcp:8080 tcp:8080   # physical device
 adb install -r app-debug.apk
-# Emulator: backend is already http://10.0.2.2:8080 in debug builds
+# Emulator debug builds already target http://10.0.2.2:8080
 ```
 
-Config lives in `eilaji-backend/backend/src/main/resources/application.conf` (HOCON) — override `database.*`, `redis.*`, `minio.*`, `jwt.*` with env vars (see `eilaji-backend/README.md`).
+**Demo accounts (password `password123`):** `patient@eilaji.com` · `pharmacist1@eilaji.com` · `pharmacist2@eilaji.com` · `admin@eilaji.com`
 
-**Demo accounts (password `password123`):** `patient@eilaji.com`, `pharmacist1@eilaji.com`, `pharmacist2@eilaji.com`, `admin@eilaji.com`.
+## Configuration
 
-## API at a glance
+HOCON file: `eilaji-backend/backend/src/main/resources/application.conf`. Override with environment variables:
 
-```
-GET    /health
-GET    /api/v1/medicines?page=&pageSize=&subcategoryId=
-GET    /api/v1/medicines/{id}            GET /api/v1/medicines/search?q=
-GET    /api/v1/medicines/categories
-GET    /api/v1/pharmacies?page=&pageSize=&city=
-GET    /api/v1/pharmacies/nearby?lat=&lng=&radius=
-POST   /api/v1/auth/register  /auth/login  /auth/refresh
-POST   /api/v1/prescriptions (multipart)   GET /api/v1/prescriptions
-POST   /api/v1/orders                      GET /api/v1/orders
-GET    /api/v1/chats  POST /api/v1/chats   GET /api/v1/chats/{id}/messages
-WS     /api/v1/ws/chat?token=JWT
-GET    /api/v1/favorites  POST /api/v1/favorites
-POST   /api/v1/ratings                     GET /api/v1/pharmacies/{id}/ratings
-```
+| Key | Default | Purpose |
+|---|---|---|
+| `database.url` / `database.user` / `database.password` | `jdbc:postgresql://localhost:5432/eilaji_db` | Postgres connection |
+| `redis.url` | `redis://localhost:6379` | Cache / pub-sub |
+| `minio.endpoint` / `minio.accessKey` / `minio.secretKey` | `http://localhost:9000` | Object storage |
+| `jwt.secret` / `jwt.issuer` / `jwt.audience` | — | Token signing (use a 32+ char secret in production) |
 
-## Sample data
+See `eilaji-backend/README.md` for the full variable list.
 
-Seeded automatically when the DB is empty (`DatabaseSeeder.kt`):
+## API
 
-- **36 medicines** across Pain Relievers, Antibiotics, Vitamins & Supplements, Skin Care, Cold & Flu, Digestive Health
-- **30 pharmacies** — 10 Gaza (+970), 5 Syria, 5 Egypt, 10 Saudi Arabia — with lat/lng, ratings, open/closed
-- **2 ghost chat threads** (`patient@eilaji.com` ↔ Gaza pharmacies) so chat is testable without a pharmacist online
+| Method & path | Description |
+|---|---|
+| `GET /health` | Service status |
+| `GET /api/v1/medicines?page=&pageSize=&subcategoryId=` | Paginated medicines |
+| `GET /api/v1/medicines/{id}` · `GET /api/v1/medicines/search?q=` | Details · full-text search |
+| `GET /api/v1/medicines/categories` | Categories with subcategories |
+| `GET /api/v1/pharmacies?page=&pageSize=&city=` | Pharmacy listing |
+| `GET /api/v1/pharmacies/nearby?lat=&lng=&radius=` | Radius search |
+| `POST /api/v1/auth/register` · `/auth/login` · `/auth/refresh` | Auth |
+| `POST /api/v1/prescriptions` (multipart) · `GET /api/v1/prescriptions` | Prescription upload & list |
+| `POST /api/v1/orders` · `GET /api/v1/orders` | Orders |
+| `GET /api/v1/chats` · `POST /api/v1/chats` · `GET /api/v1/chats/{id}/messages` | Chat REST |
+| `WS /api/v1/ws/chat?token=JWT` | Chat socket |
+| `GET/POST /api/v1/favorites` | Favorites |
+| `POST /api/v1/ratings` · `GET /api/v1/pharmacies/{id}/ratings` | Ratings |
+
+## Demo data
+
+Seeded automatically on first start (`DatabaseSeeder.kt`): 6 categories, 12 subcategories, 36 medicines, 30 pharmacies across 4 regions with ratings and open/closed status, plus 2 sample chat threads so messaging is testable without a second client.
 
 ## Project layout
 
@@ -97,28 +126,25 @@ Seeded automatically when the DB is empty (`DatabaseSeeder.kt`):
 app/src/main/java/dev/anonymous/eilaji/
 ├── ui/base/.../home|categories|chatting|profile|send_prescription
 ├── ui/other/{map,add_address,medicine,checkout,search,favorite,reminder,messaging}
-├── adapters/  network/ (Retrofit + WebSocketManager)  data/repository/ (CartRepository)
-├── reminder_system/ (Room + WorkManager + AlarmReceiver + BootReceiver)
-└── storage/ (AppSharedPreferences)
+├── adapters/  network/  data/repository/  reminder_system/  storage/
 eilaji-backend/backend/src/main/kotlin/com/eilaji/backend/
-├── controller/ (Routes, AdminController, AuthController)  service/  data/ (Tables)
-├── websocket/  security/ (JwtConfig)  initialization/ (DatabaseSeeder)
-└── config/ (DatabaseConfig, RateLimitPlugin)
-.github/workflows/  android-ci.yml (APK artifact + v* releases)  backend-ci.yml
+├── controller/  service/  data/  websocket/  security/  initialization/  config/
+.github/workflows/  android-ci.yml  backend-ci.yml
+docs/assets/  docs/screenshots/
 ```
 
 ## CI & releases
 
-- **Android CI:** JDK 17, `./gradlew assembleDebug`, `app-debug.apk` artifact on every push; `v*` tags create a GitHub Release with the APK + spin-up instructions.
-- **Backend CI:** JDK 21, Postgres 15 + Redis 7 services, `:backend:build` + `:backend:test`.
-- Latest stable: [v1.7.1](https://github.com/HeshamAbuShaban/Eilaji/releases/latest).
+- **Android CI** (JDK 17): `./gradlew assembleDebug` → `app-debug.apk` artifact on every push; `v*` tags publish a GitHub Release with the APK and setup notes.
+- **Backend CI** (JDK 21, Postgres 15 + Redis 7 services): `:backend:build` + `:backend:test`.
+- Latest stable: [Releases](https://github.com/HeshamAbuShaban/Eilaji/releases/latest).
 
 ## Roadmap
 
-- [ ] Pharmacist web workbench (quote inbox, stock toggle, order queue)
-- [ ] COD ledger + delivery zones/courier tracking
-- [ ] Postgres FTS search ranking + filters
-- [ ] Phone OTP onboarding, refill prediction, loyalty/referrals
+- Pharmacist workbench (quote inbox, stock toggles, order queue)
+- Delivery zones and courier tracking
+- Ranked search with filters
+- Phone OTP onboarding, refill prediction, referrals
 
 ## License
 
