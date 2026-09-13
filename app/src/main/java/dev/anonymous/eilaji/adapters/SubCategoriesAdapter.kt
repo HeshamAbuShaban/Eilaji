@@ -12,10 +12,11 @@ import dev.anonymous.eilaji.utils.GeneralUtils
 
 class SubCategoriesAdapter(
     private var listSubCategoriesAdapter: ArrayList<SubCategory>,
-    private val onSelect: ((String) -> Unit)? = null
+    private val onSelect: ((String) -> Unit)? = null,
+    initialSelected: Int = 0
 ) : RecyclerView.Adapter<SubCategoriesAdapter.SubCategoriesViewHolder>() {
 
-    private var lastItemSelected: Int = 0
+    private var lastItemSelected: Int = initialSelected.coerceIn(0, (listSubCategoriesAdapter.size - 1).coerceAtLeast(0))
 
     override fun onCreateViewHolder(
         parent: ViewGroup,

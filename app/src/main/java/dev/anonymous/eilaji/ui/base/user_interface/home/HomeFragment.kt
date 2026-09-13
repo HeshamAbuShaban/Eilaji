@@ -51,6 +51,7 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupGreeting()
         setupListeners()
         setupSwipeRefresh()
         setupQuickActions()
@@ -72,6 +73,20 @@ class HomeFragment : Fragment() {
         startShimmers()
         hideShimmerIfDataPresent()
         scheduleShimmerTimeout()
+    }
+
+    private fun setupGreeting() {
+        try {
+            val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+            val greet = when (hour) {
+                in 5..11 -> "Good morning"
+                in 12..17 -> "Good afternoon"
+                else -> "Good evening"
+            }
+            binding.tvHomeGreeting.text = greet
+            val fmt = java.text.SimpleDateFormat("MMM d", java.util.Locale.getDefault())
+            binding.tvHomeDate.text = fmt.format(java.util.Date())
+        } catch (_: Exception) {}
     }
 
     private fun hideShimmerIfDataPresent() {
