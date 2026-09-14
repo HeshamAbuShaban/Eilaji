@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Eilaji Ops Dashboard</title>
+<style>
+  :root { --primary: #BA324F; --pink: #FF74B1; --bg: #FAFAFA; --card: #FFFFFF; --ink: #1A1A1A; --muted: #757575; --ok: #4CAF50; --warn: #FF8705; --bad: #F44336; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif; background: var(--bg); color: var(--ink); }
+  header { background: linear-gradient(135deg, var(--primary), var(--pink)); color: #fff; padding: 28px 24px 64px; border-radius: 0 0 28px 28px; }
+  header h1 { margin: 0; font-size: 24px; }
+  header p { margin: 6px 0 0; opacity: .92; font-size: 13px; }
+  main { max-width: 1080px; margin: -36px auto 48px; padding: 0 16px; }
+  .card { background: var(--card); border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,.07); padding: 18px; margin-bottom: 16px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  input, select { padding: 10px 12px; border: 1px solid #E3E3E3; border-radius: 12px; font-size: 14px; }
+  button { background: var(--primary); color: #fff; border: 0; border-radius: 12px; padding: 10px 16px; font-size: 14px; cursor: pointer; }
+  button.ghost { background: #F3E7EB; color: var(--primary); }
+  button:disabled { opacity: .5; cursor: default; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .pill { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: #F3E7EB; color: var(--primary); }
+  .pill.ok { background: #E6F4EA; color: #1B7A34; }
+  .pill.bad { background: #FDECEA; color: var(--bad); }
+  .order { border: 1px solid #F0E4E8; border-radius: 14px; padding: 12px; margin-top: 10px; }
+  .order h4 { margin: 0 0 4px; font-size: 14px; }
+  .meta { color: var(--muted); font-size: 12px; }
+  .actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+  #log { font-size: 12px; color: var(--muted); white-space: pre-wrap; max-height: 180px; overflow: auto; }
+  .hint { font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Eilaji Ops Dashboard</h1>
+  <p>Pharmacy ops + customer mini-view for testing — same API the app uses. Dev only.</p>
+</header>
+<main>
+  <div class="card">
+    <div class="row">
+      <input id="email" placeholder="email (patient@eilaji.com)" size="26" />
+      <input id="password" type="password" placeholder="password123" />
+      <button id="btnLogin">Sign in</button>
+      <span id="who" class="pill">signed out</span>
+    </div>
+    <p class="hint">Demo: <b>pharmacist1@eilaji.com</b> for the pharmacy tab, <b>patient@eilaji.com</b> for the customer tab. Password <b>password123</b>.</p>
+  </div>
+
+  <div class="tabs">
+    <button id="tabPharm" class="ghost">Pharmacy</button>
+    <button id="tabCust" class="ghost">Customer</button>
+    <button id="btnRefresh" class="ghost">Refresh</button>
+  </div>
+
+  <div class="grid">
+    <div class="card" id="panePharm">
+      <h3>Order queue <span class="pill" id="ordCount">0</span></h3>
+      <div class="row">
+        <select id="statusFilter">
+          <option value="">all statuses</option>
+          <option>PENDING</option><option>CONFIRMED</option><option>PREPARING</option>
+          <option>SHIPPED</option><option>DELIVERED</option><option>CANCELLED</option>
+        </select>
+      </div>
+      <div id="orders"></div>
+      <h3 style="margin-top:18px">Pending prescriptions</h3>
+      <div id="prescs"></div>
+    </div>
+
+    <div class="card" id="paneCust" style="display:none">
+      <h3>Place test order (direct OTC)</h3>
+      <div class="row">
+        <select id="pharmSel"></select>
+        <input id="custAddr" placeholder="Delivery address" size="28" />
+        <input id="custTotal" placeholder="Total" size="8" value="12.50" />
+        <button id="btnOrder">Place order</button>
+      </div>
+      <h3 style="margin-top:18px">My orders</h3>
+      <div id="myOrders"></div>
+    </div>
+  </div>
+
+  <div class="card"><h3>Log</h3><div id="log"></div></div>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

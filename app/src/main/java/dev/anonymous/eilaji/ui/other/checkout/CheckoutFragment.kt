@@ -105,6 +105,7 @@ class CheckoutFragment : Fragment() {
             })
             binding.recyclerOrderItems.adapter = adapter
             updateTotal(adapter.getTotal())
+            refreshFee(pharmacyId ?: cartItems.firstOrNull()?.pharmacyId)
         } else {
             binding.recyclerOrderItems.adapter = CheckoutAdapter(emptyList())
             updateTotal(0.0)
@@ -121,15 +122,54 @@ class CheckoutFragment : Fragment() {
                     val adapter = CheckoutAdapter(listOf(item))
                     binding.recyclerOrderItems.adapter = adapter
                     updateTotal(adapter.getTotal())
+                    refreshFee(pharmacyId)
                 }
             }
             override fun onFailure(call: Call<ApiResponse<MedicineDto>>, t: Throwable) {}
         })
     }
 
-    private fun updateTotal(total: Double) {
+    private var currentFee = 0.0
+    private var currentMinOrder: Double? = null
+    private var currentSubtotal = 0.0
+
+    private fun updateTotal(subtotal: Double) {
+        currentSubtotal = subtotal
+        val total = subtotal + currentFee
         binding.tvTotalAmount.text = String.format("%.2f $", total)
-        binding.tvSubtotal.text = String.format("%.2f $", total)
+        binding.tvSubtotal.text = String.format("%.2f $", subtotal)
+        binding.tvDeliveryFee.text = String.format("%.2f $", currentFee)
+    }
+
+    private fun refreshFee(pharmacyId: String?) {
+        if (pharmacyId.isNullOrBlank()) {
+            // Dummy distance-based fee until a pharmacy is chosen: base 1.5 + location factor
+            currentFee = dummyFee(null)
+            currentMinOrder = null
+            updateTotal(currentSubtotal)
+            return
+        }
+        NetworkModule.provideApiService(requireContext()).getPharmacy(pharmacyId).enqueue(object : Callback<ApiResponse<PharmacyDto>> {
+            override fun onResponse(call: Call<ApiResponse<PharmacyDto>>, response: Response<ApiResponse<PharmacyDto>>) {
+                val dto = response.body()?.data
+                currentFee = dto?.deliveryFee ?: dummyFee(dto?.distanceKm)
+                currentMinOrder = dto?.minOrderAmount
+                try {
+                    binding.tvDeliveryFeeLabel.text = if (dto?.prepTimeMin != null) "Delivery · ~${dto.prepTimeMin} min" else "Delivery"
+                } catch (_: Exception) {}
+                updateTotal(currentSubtotal)
+            }
+            override fun onFailure(call: Call<ApiResponse<PharmacyDto>>, t: Throwable) {
+                currentFee = dummyFee(null)
+                updateTotal(currentSubtotal)
+            }
+        })
+    }
+
+    /** Logical dummy fee: base 1.5 + 0.30/km, capped at 6.0. */
+    private fun dummyFee(distanceKm: Double?): Double {
+        val d = distanceKm ?: 3.0
+        return (1.5 + 0.30 * d).coerceAtMost(6.0)
     }
 
     private fun observeVm() {
@@ -154,7 +194,13 @@ class CheckoutFragment : Fragment() {
             Snackbar.make(binding.root, "Please add delivery address", Snackbar.LENGTH_SHORT).show()
             return
         }
-        val total = binding.tvTotalAmount.text.toString().replace("$","").trim().toDoubleOrNull()
+        currentMinOrder?.let { min ->
+            if (currentSubtotal < min) {
+                Snackbar.make(binding.root, "Minimum order is ${String.format("%.2f $", min)}", Snackbar.LENGTH_LONG).show()
+                return
+            }
+        }
+        val total = currentSubtotal + currentFee
         // Direct OTC order: no prescription. Never send medicine IDs or placeholders as prescriptionId.
         val prescId: String? = null
         val pharmId = pharmacyId ?: cartRepo.getAll().firstOrNull()?.pharmacyId

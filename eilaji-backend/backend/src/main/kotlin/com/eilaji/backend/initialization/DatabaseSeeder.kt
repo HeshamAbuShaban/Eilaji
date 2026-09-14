@@ -14,16 +14,13 @@ import org.mindrot.jbcrypt.BCrypt
 
 object DatabaseSeeder {
 
+    const val SEED_VERSION = 2
+
     fun seedIfEmpty() {
         transaction {
             val categoriesCount = Categories.selectAll().count()
-            val pharmaciesCount = try { Pharmacies.selectAll().count() } catch (_: Exception) { 0 }
-            if (categoriesCount > 0 && pharmaciesCount >= 30) {
-                println("INFO: Database already has data, skipping seed")
-                return@transaction
-            }
             if (categoriesCount == 0L) {
-                println("INFO: Seeding database with test data...")
+                println("INFO: Seeding database with test data (v$SEED_VERSION)...")
                 seedUsers()
                 val categoryIds = seedCategories()
                 val subcategoryIds = seedSubcategories(categoryIds)
@@ -33,14 +30,57 @@ object DatabaseSeeder {
                 println("INFO: Database seeding completed")
                 return@transaction
             }
+            if (needsV2Reseed()) {
+                println("INFO: Migrating seed data to v$SEED_VERSION (therapeutic taxonomy + details)...")
+                wipeCatalog()
+                val categoryIds = seedCategories()
+                val subcategoryIds = seedSubcategories(categoryIds)
+                seedMedicines(subcategoryIds)
+                seedPharmacies()
+                seedChats()
+                println("INFO: Seed v$SEED_VERSION completed")
+                return@transaction
+            }
+            val pharmaciesCount = try { Pharmacies.selectAll().count() } catch (_: Exception) { 0 }
             if (pharmaciesCount < 30) {
                 println("INFO: Seeding additional pharmacies to reach 30 (current $pharmaciesCount)...")
                 try { Messages.deleteAll(); Chats.deleteAll(); Pharmacies.deleteAll() } catch (_: Exception) { println("WARN: delete failed, continuing") }
                 seedPharmacies()
                 seedChats()
                 println("INFO: Additional pharmacies seeded")
+            } else {
+                println("INFO: Database already has data, skipping seed")
             }
         }
+    }
+
+    private fun needsV2Reseed(): Boolean {
+        return try {
+            val medCount = Medicines.selectAll().count()
+            if (medCount == 0L) return false // handled by fresh-seed path
+            val sample = Medicines.selectAll().limit(1).singleOrNull() ?: return false
+            val dosage = try { sample.getOrNull(Medicines.dosage) } catch (_: Exception) { null }
+            if (dosage == null) return true
+            val subs = Subcategories.selectAll().limit(20).map { it[Subcategories.nameEn] }
+            // v1 marker: generic "Tablets" duplicated across categories
+            subs.count { it == "Tablets" } > 1
+        } catch (_: Exception) { false }
+    }
+
+    private fun wipeCatalog() {
+        // Children first to satisfy FKs; users are kept so logins survive.
+        try { Messages.deleteAll() } catch (_: Exception) {}
+        try { Chats.deleteAll() } catch (_: Exception) {}
+        try { Favorites.deleteAll() } catch (_: Exception) {}
+        try { Ratings.deleteAll() } catch (_: Exception) {}
+        try { Orders.deleteAll() } catch (_: Exception) {}
+        try { Prescriptions.deleteAll() } catch (_: Exception) {}
+        try { EilajiPlusSync.deleteAll() } catch (_: Exception) {}
+        try { PharmacyMedicines.deleteAll() } catch (_: Exception) {}
+        try { Medicines.deleteAll() } catch (_: Exception) {}
+        try { Subcategories.deleteAll() } catch (_: Exception) {}
+        try { Categories.deleteAll() } catch (_: Exception) {}
+        try { Pharmacies.deleteAll() } catch (_: Exception) {}
     }
 
     private fun seedUsers() {
@@ -69,32 +109,23 @@ object DatabaseSeeder {
 
     private fun seedCategories(): List<UUID> {
         println("Seeding categories...")
-        val categoryIds = listOf(
-            Categories.insert {
-                it[nameEn] = "Pain Relievers"
-                it[nameAr] = "مسكنات الألم"
-            } get Categories.id,
-            Categories.insert {
-                it[nameEn] = "Antibiotics"
-                it[nameAr] = "المضادات الحيوية"
-            } get Categories.id,
-            Categories.insert {
-                it[nameEn] = "Vitamins & Supplements"
-                it[nameAr] = "الفيتامينات والمكملات"
-            } get Categories.id,
-            Categories.insert {
-                it[nameEn] = "Skin Care"
-                it[nameAr] = "العناية بالبشرة"
-            } get Categories.id,
-            Categories.insert {
-                it[nameEn] = "Cold & Flu"
-                it[nameAr] = "البرد والإنفلونزا"
-            } get Categories.id,
-            Categories.insert {
-                it[nameEn] = "Digestive Health"
-                it[nameAr] = "صحة الجهاز الهضمي"
-            } get Categories.id
+        val defs = listOf(
+            Triple("Pain Relievers", "مسكنات الألم", "/images/categories/pain.png"),
+            Triple("Antibiotics", "المضادات الحيوية", "/images/categories/antibiotics.png"),
+            Triple("Vitamins & Supplements", "الفيتامينات والمكملات", "/images/categories/vitamins.png"),
+            Triple("Skin Care", "العناية بالبشرة", "/images/categories/skin.png"),
+            Triple("Cold & Flu", "البرد والإنفلونزا", "/images/categories/cold.png"),
+            Triple("Digestive Health", "صحة الجهاز الهضمي", "/images/categories/digestive.png")
         )
+        val categoryIds = defs.mapIndexed { idx, (en, ar, icon) ->
+            Categories.insert {
+                it[nameEn] = en
+                it[nameAr] = ar
+                it[iconUrl] = icon
+                it[displayOrder] = idx
+                it[isActive] = true
+            } get Categories.id
+        }
         println("Seeded ${categoryIds.size} categories")
         return categoryIds
     }
@@ -102,26 +133,36 @@ object DatabaseSeeder {
     private fun seedSubcategories(categoryIds: List<UUID>): List<UUID> {
         println("Seeding subcategories...")
         val subcategories = mutableListOf<UUID>()
+        // Therapeutic taxonomy: 2 per category, per-category displayOrder 0..1
         val defs = listOf(
-            Triple(categoryIds[0], "Tablets", "أقراص"),
-            Triple(categoryIds[0], "Syrup", "شراب"),
-            Triple(categoryIds[1], "Capsules", "كبسولات"),
-            Triple(categoryIds[1], "Injections", "حقن"),
-            Triple(categoryIds[2], "Tablets", "أقراص"),
-            Triple(categoryIds[2], "Gummies", "حلوى مضغ"),
-            Triple(categoryIds[3], "Creams", "كريمات"),
-            Triple(categoryIds[3], "Lotions", "لوشن"),
-            Triple(categoryIds[4], "Tablets", "أقراص"),
-            Triple(categoryIds[4], "Syrup", "شراب"),
-            Triple(categoryIds[5], "Tablets", "أقراص"),
-            Triple(categoryIds[5], "Probiotics", "بروبيوتيك")
+            Triple(categoryIds[0], "NSAIDs", "مضادات الالتهاب"),
+            Triple(categoryIds[0], "Paracetamol & Analgesics", "باراسيتامول ومسكنات"),
+            Triple(categoryIds[1], "Penicillins", "البنسلينات"),
+            Triple(categoryIds[1], "Broad-Spectrum Antibiotics", "مضادات واسعة الطيف"),
+            Triple(categoryIds[2], "Vitamins & Minerals", "فيتامينات ومعادن"),
+            Triple(categoryIds[2], "Specialty Supplements", "مكملات متخصصة"),
+            Triple(categoryIds[3], "Topical Treatments", "علاجات موضعية"),
+            Triple(categoryIds[3], "Moisturizers & Sun Care", "ترطيب وحماية من الشمس"),
+            Triple(categoryIds[4], "Cold, Flu & Allergy", "برد وإنفلونزا وحساسية"),
+            Triple(categoryIds[4], "Cough & Throat", "سعال وحلق"),
+            Triple(categoryIds[5], "Acid & Reflux", "حموضة وارتجاع"),
+            Triple(categoryIds[5], "Gut & Motility", "هضم وحركة الأمعاء")
+        )
+        val icons = listOf(
+            "/images/subcategories/nsaids.png", "/images/subcategories/analgesics.png",
+            "/images/subcategories/penicillins.png", "/images/subcategories/broad_spectrum.png",
+            "/images/subcategories/vitamins.png", "/images/subcategories/supplements.png",
+            "/images/subcategories/topical.png", "/images/subcategories/moisturizers.png",
+            "/images/subcategories/cold_flu.png", "/images/subcategories/cough.png",
+            "/images/subcategories/acid.png", "/images/subcategories/gut.png"
         )
         defs.forEachIndexed { idx, (catId, en, ar) ->
             val id = Subcategories.insert {
                 it[categoryId] = catId
                 it[nameEn] = en
                 it[nameAr] = ar
-                it[displayOrder] = idx
+                it[iconUrl] = icons[idx]
+                it[displayOrder] = idx % 2
                 it[isActive] = true
             } get Subcategories.id
             subcategories.add(id)
@@ -136,6 +177,10 @@ object DatabaseSeeder {
             val titleEn: String,
             val titleAr: String,
             val descriptionEn: String,
+            val dosage: String,
+            val warnings: String,
+            val sideEffects: String,
+            val storage: String,
             val manufacturer: String,
             val price: Double,
             val requiresPrescription: Boolean,
@@ -143,42 +188,42 @@ object DatabaseSeeder {
             val subIdx: Int
         )
         val medicines = listOf(
-            MedSeed("Paracetamol 500mg", "باراسيتامول 500مجم", "Pain reliever and fever reducer, effective for headache and mild pain", "Bayer", 5.99, false, "/images/medicines/paracetamol.jpg", 0),
-            MedSeed("Ibuprofen 400mg", "إيبوبروفين 400مجم", "Non-steroidal anti-inflammatory drug for pain and inflammation", "Pfizer", 8.50, false, "/images/medicines/ibuprofen.jpg", 0),
-            MedSeed("Diclofenac 50mg", "ديكلوفيناك 50مجم", "Potent NSAID for joint pain and arthritis", "Novartis", 12.30, false, "/images/medicines/diclofenac.jpg", 0),
-            MedSeed("Aspirin 100mg", "أسبرين 100مجم", "Low-dose aspirin for blood thinning and pain relief", "Bayer", 4.25, false, "/images/medicines/aspirin.jpg", 1),
-            MedSeed("Ketoprofen 100mg", "كيتوبروفين 100مجم", "Anti-inflammatory for musculoskeletal pain", "Sanofi", 15.75, true, "/images/medicines/ketoprofen.jpg", 1),
-            MedSeed("Tramadol 50mg", "ترامادول 50مجم", "Strong analgesic for moderate to severe pain", "GSK", 22.90, true, "/images/medicines/tramadol.jpg", 0),
-            MedSeed("Amoxicillin 500mg", "أموكسيسيلين 500مجم", "Broad-spectrum penicillin antibiotic", "GSK", 9.99, true, "/images/medicines/amoxicillin.jpg", 2),
-            MedSeed("Azithromycin 250mg", "أزيثروميسين 250مجم", "Macrolide antibiotic for respiratory infections", "Pfizer", 18.50, true, "/images/medicines/azithromycin.jpg", 2),
-            MedSeed("Ciprofloxacin 500mg", "سيبروفلوكساسين 500مجم", "Fluoroquinolone for bacterial infections", "Bayer", 14.20, true, "/images/medicines/ciprofloxacin.jpg", 2),
-            MedSeed("Augmentin 625mg", "أوجمنتين 625مجم", "Amoxicillin/clavulanate combination antibiotic", "GSK", 24.99, true, "/images/medicines/augmentin.jpg", 2),
-            MedSeed("Doxycycline 100mg", "دوكسيسيكلين 100مجم", "Tetracycline antibiotic for acne and infections", "Pfizer", 11.30, false, "/images/medicines/doxycycline.jpg", 3),
-            MedSeed("Metronidazole 400mg", "ميترونيدازول 400مجم", "Antibiotic and antiprotozoal for intestinal infections", "Sanofi", 7.80, false, "/images/medicines/metronidazole.jpg", 3),
-            MedSeed("Vitamin C 1000mg", "فيتامين سي 1000مجم", "Immune support and antioxidant supplement", "Hikma Pharmaceuticals", 12.99, false, "/images/medicines/vitamin_c.jpg", 4),
-            MedSeed("Vitamin D3 5000IU", "فيتامين د3 5000 وحدة", "Bone health and immune system support", "Pfizer", 16.50, false, "/images/medicines/vitamin_d3.jpg", 4),
-            MedSeed("Omega-3 Fish Oil 1000mg", "أوميغا 3 زيت السمك 1000مجم", "Heart and brain health omega-3 supplement", "Novartis", 25.99, false, "/images/medicines/omega3.jpg", 5),
-            MedSeed("Centrum Multivitamin", "سنتروم متعدد الفيتامينات", "Complete daily multivitamin for adults", "Pfizer", 28.75, false, "/images/medicines/centrum.jpg", 5),
-            MedSeed("Calcium + Magnesium 500mg", "كالسيوم + مغنيسيوم 500مجم", "Bone strength and muscle function support", "Bayer", 18.20, false, "/images/medicines/calcium_magnesium.jpg", 4),
-            MedSeed("Zinc 50mg", "زنك 50مجم", "Immune support and wound healing mineral", "Teva", 9.40, false, "/images/medicines/zinc.jpg", 4),
-            MedSeed("Hydrocortisone Cream 1%", "كريم هيدروكورتيزون 1%", "Topical corticosteroid for eczema and dermatitis", "Bayer", 13.50, true, "/images/medicines/hydrocortisone.jpg", 6),
-            MedSeed("Cetaphil Moisturizer 250ml", "سيتافيل مرطب 250مل", "Gentle daily moisturizer for sensitive skin", "Johnson & Johnson", 19.99, false, "/images/medicines/cetaphil.jpg", 7),
-            MedSeed("Eucerin Cream 150ml", "يوسيرين كريم 150مل", "Intensive repair cream for very dry skin", "Novartis", 21.30, false, "/images/medicines/eucerin.jpg", 6),
-            MedSeed("Differin Gel 0.1% 30g", "ديفرين جل 0.1% 30غ", "Adapalene gel for acne treatment", "GSK", 32.00, true, "/images/medicines/differin.jpg", 6),
-            MedSeed("Nivea Soft Cream 200ml", "نيفيا سوفت كريم 200مل", "Light moisturizing cream for face and body", "Bayer", 7.99, false, "/images/medicines/nivea_soft.jpg", 7),
-            MedSeed("Bioderma Sunscreen SPF50", "بيوديرما واقي شمس SPF50", "High protection sunscreen for sensitive skin", "Hikma Pharmaceuticals", 26.50, false, "/images/medicines/bioderma_sunscreen.jpg", 7),
-            MedSeed("Panadol Cold & Flu", "بنادول كولد اند فلو", "Relief for cold, flu and fever symptoms", "GSK", 6.99, false, "/images/medicines/panadol_cold_flu.jpg", 8),
-            MedSeed("Loratadine 10mg", "لوراتادين 10مجم", "Non-drowsy antihistamine for allergies", "Bayer", 8.99, false, "/images/medicines/loratadine.jpg", 8),
-            MedSeed("Cetirizine 10mg", "سيتيريزين 10مجم", "Antihistamine for hay fever and hives", "Pfizer", 7.50, false, "/images/medicines/cetirizine.jpg", 8),
-            MedSeed("Oseltamivir 75mg", "أوسيلتاميفير 75مجم", "Antiviral for influenza A and B", "Roche", 45.99, true, "/images/medicines/oseltamivir.jpg", 8),
-            MedSeed("Dextromethorphan Syrup 100ml", "ديكستروميثورفان شراب 100مل", "Cough suppressant for dry cough", "Cipla", 6.75, false, "/images/medicines/dextromethorphan.jpg", 9),
-            MedSeed("Strepsils Lozenges Honey", "ستربسلز أقراص عسل", "Soothing lozenges for sore throat", "Merck", 3.50, false, "/images/medicines/strepsils.jpg", 9),
-            MedSeed("Omeprazole 20mg", "أوميبرازول 20مجم", "Proton pump inhibitor for acid reflux", "AstraZeneca", 10.99, true, "/images/medicines/omeprazole.jpg", 10),
-            MedSeed("Nexium 40mg", "نيكسيوم 40مجم", "Esomeprazole for GERD and ulcers", "AstraZeneca", 35.40, true, "/images/medicines/nexium.jpg", 10),
-            MedSeed("Gaviscon Syrup 200ml", "جافيسكون شراب 200مل", "Antacid for heartburn and indigestion", "Merck", 11.20, false, "/images/medicines/gaviscon.jpg", 10),
-            MedSeed("Buscopan 10mg", "بوسكوبان 10مجم", "Antispasmodic for abdominal cramps", "Sanofi", 9.80, false, "/images/medicines/buscopan.jpg", 10),
-            MedSeed("Dulcolax 5mg", "دولكولاكس 5مجم", "Laxative for constipation relief", "Sanofi", 5.20, false, "/images/medicines/dulcolax.jpg", 10),
-            MedSeed("Enterogermina Probiotics 10 vials", "إنتروجرمينا بروبيوتيك 10 عبوات", "Probiotic for gut flora balance and diarrhea", "Merck", 18.90, false, "/images/medicines/enterogermina.jpg", 11)
+            MedSeed("Paracetamol 500mg", "باراسيتامول 500مجم", "Pain reliever and fever reducer, effective for headache and mild pain", "500mg every 6 hours as needed, max 4g per day", "Do not exceed the stated dose. Avoid with other paracetamol products or with severe liver disease.", "Rare at recommended doses; nausea or rash in sensitive individuals.", "Store below 30C, keep dry and away from children.", "Bayer", 5.99, false, "/images/medicines/paracetamol.jpg", 1),
+            MedSeed("Ibuprofen 400mg", "إيبوبروفين 400مجم", "Non-steroidal anti-inflammatory drug for pain and inflammation", "400mg up to 3 times daily with food", "Avoid with stomach ulcers, severe kidney disease, or late pregnancy. Ask a pharmacist if on blood thinners.", "Stomach upset, heartburn; stop use if black stools or vomiting blood.", "Store at room temperature away from moisture.", "Pfizer", 8.50, false, "/images/medicines/ibuprofen.jpg", 0),
+            MedSeed("Diclofenac 50mg", "ديكلوفيناك 50مجم", "Potent NSAID for joint pain and arthritis", "50mg 2-3 times daily with food as directed", "Avoid with heart failure, ulcers, or NSAID allergy. Use lowest effective dose.", "Stomach pain, dizziness; seek care for chest pain or swelling.", "Store below 30C in original pack.", "Novartis", 12.30, false, "/images/medicines/diclofenac.jpg", 0),
+            MedSeed("Aspirin 100mg", "أسبرين 100مجم", "Low-dose aspirin for blood thinning and pain relief", "100mg once daily or as directed by a doctor", "Not for children with viral illness. Avoid with bleeding disorders or aspirin allergy.", "Easy bruising, stomach irritation; seek care for unusual bleeding.", "Store in a cool dry place.", "Bayer", 4.25, false, "/images/medicines/aspirin.jpg", 0),
+            MedSeed("Ketoprofen 100mg", "كيتوبروفين 100مجم", "Anti-inflammatory for musculoskeletal pain", "100mg twice daily with food, prescription only", "Prescription only. Avoid with ulcers, kidney impairment, or NSAID allergy.", "Stomach upset, headache; stop use if rash or swelling appears.", "Store below 25C away from light.", "Sanofi", 15.75, true, "/images/medicines/ketoprofen.jpg", 0),
+            MedSeed("Tramadol 50mg", "ترامادول 50مجم", "Strong analgesic for moderate to severe pain", "50mg as directed, prescription only; do not drive", "Prescription only. Risk of dependence; avoid alcohol and sedatives.", "Drowsiness, dizziness, nausea, constipation.", "Store locked away from children.", "GSK", 22.90, true, "/images/medicines/tramadol.jpg", 1),
+            MedSeed("Amoxicillin 500mg", "أموكسيسيلين 500مجم", "Broad-spectrum penicillin antibiotic", "500mg every 8 hours for the full prescribed course", "Prescription only. Complete the full course. Not for viral infections.", "Diarrhea, nausea, rash; seek care for breathing difficulty.", "Store below 25C; suspensions refrigerated per label.", "GSK", 9.99, true, "/images/medicines/amoxicillin.jpg", 2),
+            MedSeed("Azithromycin 250mg", "أزيثروميسين 250مجم", "Macrolide antibiotic for respiratory infections", "As prescribed, usually once daily for 3-5 days", "Prescription only. Tell your doctor about heart rhythm disorders.", "Nausea, abdominal pain; seek care for irregular heartbeat.", "Store at room temperature.", "Pfizer", 18.50, true, "/images/medicines/azithromycin.jpg", 3),
+            MedSeed("Ciprofloxacin 500mg", "سيبروفلوكساسين 500مجم", "Fluoroquinolone for bacterial infections", "500mg twice daily as prescribed; avoid dairy at dose time", "Prescription only. Avoid with tendon disorders; limit sun exposure.", "Nausea, dizziness; stop use for tendon pain and seek care.", "Store below 30C away from light.", "Bayer", 14.20, true, "/images/medicines/ciprofloxacin.jpg", 3),
+            MedSeed("Augmentin 625mg", "أوجمنتين 625مجم", "Amoxicillin/clavulanate combination antibiotic", "625mg every 8-12 hours with food for the full course", "Prescription only. Complete the full course even if feeling better.", "Diarrhea, nausea; seek care for severe rash or jaundice.", "Store below 25C; keep dry.", "GSK", 24.99, true, "/images/medicines/augmentin.jpg", 2),
+            MedSeed("Doxycycline 100mg", "دوكسيسيكلين 100مجم", "Tetracycline antibiotic for acne and infections", "100mg once or twice daily with a full glass of water", "Avoid in pregnancy and children under 8. Avoid sun exposure.", "Sunburn risk, nausea; take upright to avoid throat irritation.", "Store at room temperature away from light.", "Pfizer", 11.30, false, "/images/medicines/doxycycline.jpg", 3),
+            MedSeed("Metronidazole 400mg", "ميترونيدازول 400مجم", "Antibiotic and antiprotozoal for intestinal infections", "400mg 2-3 times daily as directed", "Avoid alcohol during treatment and for 48 hours after.", "Metallic taste, nausea; seek care for numbness or seizures.", "Store below 30C.", "Sanofi", 7.80, false, "/images/medicines/metronidazole.jpg", 3),
+            MedSeed("Vitamin C 1000mg", "فيتامين سي 1000مجم", "Immune support and antioxidant supplement", "1000mg once daily dissolved in water", "Do not exceed the daily dose. High doses may cause stomach upset.", "Diarrhea or cramps at high doses.", "Store in a cool dry place.", "Hikma Pharmaceuticals", 12.99, false, "/images/medicines/vitamin_c.jpg", 4),
+            MedSeed("Vitamin D3 5000IU", "فيتامين د3 5000 وحدة", "Bone health and immune system support", "One softgel daily with food or as directed", "Check levels with long-term use; avoid excess calcium.", "Usually well tolerated; excess may cause nausea.", "Store below 25C.", "Pfizer", 16.50, false, "/images/medicines/vitamin_d3.jpg", 4),
+            MedSeed("Omega-3 Fish Oil 1000mg", "أوميغا 3 زيت السمك 1000مجم", "Heart and brain health omega-3 supplement", "1000mg 1-2 times daily with meals", "Tell your doctor if on blood thinners or before surgery.", "Fishy aftertaste, mild stomach upset.", "Store in a cool dry place.", "Novartis", 25.99, false, "/images/medicines/omega3.jpg", 5),
+            MedSeed("Centrum Multivitamin", "سنتروم متعدد الفيتامينات", "Complete daily multivitamin for adults", "One tablet daily with breakfast", "Not a substitute for a varied diet. Keep away from children (iron).", "Mild nausea if taken on an empty stomach.", "Store below 30C.", "Pfizer", 28.75, false, "/images/medicines/centrum.jpg", 5),
+            MedSeed("Calcium + Magnesium 500mg", "كالسيوم + مغنيسيوم 500مجم", "Bone strength and muscle function support", "As directed, usually with evening meal", "Separate from some antibiotics by 2 hours.", "Constipation or loose stools in sensitive users.", "Store in a dry place.", "Bayer", 18.20, false, "/images/medicines/calcium_magnesium.jpg", 4),
+            MedSeed("Zinc 50mg", "زنك 50مجم", "Immune support and wound healing mineral", "50mg once daily with food", "Long-term high doses need medical supervision (copper).", "Nausea on empty stomach.", "Store at room temperature.", "Teva", 9.40, false, "/images/medicines/zinc.jpg", 4),
+            MedSeed("Hydrocortisone Cream 1%", "كريم هيدروكورتيزون 1%", "Topical corticosteroid for eczema and dermatitis", "Thin layer 1-2 times daily to affected area", "Prescription strength. Avoid face, eyes, and broken skin unless directed.", "Burning or thinning with prolonged use.", "Store below 25C; do not freeze.", "Bayer", 13.50, true, "/images/medicines/hydrocortisone.jpg", 6),
+            MedSeed("Cetaphil Moisturizer 250ml", "سيتافيل مرطب 250مل", "Gentle daily moisturizer for sensitive skin", "Apply liberally to face and body daily", "For external use only. Avoid contact with eyes.", "Rare mild irritation.", "Store at room temperature.", "Johnson & Johnson", 19.99, false, "/images/medicines/cetaphil.jpg", 7),
+            MedSeed("Eucerin Cream 150ml", "يوسيرين كريم 150مل", "Intensive repair cream for very dry skin", "Apply to very dry areas 1-2 times daily", "For external use only.", "Rare tingling on cracked skin.", "Store below 30C.", "Novartis", 21.30, false, "/images/medicines/eucerin.jpg", 7),
+            MedSeed("Differin Gel 0.1% 30g", "ديفرين جل 0.1% 30غ", "Adapalene gel for acne treatment", "Pea-sized amount nightly to clean dry skin", "Prescription strength. Use sunscreen; avoid waxing treated areas.", "Dryness, redness, peeling in first weeks.", "Store below 30C away from light.", "GSK", 32.00, true, "/images/medicines/differin.jpg", 6),
+            MedSeed("Nivea Soft Cream 200ml", "نيفيا سوفت كريم 200مل", "Light moisturizing cream for face and body", "Apply as needed to face, hands and body", "For external use only.", "Rare sensitivity to fragrance.", "Store at room temperature.", "Bayer", 7.99, false, "/images/medicines/nivea_soft.jpg", 7),
+            MedSeed("Bioderma Sunscreen SPF50", "بيوديرما واقي شمس SPF50", "High protection sunscreen for sensitive skin", "Apply generously 15 minutes before sun; reapply often", "Reapply after swimming or sweating. Avoid midday sun.", "Rare eye sting; rinse with water.", "Store below 30C.", "Hikma Pharmaceuticals", 26.50, false, "/images/medicines/bioderma_sunscreen.jpg", 7),
+            MedSeed("Panadol Cold & Flu", "بنادول كولد اند فلو", "Relief for cold, flu and fever symptoms", "As directed on pack, max daily paracetamol limits apply", "Contains paracetamol; avoid alcohol and other cold remedies.", "Drowsiness (some formulas), dry mouth.", "Store below 30C.", "GSK", 6.99, false, "/images/medicines/panadol_cold_flu.jpg", 8),
+            MedSeed("Loratadine 10mg", "لوراتادين 10مجم", "Non-drowsy antihistamine for allergies", "10mg once daily", "Usually non-drowsy; avoid alcohol.", "Headache or dry mouth in some users.", "Store at room temperature.", "Bayer", 8.99, false, "/images/medicines/loratadine.jpg", 8),
+            MedSeed("Cetirizine 10mg", "سيتيريزين 10مجم", "Antihistamine for hay fever and hives", "10mg once daily", "May cause drowsiness in some; avoid driving if affected.", "Drowsiness, dry mouth.", "Store below 30C.", "Pfizer", 7.50, false, "/images/medicines/cetirizine.jpg", 8),
+            MedSeed("Oseltamivir 75mg", "أوسيلتاميفير 75مجم", "Antiviral for influenza A and B", "75mg twice daily for 5 days as prescribed", "Prescription only. Start within 48 hours of symptoms for best effect.", "Nausea, vomiting, headache.", "Store below 30C.", "Roche", 45.99, true, "/images/medicines/oseltamivir.jpg", 8),
+            MedSeed("Dextromethorphan Syrup 100ml", "ديكستروميثورفان شراب 100مل", "Cough suppressant for dry cough", "As directed on pack with measuring cup", "Not for productive cough with mucus; ask a pharmacist for asthma.", "Drowsiness, dizziness.", "Store upright below 30C.", "Cipla", 6.75, false, "/images/medicines/dextromethorphan.jpg", 9),
+            MedSeed("Strepsils Lozenges Honey", "ستربسلز أقراص عسل", "Soothing lozenges for sore throat", "Dissolve one lozenge slowly every 2-3 hours", "Not for children under 6. See a doctor if fever persists.", "Mild mouth tingling.", "Store in a dry place.", "Merck", 3.50, false, "/images/medicines/strepsils.jpg", 9),
+            MedSeed("Omeprazole 20mg", "أوميبرازول 20مجم", "Proton pump inhibitor for acid reflux", "20mg once daily before breakfast", "Prescription strength. Long-term use needs medical review.", "Headache, abdominal pain.", "Store below 30C in original pack.", "AstraZeneca", 10.99, true, "/images/medicines/omeprazole.jpg", 10),
+            MedSeed("Nexium 40mg", "نيكسيوم 40مجم", "Esomeprazole for GERD and ulcers", "40mg once daily as prescribed", "Prescription only. Tell your doctor about long-term use.", "Headache, nausea.", "Store below 30C.", "AstraZeneca", 35.40, true, "/images/medicines/nexium.jpg", 10),
+            MedSeed("Gaviscon Syrup 200ml", "جافيسكون شراب 200مل", "Antacid for heartburn and indigestion", "10-20ml after meals and at bedtime; shake well", "Separate from other medicines by 2 hours.", "Mild bloating; contains sodium.", "Store upright at room temperature.", "Merck", 11.20, false, "/images/medicines/gaviscon.jpg", 10),
+            MedSeed("Buscopan 10mg", "بوسكوبان 10مجم", "Antispasmodic for abdominal cramps", "10mg up to 3 times daily as needed", "Avoid with glaucoma or urinary retention unless directed.", "Dry mouth, blurred vision.", "Store below 30C.", "Sanofi", 9.80, false, "/images/medicines/buscopan.jpg", 11),
+            MedSeed("Dulcolax 5mg", "دولكولاكس 5مجم", "Laxative for constipation relief", "5-10mg at night for short-term use", "Short-term use only; drink plenty of fluids.", "Cramps, diarrhea with overuse.", "Store in a dry place.", "Sanofi", 5.20, false, "/images/medicines/dulcolax.jpg", 11),
+            MedSeed("Enterogermina Probiotics 10 vials", "إنتروجرمينا بروبيوتيك 10 عبوات", "Probiotic for gut flora balance and diarrhea", "One vial daily or as directed", "Shake before use. Ask a pharmacist for infants.", "Usually well tolerated.", "Store below 30C.", "Merck", 18.90, false, "/images/medicines/enterogermina.jpg", 11)
         )
         medicines.forEach { m ->
             Medicines.insert {
@@ -186,6 +231,10 @@ object DatabaseSeeder {
                 it[titleAr] = m.titleAr
                 it[descriptionEn] = m.descriptionEn
                 it[descriptionAr] = m.descriptionEn
+                it[dosage] = m.dosage
+                it[warnings] = m.warnings
+                it[sideEffects] = m.sideEffects
+                it[storageInfo] = m.storage
                 it[manufacturer] = m.manufacturer
                 it[requiresPrescription] = m.requiresPrescription
                 it[price] = m.price.toBigDecimal()
@@ -247,10 +296,17 @@ object DatabaseSeeder {
             PharmSeed("Abha Heights Pharmacy", "King Khalid St, Abha", "Abha", 18.2164, 42.5052, "+966-17-2298901", true, 4.0, 80, "LIC-029", primaryOwner),
             PharmSeed("Najran Oasis Pharmacy", "King Abdulaziz St, Najran", "Najran", 17.4917, 44.1320, "+966-17-5229012", false, 3.9, 60, "LIC-030", secondaryOwner)
         )
-        pharmacies.forEach { p ->
+        pharmacies.forEachIndexed { idx, p ->
+            val tier = when {
+                p.city == "Gaza" -> Triple(1.5, 5.0, 12.0)
+                p.city in listOf("Damascus", "Aleppo", "Homs", "Latakia", "Hama") -> Triple(2.0, 8.0, 15.0)
+                p.city in listOf("Cairo", "Alexandria", "Giza", "Luxor", "Aswan") -> Triple(2.5, 10.0, 20.0)
+                else -> Triple(3.0, 15.0, 25.0)
+            }
             Pharmacies.insert {
                 it[ownerUserId] = p.owner
                 it[name] = p.name
+                it[description] = "Verified community pharmacy in ${p.city} — prescription dispensing, OTC and daily essentials with pharmacist chat support."
                 it[address] = p.address
                 it[city] = p.city
                 it[latitude] = p.lat
@@ -258,10 +314,14 @@ object DatabaseSeeder {
                 it[phone] = p.phone
                 it[isVerified] = true
                 it[isOpen] = p.isOpen
-                it[openingHours] = "9:00-22:00"
+                it[openingHours] = if (p.isOpen) "9:00-23:00" else "9:00-22:00"
                 it[licenseNumber] = p.license
                 it[ratingAvg] = p.ratingAvg.toBigDecimal()
                 it[totalRatings] = p.totalRatings
+                try { it[deliveryFee] = tier.first.toBigDecimal() } catch (_: Exception) {}
+                try { it[minOrderAmount] = tier.second.toBigDecimal() } catch (_: Exception) {}
+                try { it[prepTimeMin] = 15 + (idx % 3) * 5 } catch (_: Exception) {}
+                try { it[deliveryRadiusKm] = tier.third.toBigDecimal() } catch (_: Exception) {}
             }
         }
         println("Seeded ${pharmacies.size} pharmacies")

@@ -54,6 +54,10 @@ object Medicines : Table("medicines") {
     val titleAr = varchar("title_ar", 255)
     val descriptionEn = text("description_en").nullable()
     val descriptionAr = text("description_ar").nullable()
+    val dosage = varchar("dosage", 255).nullable()
+    val warnings = text("warnings").nullable()
+    val sideEffects = text("side_effects").nullable()
+    val storageInfo = varchar("storage_info", 255).nullable()
     val imageUrl = varchar("image_url", 500).nullable()
     val price = decimal("price", 10, 2).nullable()
     val subcategoryId = reference("subcategory_id", Subcategories.id).nullable()
@@ -87,6 +91,10 @@ object Pharmacies : Table("pharmacies") {
     val openingHours = varchar("opening_hours", 255).nullable()
     val ratingAvg = decimal("rating_avg", 3, 2).default(0.0.toBigDecimal())
     val totalRatings = integer("total_ratings").default(0)
+    val deliveryFee = decimal("delivery_fee", 10, 2).nullable()
+    val minOrderAmount = decimal("min_order_amount", 10, 2).nullable()
+    val prepTimeMin = integer("prep_time_min").nullable()
+    val deliveryRadiusKm = decimal("delivery_radius_km", 10, 2).nullable()
     val isVerified = bool("is_verified").default(false)
     val createdAt = jdaTimestamp("created_at").clientDefault { Instant.now() }
     val updatedAt = jdaTimestamp("updated_at").clientDefault { Instant.now() }
@@ -236,6 +244,10 @@ object Orders : Table("orders") {
     val paymentStatus = varchar("payment_status", 50) // PENDING, PAID, FAILED, REFUNDED, COD_COLLECTED
     val deliveryAddress = text("delivery_address").nullable()
     val deliveryNotes = text("delivery_notes").nullable()
+    val courierLat = double("courier_lat").nullable()
+    val courierLng = double("courier_lng").nullable()
+    val etaMinutes = integer("eta_minutes").nullable()
+    val handoffCode = varchar("handoff_code", 6).nullable()
     val createdAt = jdaTimestamp("created_at").clientDefault { Instant.now() }
     val updatedAt = jdaTimestamp("updated_at").clientDefault { Instant.now() }
 

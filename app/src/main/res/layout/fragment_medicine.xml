@@ -138,6 +138,60 @@
                 app:layout_constraintTop_toBottomOf="@+id/tvMedicineManufacturer"
                 tools:text="Pain reliever and fever reducer, effective for headache and mild pain. Broad-spectrum antibiotic with proven efficacy." />
 
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardMedicineFacts"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/_15sdp"
+                android:layout_marginTop="@dimen/_12sdp"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="1dp"
+                app:strokeWidth="0dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvMedicineDescription">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/_14sdp">
+
+                    <TextView
+                        android:id="@+id/tvFactDosage"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="@dimen/_12ssp"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvFactWarnings"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/_6sdp"
+                        android:textSize="@dimen/_12ssp"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvFactSideEffects"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/_6sdp"
+                        android:textSize="@dimen/_12ssp"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvFactStorage"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/_6sdp"
+                        android:textColor="@color/gray_dark"
+                        android:textSize="@dimen/_11ssp"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <net.lucode.hackware.magicindicator.MagicIndicator
                 android:id="@+id/magic_indicator3"
                 android:layout_width="wrap_content"
@@ -149,7 +203,7 @@
                 android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tvMedicineDescription" />
+                app:layout_constraintTop_toBottomOf="@+id/cardMedicineFacts" />
 
             <androidx.viewpager.widget.ViewPager
                 android:id="@+id/onBoardingPager"

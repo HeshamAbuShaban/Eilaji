@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.facebook.shimmer.ShimmerFrameLayout
@@ -53,7 +54,12 @@ class OrdersFragment : Fragment() {
                 } else {
                     binding.emptyOrders.visibility = View.GONE
                     binding.recyclerOrders.visibility = View.VISIBLE
-                    binding.recyclerOrders.adapter = OrdersAdapter(items)
+                    binding.recyclerOrders.adapter = OrdersAdapter(items) { order ->
+                        try {
+                            val b = Bundle().apply { putString("orderId", order.id) }
+                            findNavController().navigate(R.id.navigation_order_tracking, b)
+                        } catch (_: Exception) {}
+                    }
                     binding.recyclerOrders.scheduleLayoutAnimation()
                 }
             }
@@ -69,15 +75,19 @@ class OrdersFragment : Fragment() {
 
     override fun onDestroyView() { _binding = null; super.onDestroyView() }
 
-    class OrdersAdapter(private val items: List<OrderDto>) : RecyclerView.Adapter<OrdersAdapter.Holder>() {
+    class OrdersAdapter(
+        private val items: List<OrderDto>,
+        private val onClick: ((OrderDto) -> Unit)? = null
+    ) : RecyclerView.Adapter<OrdersAdapter.Holder>() {
         override fun onCreateViewHolder(p: ViewGroup, v: Int): Holder {
             val b = ItemOrderBinding.inflate(LayoutInflater.from(p.context), p, false)
-            return Holder(b)
+            return Holder(b, onClick)
         }
         override fun getItemCount() = items.size
         override fun onBindViewHolder(h: Holder, pos: Int) = h.bind(items[pos])
-        class Holder(private val b: ItemOrderBinding) : RecyclerView.ViewHolder(b.root) {
+        class Holder(private val b: ItemOrderBinding, private val onClick: ((OrderDto) -> Unit)?) : RecyclerView.ViewHolder(b.root) {
             fun bind(o: OrderDto) {
+                b.root.setOnClickListener { try { onClick?.invoke(o) } catch (_: Exception) {} }
                 b.tvOrderId.text = "#${o.id.take(8).uppercase()}"
                 b.tvOrderStatus.text = o.status
                 b.tvOrderTotal.text = String.format("%.2f $", o.totalAmount)

@@ -161,6 +161,14 @@
         tools:layout="@layout/fragment_orders" />
 
     <fragment
+        android:id="@+id/navigation_order_tracking"
+        android:name="dev.anonymous.eilaji.ui.other.orders.OrderTrackingFragment"
+        android:label="fragment_order_tracking"
+        tools:layout="@layout/fragment_order_tracking">
+        <argument android:name="orderId" app:argType="string" app:nullable="true" android:defaultValue="@null" />
+    </fragment>
+
+    <fragment
         android:id="@+id/navigation_checkout"
         android:name="dev.anonymous.eilaji.ui.other.checkout.CheckoutFragment"
         android:label="fragment_checkout"
