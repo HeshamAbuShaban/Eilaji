@@ -147,6 +147,10 @@ fun Route.adminRoutes() {
                                 titleAr = row[Medicines.titleAr],
                                 descriptionAr = row[Medicines.descriptionAr],
                                 descriptionEn = row[Medicines.descriptionEn],
+                                dosage = try { row.getOrNull(Medicines.dosage) } catch (_: Exception) { null },
+                                warnings = try { row.getOrNull(Medicines.warnings) } catch (_: Exception) { null },
+                                sideEffects = try { row.getOrNull(Medicines.sideEffects) } catch (_: Exception) { null },
+                                storageInfo = try { row.getOrNull(Medicines.storageInfo) } catch (_: Exception) { null },
                                 imageUrl = row[Medicines.imageUrl],
                                 price = row[Medicines.price]?.toDouble(),
                                 manufacturer = row[Medicines.manufacturer],
@@ -202,6 +206,10 @@ fun Route.adminRoutes() {
                                 titleAr = row[Medicines.titleAr],
                                 descriptionAr = row[Medicines.descriptionAr],
                                 descriptionEn = row[Medicines.descriptionEn],
+                                dosage = try { row.getOrNull(Medicines.dosage) } catch (_: Exception) { null },
+                                warnings = try { row.getOrNull(Medicines.warnings) } catch (_: Exception) { null },
+                                sideEffects = try { row.getOrNull(Medicines.sideEffects) } catch (_: Exception) { null },
+                                storageInfo = try { row.getOrNull(Medicines.storageInfo) } catch (_: Exception) { null },
                                 imageUrl = row[Medicines.imageUrl],
                                 price = row[Medicines.price]?.toDouble(),
                                 manufacturer = row[Medicines.manufacturer],
@@ -387,6 +395,9 @@ fun Route.adminRoutes() {
                                 isOpen = row[Pharmacies.isOpen],
                                 ratingAvg = row[Pharmacies.ratingAvg]?.toDouble() ?: 0.0,
                                 totalRatings = row[Pharmacies.totalRatings] ?: 0,
+                                deliveryFee = try { row.getOrNull(Pharmacies.deliveryFee)?.toDouble() } catch (_: Exception) { null },
+                                minOrderAmount = try { row.getOrNull(Pharmacies.minOrderAmount)?.toDouble() } catch (_: Exception) { null },
+                                prepTimeMin = try { row.getOrNull(Pharmacies.prepTimeMin) } catch (_: Exception) { null },
                                 isVerified = row[Pharmacies.isVerified]
                             )
                         }

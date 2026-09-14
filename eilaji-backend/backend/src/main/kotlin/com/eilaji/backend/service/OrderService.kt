@@ -62,6 +62,10 @@ class OrderService {
         val paymentStatus: String,
         val deliveryAddress: String?,
         val deliveryNotes: String?,
+        val courierLat: Double? = null,
+        val courierLng: Double? = null,
+        val etaMinutes: Int? = null,
+        val handoffCode: String? = null,
         val createdAt: String,
         val updatedAt: String
     )
@@ -96,6 +100,7 @@ class OrderService {
                 it[Orders.paymentStatus] = "PENDING"
                 it[Orders.deliveryAddress] = request.deliveryAddress
                 it[Orders.deliveryNotes] = request.deliveryNotes
+                try { it[Orders.handoffCode] = (1000 + kotlin.random.Random.nextInt(9000)).toString() } catch (_: Exception) {}
                 it[Orders.createdAt] = Instant.now()
                 it[Orders.updatedAt] = Instant.now()
             } get Orders.id
@@ -262,7 +267,7 @@ class OrderService {
     private fun mapRowToOrder(row: ResultRow): OrderResult {
         return OrderResult(
             id = row[Orders.id].toString(),
-            prescriptionId = row.getOrNull(Orders.prescriptionId)?.toString(),
+            prescriptionId = try { row.getOrNull(Orders.prescriptionId)?.toString() } catch (_: Exception) { null },
             patientId = row[Orders.patientId].toString(),
             pharmacyId = row[Orders.pharmacyId].toString(),
             pharmacyName = row.getOrNull(Pharmacies.name),
@@ -272,6 +277,10 @@ class OrderService {
             paymentStatus = row[Orders.paymentStatus],
             deliveryAddress = row[Orders.deliveryAddress],
             deliveryNotes = row[Orders.deliveryNotes],
+            courierLat = try { row.getOrNull(Orders.courierLat) } catch (_: Exception) { null },
+            courierLng = try { row.getOrNull(Orders.courierLng) } catch (_: Exception) { null },
+            etaMinutes = try { row.getOrNull(Orders.etaMinutes) } catch (_: Exception) { null },
+            handoffCode = try { row.getOrNull(Orders.handoffCode) } catch (_: Exception) { null },
             createdAt = row[Orders.createdAt].toString(),
             updatedAt = row[Orders.updatedAt].toString()
         )

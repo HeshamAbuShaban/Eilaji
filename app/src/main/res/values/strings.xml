@@ -146,4 +146,5 @@
     <string name="alternatives_title">You may also need</string>
     <string name="my_orders">My Orders</string>
     <string name="no_orders_yet">No orders yet</string>
+    <string name="simulated_courier">SIMULATED COURIER</string>
 </resources>

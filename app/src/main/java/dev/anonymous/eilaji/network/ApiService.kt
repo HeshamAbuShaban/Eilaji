@@ -234,6 +234,10 @@ data class MedicineDto(
     @SerializedName("titleAr") val titleAr: String,
     @SerializedName("descriptionEn") val descriptionEn: String?,
     @SerializedName("descriptionAr") val descriptionAr: String?,
+    @SerializedName("dosage") val dosage: String? = null,
+    @SerializedName("warnings") val warnings: String? = null,
+    @SerializedName("sideEffects") val sideEffects: String? = null,
+    @SerializedName("storageInfo") val storageInfo: String? = null,
     @SerializedName("manufacturer") val manufacturer: String?,
     @SerializedName("requiresPrescription") val requiresPrescription: Boolean,
     @SerializedName("price") val price: Double?,
@@ -274,6 +278,9 @@ data class PharmacyDto(
     @SerializedName("isOpen") val isOpen: Boolean,
     @SerializedName("ratingAvg") val ratingAvg: Double = 0.0,
     @SerializedName("totalRatings") val totalRatings: Int = 0,
+    @SerializedName("deliveryFee") val deliveryFee: Double? = null,
+    @SerializedName("minOrderAmount") val minOrderAmount: Double? = null,
+    @SerializedName("prepTimeMin") val prepTimeMin: Int? = null,
     @SerializedName("distanceKm") val distanceKm: Double? = null
 )
 
@@ -304,6 +311,10 @@ data class OrderDto(
     @SerializedName("paymentMethod") val paymentMethod: String?,
     @SerializedName("paymentStatus") val paymentStatus: String,
     @SerializedName("deliveryAddress") val deliveryAddress: String?,
+    @SerializedName("courierLat") val courierLat: Double? = null,
+    @SerializedName("courierLng") val courierLng: Double? = null,
+    @SerializedName("etaMinutes") val etaMinutes: Int? = null,
+    @SerializedName("handoffCode") val handoffCode: String? = null,
     @SerializedName("createdAt") val createdAt: String,
     @SerializedName("updatedAt") val updatedAt: String
 )
