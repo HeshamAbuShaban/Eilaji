@@ -9,7 +9,6 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import dev.anonymous.eilaji.R
 import com.facebook.shimmer.ShimmerFrameLayout
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.FragmentOrdersBinding
