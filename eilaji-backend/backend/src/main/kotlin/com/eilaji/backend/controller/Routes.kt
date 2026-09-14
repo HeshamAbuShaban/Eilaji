@@ -87,6 +87,10 @@ fun Route.apiRoutes(
                                     titleAr = row[Medicines.titleAr],
                                     descriptionAr = row[Medicines.descriptionAr],
                                     descriptionEn = row[Medicines.descriptionEn],
+                                    dosage = try { row.getOrNull(Medicines.dosage) } catch (_: Exception) { null },
+                                    warnings = try { row.getOrNull(Medicines.warnings) } catch (_: Exception) { null },
+                                    sideEffects = try { row.getOrNull(Medicines.sideEffects) } catch (_: Exception) { null },
+                                    storageInfo = try { row.getOrNull(Medicines.storageInfo) } catch (_: Exception) { null },
                                     imageUrl = row[Medicines.imageUrl],
                                     price = row[Medicines.price]?.toDouble(),
                                     manufacturer = row[Medicines.manufacturer],
@@ -143,6 +147,10 @@ fun Route.apiRoutes(
                                     titleAr = row[Medicines.titleAr],
                                     descriptionAr = row[Medicines.descriptionAr],
                                     descriptionEn = row[Medicines.descriptionEn],
+                                    dosage = try { row.getOrNull(Medicines.dosage) } catch (_: Exception) { null },
+                                    warnings = try { row.getOrNull(Medicines.warnings) } catch (_: Exception) { null },
+                                    sideEffects = try { row.getOrNull(Medicines.sideEffects) } catch (_: Exception) { null },
+                                    storageInfo = try { row.getOrNull(Medicines.storageInfo) } catch (_: Exception) { null },
                                     imageUrl = row[Medicines.imageUrl],
                                     price = row[Medicines.price]?.toDouble(),
                                     manufacturer = row[Medicines.manufacturer],
@@ -185,6 +193,10 @@ fun Route.apiRoutes(
                                     titleAr = row[Medicines.titleAr],
                                     descriptionAr = row[Medicines.descriptionAr],
                                     descriptionEn = row[Medicines.descriptionEn],
+                                    dosage = try { row.getOrNull(Medicines.dosage) } catch (_: Exception) { null },
+                                    warnings = try { row.getOrNull(Medicines.warnings) } catch (_: Exception) { null },
+                                    sideEffects = try { row.getOrNull(Medicines.sideEffects) } catch (_: Exception) { null },
+                                    storageInfo = try { row.getOrNull(Medicines.storageInfo) } catch (_: Exception) { null },
                                     imageUrl = row[Medicines.imageUrl],
                                     price = row[Medicines.price]?.toDouble(),
                                     manufacturer = row[Medicines.manufacturer],
@@ -211,15 +223,27 @@ fun Route.apiRoutes(
             get {
                 try {
                     val categories = transaction {
-                        Categories.selectAll().orderBy(Categories.nameEn).map { row ->
+                        Categories.selectAll().orderBy(Categories.displayOrder to SortOrder.ASC, Categories.nameEn to SortOrder.ASC).map { row ->
+                            val catId = row[Categories.id]
+                            val subs = Subcategories.selectAll().where { Subcategories.categoryId eq catId }
+                                .orderBy(Subcategories.displayOrder to SortOrder.ASC, Subcategories.nameEn to SortOrder.ASC)
+                                .map { s ->
+                                    SubcategoryDto(
+                                        id = s[Subcategories.id].toString(),
+                                        nameAr = s[Subcategories.nameAr],
+                                        nameEn = s[Subcategories.nameEn],
+                                        iconUrl = s[Subcategories.iconUrl],
+                                        displayOrder = s[Subcategories.displayOrder]
+                                    )
+                                }
                             CategoryDto(
-                                id = row[Categories.id].toString(),
+                                id = catId.toString(),
                                 nameEn = row[Categories.nameEn],
                                 nameAr = row[Categories.nameAr],
                                 iconUrl = row[Categories.iconUrl],
                                 displayOrder = row[Categories.displayOrder],
                                 isActive = row[Categories.isActive],
-                                subcategories = emptyList()
+                                subcategories = subs
                             )
                         }
                     }
@@ -260,6 +284,9 @@ fun Route.apiRoutes(
                                 isOpen = row[Pharmacies.isOpen],
                                 ratingAvg = row[Pharmacies.ratingAvg]?.toDouble() ?: 0.0,
                                 totalRatings = row[Pharmacies.totalRatings] ?: 0,
+                                deliveryFee = try { row.getOrNull(Pharmacies.deliveryFee)?.toDouble() } catch (_: Exception) { null },
+                                minOrderAmount = try { row.getOrNull(Pharmacies.minOrderAmount)?.toDouble() } catch (_: Exception) { null },
+                                prepTimeMin = try { row.getOrNull(Pharmacies.prepTimeMin) } catch (_: Exception) { null },
                                 isVerified = row[Pharmacies.isVerified],
                                 distanceKm = d
                             )
@@ -303,6 +330,9 @@ fun Route.apiRoutes(
                                     isOpen = row[Pharmacies.isOpen],
                                     ratingAvg = row[Pharmacies.ratingAvg]?.toDouble() ?: 0.0,
                                     totalRatings = row[Pharmacies.totalRatings] ?: 0,
+                                    deliveryFee = try { row.getOrNull(Pharmacies.deliveryFee)?.toDouble() } catch (_: Exception) { null },
+                                    minOrderAmount = try { row.getOrNull(Pharmacies.minOrderAmount)?.toDouble() } catch (_: Exception) { null },
+                                    prepTimeMin = try { row.getOrNull(Pharmacies.prepTimeMin) } catch (_: Exception) { null },
                                     isVerified = row[Pharmacies.isVerified]
                                 )
                             }

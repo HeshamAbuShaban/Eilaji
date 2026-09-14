@@ -49,6 +49,10 @@ data class MedicineDto(
     val titleEn: String,
     val descriptionAr: String?,
     val descriptionEn: String?,
+    val dosage: String? = null,
+    val warnings: String? = null,
+    val sideEffects: String? = null,
+    val storageInfo: String? = null,
     val imageUrl: String?,
     val price: Double?,
     val manufacturer: String?,
@@ -74,7 +78,8 @@ data class SubcategoryDto(
     val id: String,
     val nameAr: String,
     val nameEn: String,
-    val iconUrl: String?
+    val iconUrl: String?,
+    val displayOrder: Int = 0
 )
 
 @Serializable
@@ -91,6 +96,9 @@ data class PharmacyDto(
     val isOpen: Boolean,
     val ratingAvg: Double,
     val totalRatings: Int,
+    val deliveryFee: Double? = null,
+    val minOrderAmount: Double? = null,
+    val prepTimeMin: Int? = null,
     val isVerified: Boolean,
     val distanceKm: Double? = null
 )
@@ -185,6 +193,10 @@ data class OrderDto(
     val paymentStatus: String,
     val deliveryAddress: String?,
     val deliveryNotes: String?,
+    val courierLat: Double? = null,
+    val courierLng: Double? = null,
+    val etaMinutes: Int? = null,
+    val handoffCode: String? = null,
     val createdAt: String,
     val updatedAt: String
 )

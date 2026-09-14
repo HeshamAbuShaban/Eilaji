@@ -17,6 +17,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.ktor.server.http.content.staticResources
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
@@ -177,6 +178,9 @@ fun Application.mainModule(
         get("/health") {
             call.respond(HealthResponse(status = "UP", timestamp = System.currentTimeMillis().toString()))
         }
+
+        // Test dashboard (pharmacy ops + customer mini-view) — dev testing until E-Doctor lands
+        staticResources("/dashboard", "static.dashboard")
 
         apiRoutes(
             jwtIssuer = jwtIssuer,
