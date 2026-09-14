@@ -273,21 +273,21 @@ class MedicineFragment : Fragment() {
     private fun bindFacts(dto: MedicineDto) {
         if (!isAdded || _binding == null) return
         var any = false
-        fun set(tv: android.widget.TextView?, label: String, value: String?) {
-            if (value.isNullOrBlank()) { try { tv?.visibility = View.GONE } catch (_: Exception) {} return }
+        fun bindFact(tv: android.widget.TextView?, label: String, value: String?) {
+            if (value.isNullOrBlank()) { try { tv?.visibility = View.GONE } catch (_: Exception) {}; return }
             any = true
             try {
                 tv?.visibility = View.VISIBLE
-                val sb = android.text.SpannableString("$label  $value")
+                val sb = android.text.SpannableString(label + "  " + value)
                 sb.setSpan(android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 0, label.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 tv?.text = sb
             } catch (_: Exception) {}
         }
         try {
-            set(bindingOrNull?.tvFactDosage, "Dosage:", dto.dosage)
-            set(bindingOrNull?.tvFactWarnings, "Warnings:", dto.warnings)
-            set(bindingOrNull?.tvFactSideEffects, "Side effects:", dto.sideEffects)
-            set(bindingOrNull?.tvFactStorage, "Storage:", dto.storageInfo)
+            bindFact(bindingOrNull?.tvFactDosage, "Dosage:", dto.dosage)
+            bindFact(bindingOrNull?.tvFactWarnings, "Warnings:", dto.warnings)
+            bindFact(bindingOrNull?.tvFactSideEffects, "Side effects:", dto.sideEffects)
+            bindFact(bindingOrNull?.tvFactStorage, "Storage:", dto.storageInfo)
             bindingOrNull?.cardMedicineFacts?.visibility = if (any) View.VISIBLE else View.GONE
         } catch (_: Exception) {}
     }
