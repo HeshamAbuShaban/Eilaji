@@ -29,8 +29,9 @@ class OnBoardingAdapter(private var listModels: ArrayList<ModelOnBoarding>) :
     ) {
         fun bind(model: ModelOnBoarding?) {
             binding.apply {
-                ivOnBoarding.setImageResource(model!!.image)
-                tvOnBoarding.text = model.text
+                ivOnBoarding.setImageResource(model!!.icon)
+                tvOnBoardingTitle.text = model.title
+                tvOnBoardingSubtitle.text = model.subtitle
             }
         }
     }

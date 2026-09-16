@@ -147,4 +147,16 @@
     <string name="my_orders">My Orders</string>
     <string name="no_orders_yet">No orders yet</string>
     <string name="simulated_courier">SIMULATED COURIER</string>
+    <string name="time_to_take_meds">Time to take your medicine</string>
+    <string name="take_now">Take now</string>
+    <string name="snooze_10_min">Snooze 10 min</string>
+    <string name="next_dose_in">Next dose in</string>
+    <string name="reminder_alarm_note">Full-screen alarm + vibration. No music — just your pill, on time.</string>
+    <string name="day_mon">Mon</string>
+    <string name="day_tue">Tue</string>
+    <string name="day_wed">Wed</string>
+    <string name="day_thu">Thu</string>
+    <string name="day_fri">Fri</string>
+    <string name="day_sat">Sat</string>
+    <string name="day_sun">Sun</string>
 </resources>

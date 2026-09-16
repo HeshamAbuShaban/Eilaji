@@ -13,16 +13,14 @@ object UtilsAnimation {
         isForward: Boolean
     ) {
         val max = indicator.max
-        val value = max / pageNum
-        // بنزود 2 علشان لما نقدم بنكون راجعين 1 + لما نعمل رجوع بنرجع كمان واحد
-        val startValue = value * if (isForward) currentPage else currentPage + 2
-        val animator = ValueAnimator.ofFloat(value)
+        val step = max / pageNum
+        val from = indicator.progress
+        val to = ((currentPage + 1) * step).roundToInt().coerceIn(0, max)
+        val animator = ValueAnimator.ofInt(from, to)
         animator.interpolator = LinearOutSlowInInterpolator()
         animator.duration = 300
         animator.addUpdateListener { valueAnimator: ValueAnimator ->
-            val animValue = valueAnimator.animatedValue as Float
-            val progress = (startValue + if (isForward) animValue else -animValue).roundToInt()
-            indicator.progress = progress
+            indicator.progress = (valueAnimator.animatedValue as Int).coerceIn(0, max)
         }
         animator.start()
     }
