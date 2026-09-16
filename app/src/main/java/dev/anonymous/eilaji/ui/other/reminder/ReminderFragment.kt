@@ -26,15 +26,13 @@ import dev.anonymous.eilaji.reminder_system.database.entity.Reminder
 import dev.anonymous.eilaji.reminder_system.database.viewModel.ReminderDatabaseViewModel
 import dev.anonymous.eilaji.reminder_system.repository.ReminderSyncRepository
 import dev.anonymous.eilaji.reminder_system.worker.ReminderScheduler
-import dev.anonymous.eilaji.ui.other.dialogs.ChangeSoundDialogFragment
-import dev.anonymous.eilaji.ui.other.dialogs.ChangeSoundDialogFragment.ChangeSoundListener
 import dev.anonymous.eilaji.ui.other.dialogs.PeriodicReminderDialogFragment
 import dev.anonymous.eilaji.ui.other.dialogs.PeriodicReminderDialogFragment.PeriodicReminderListener
 import dev.anonymous.eilaji.ui.other.dialogs.permissions.RequestPermissionsDialogFragment
 import dev.anonymous.eilaji.ui.other.dialogs.permissions.RequestPermissionsDialogFragment.RequestPermissionsListener
 import java.util.concurrent.TimeUnit
 
-class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListener, RequestPermissionsListener {
+class ReminderFragment : Fragment(), PeriodicReminderListener, RequestPermissionsListener {
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var reminderViewModel: ReminderViewModel
     private lateinit var binding: FragmentReminderBinding
@@ -70,6 +68,48 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
         if (isBatteryOptimizationEnabled()) showBatteryOptimizationDialog()
         binding.switchIsActive.setOnCheckedChangeListener { _, _ -> }
         binding.textFrequencyPill.setOnClickListener { PeriodicReminderDialogFragment().show(childFragmentManager, "PeriodicReminder") }
+        setupCustomDayChips()
+    }
+
+    private val dayKeys = listOf("MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY")
+
+    private fun setupCustomDayChips() {
+        val group = try { binding.chipCustomDays } catch (_: Exception) { return }
+        for (i in 0 until group.childCount) {
+            val chip = group.getChildAt(i) as? com.google.android.material.chip.Chip ?: continue
+            chip.setOnCheckedChangeListener { _, _ -> collectChipsIntoCustomDays() }
+        }
+    }
+
+    private fun collectChipsIntoCustomDays() {
+        try {
+            val group = binding.chipCustomDays
+            val picked = mutableListOf<String>()
+            for (i in 0 until group.childCount) {
+                val chip = group.getChildAt(i) as? com.google.android.material.chip.Chip ?: continue
+                if (chip.isChecked) picked.add(dayKeys.getOrElse(i) { "" })
+            }
+            if (picked.isNotEmpty()) {
+                customDays = picked.filter { it.isNotBlank() }
+                selectedFrequency = "CUSTOM"
+                pendingInterval = 1
+                pendingUnit = TimeUnit.DAYS
+                binding.textFrequencyPill.text = picked.joinToString(", ") { it.take(3) }
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun syncChipsToCustomDays() {
+        try {
+            val group = binding.chipCustomDays
+            val show = selectedFrequency == "CUSTOM"
+            group.visibility = if (show) View.VISIBLE else View.GONE
+            if (!show) return
+            for (i in 0 until group.childCount) {
+                val chip = group.getChildAt(i) as? com.google.android.material.chip.Chip ?: continue
+                chip.isChecked = customDays.contains(dayKeys.getOrElse(i) { "" })
+            }
+        } catch (_: Exception) {}
     }
     private fun arePermissionsGranted() = REQUIRED_PERMISSIONS.all { ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED }
     private fun isBatteryOptimizationEnabled(): Boolean {
@@ -86,11 +126,12 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
         with(binding) {
             remindOneTimeButton.setOnClickListener {
                 selectedFrequency = "DAILY"; customDays = emptyList()
+                pendingInterval = 1; pendingUnit = TimeUnit.DAYS
                 textFrequencyPill.text = "DAILY"
+                syncChipsToCustomDays()
                 if (arePermissionsGranted()) createOneTimeReminder() else RequestPermissionsDialogFragment.newInstance(getString(R.string.permissions_message_we_are_sorry)).show(childFragmentManager, "WeAreSorry")
             }
             remindRepeatedlyButton.setOnClickListener { PeriodicReminderDialogFragment().show(childFragmentManager, "PeriodicReminder") }
-            fabChangeSound.setOnClickListener { ChangeSoundDialogFragment().show(childFragmentManager, "ChangeReminderSound") }
         }
     }
     private var pendingInterval: Long = 1
@@ -107,13 +148,17 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
             unit == TimeUnit.HOURS && interval == 24L -> "DAILY"
             else -> "CUSTOM"
         }
+        // Keep hand-picked days if the user already chose chips; otherwise a sane default
         customDays = if (selectedFrequency == "CUSTOM") {
-            when {
+            val kept = customDays.filter { dayKeys.contains(it) }
+            if (kept.isNotEmpty()) kept
+            else when {
                 unit == TimeUnit.DAYS -> listOf("MONDAY", "WEDNESDAY", "FRIDAY")
                 else -> emptyList()
             }
         } else emptyList()
         binding.textFrequencyPill.text = if (selectedFrequency == "CUSTOM") "EVERY $interval ${unit.name}" else selectedFrequency
+        syncChipsToCustomDays()
         createOneTimeReminder()
     }
     private fun createOneTimeReminder() {
@@ -164,7 +209,6 @@ class ReminderFragment : Fragment(), PeriodicReminderListener, ChangeSoundListen
     override fun collectUserPeriodicReminderListenerInputs(repeatInterval: Long?, timeUnit: TimeUnit?) {
         if (arePermissionsGranted()) createPeriodicReminder(repeatInterval, timeUnit) else RequestPermissionsDialogFragment.newInstance(getString(R.string.permissions_message_we_are_sorry)).show(childFragmentManager, "WeAreSorry")
     }
-    override fun collectUserReminderSoundListenerInputs(soundId: Int) { reminderViewModel.reminderScheduler.value?.setReminderSound(soundId) }
     override fun onAllowClicked() { requestPermissions() }
     override fun onDenyClicked() { Toast.makeText(requireContext(), getString(R.string.permissions_message_sorry_you_can_not), Toast.LENGTH_SHORT).show() }
     companion object {

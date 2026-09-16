@@ -28,41 +28,31 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <LinearLayout
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:text="@string/enter_a_reminder_text_e_g_medicine_name"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/enter_a_reminder_text_e_g_medicine_name"
-                        android:textColor="?attr/colorOnSurface"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/fabChangeSound"
-                        style="@style/Widget.Material3.Button.IconButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        app:icon="@drawable/ic_library_music"
-                        app:iconTint="@color/primary_color" />
-
-                </LinearLayout>
+                <TextView
+                    android:id="@+id/tvNextDoseLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/next_dose_in"
+                    android:textColor="@color/gray_dark"
+                    android:textSize="12sp" />
 
                 <TextClock
                     android:id="@+id/remainingTimeTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="2dp"
                     android:textAlignment="center"
                     android:textColor="@color/primary_color"
-                    android:textSize="32sp"
+                    android:textSize="36sp"
                     android:textStyle="bold"
                     tools:text="08:30 AM" />
 
@@ -147,6 +137,53 @@
 
                 </LinearLayout>
 
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipCustomDays"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:visibility="gone"
+                    app:chipSpacingHorizontal="6dp"
+                    app:chipSpacingVertical="6dp">
+
+                    <com.google.android.material.chip.Chip
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checkable="true"
+                        android:text="@string/day_mon" />
+                    <com.google.android.material.chip.Chip
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checkable="true"
+                        android:text="@string/day_tue" />
+                    <com.google.android.material.chip.Chip
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checkable="true"
+                        android:text="@string/day_wed" />
+                    <com.google.android.material.chip.Chip
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checkable="true"
+                        android:text="@string/day_thu" />
+                    <com.google.android.material.chip.Chip
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checkable="true"
+                        android:text="@string/day_fri" />
+                    <com.google.android.material.chip.Chip
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checkable="true"
+                        android:text="@string/day_sat" />
+                    <com.google.android.material.chip.Chip
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checkable="true"
+                        android:text="@string/day_sun" />
+
+                </com.google.android.material.chip.ChipGroup>
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -171,26 +208,42 @@
             android:id="@+id/reminderButtonsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:gravity="center"
-            android:orientation="vertical">
+            android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/remindOneTimeButton"
                 style="@style/PrimaryButton"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
                 android:text="@string/remind_me_one_time"
+                android:textSize="@dimen/_13ssp"
                 app:icon="@drawable/ic_one" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/remindRepeatedlyButton"
-                style="@style/PrimaryButton"
-                android:layout_width="match_parent"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
                 android:text="@string/remind_me_repeatedly"
+                android:textSize="@dimen/_13ssp"
+                app:cornerRadius="12dp"
                 app:icon="@drawable/ic_repeat" />
 
         </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:text="@string/reminder_alarm_note"
+            android:textColor="@color/gray_dark"
+            android:textSize="11sp" />
     </LinearLayout>
 </ScrollView>

@@ -6,6 +6,19 @@
     android:layout_height="match_parent"
     tools:context=".ui.other.on_boarding.OnBoardingFragment">
 
+    <TextView
+        android:id="@+id/buSkipOnboarding"
+        style="@style/TextButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_16sdp"
+        android:layout_marginEnd="@dimen/_20sdp"
+        android:text="@string/skip"
+        android:textSize="@dimen/_14ssp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/onBoardingPager"
         android:layout_width="match_parent"
@@ -13,7 +26,7 @@
         app:layout_constraintBottom_toTopOf="@+id/customFloatButtonProgress"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/buSkipOnboarding" />
 
     <FrameLayout
         android:id="@+id/customFloatButtonProgress"

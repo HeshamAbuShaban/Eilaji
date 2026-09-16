@@ -33,32 +33,34 @@ class OnBoardingFragment : Fragment() {
         return binding.root
     }
 
+    private var navigated = false
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupOnBoardingPager()
         setupNextArrowButton()
         animationProgressByCurrentPageValue()
         navToLoginController()
+        binding.buSkipOnboarding.setOnClickListener { finishOnboarding() }
+    }
+
+    private fun finishOnboarding() {
+        if (navigated) return
+        navigated = true
+        try {
+            AppSharedPreferences.getInstance(requireContext()).doneWithOnBoarding()
+            AppSharedPreferences.getInstance(requireContext()).setHeIsFirstTimeDone()
+        } catch (_: Exception) {}
+        try {
+            val navController = findNavController()
+            navController.popBackStack()
+            navController.navigate(OnBoardingFragmentDirections.actionNavigationOnBoardingToNavigationLogin())
+        } catch (_: Exception) {}
     }
 
     private fun navToLoginController() {
         onBoardingViewModel.navigateToLogin.observe(viewLifecycleOwner) { navigateToLogin ->
-            if (navigateToLogin) {
-                //Get the NavController  inside a fragment that is hosted within an activity with a NavHostFragment
-                val navController = findNavController()
-
-                // removes the onBoardingScreen of the back stack
-                navController.popBackStack()
-
-                // navigate to the Login with making sure there is no return cause of the line above
-                val directions =
-                    OnBoardingFragmentDirections.actionNavigationOnBoardingToNavigationLogin()
-                navController.navigate(directions)
-
-                //Set the sheared Value to True
-                AppSharedPreferences.getInstance(requireContext()).doneWithOnBoarding()
-                AppSharedPreferences.getInstance(requireContext()).setHeIsFirstTimeDone()
-            }
+            if (navigateToLogin == true) finishOnboarding()
         }
     }
 

@@ -9,7 +9,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.media.AudioAttributes
-import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.os.Build
 import androidx.appcompat.content.res.AppCompatResources
@@ -17,21 +16,17 @@ import androidx.core.app.NotificationCompat
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import dev.anonymous.eilaji.R
-import dev.anonymous.eilaji.storage.enums.SoundNumbers
 import dev.anonymous.eilaji.ui.main.MainActivity
 
 class ReminderWorker(private val context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
-    private var mediaPlayer: MediaPlayer? = null
     override fun doWork(): Result {
         val nid = inputData.getString(ReminderScheduler.KEY_REMINDER_NotificationId)
         val text = inputData.getString(ReminderScheduler.KEY_REMINDER_TEXT)
-        val sound = inputData.getInt(ReminderScheduler.KEY_REMINDER_SOUND, SoundNumbers.SoundLong.soundNumber)
-        val map = mapOf(SoundNumbers.SoundLong.soundNumber to R.raw.long_reminder, SoundNumbers.SoundBell.soundNumber to R.raw.bell_reminder, SoundNumbers.SoundTalking.soundNumber to R.raw.talking_reminder, SoundNumbers.SoundNice.soundNumber to R.raw.cool_reminder, SoundNumbers.SoundNotify.soundNumber to R.raw.notify_reminder)
-        map[sound]?.let { try { mediaPlayer = MediaPlayer.create(context, it); mediaPlayer?.start() } catch (_: Exception) {} }
+        // System default tone via channel only — no custom music.
         if (!text.isNullOrEmpty() && !nid.isNullOrEmpty()) sendNotification(text, nid) else sendDefault()
         return Result.success()
     }
-    override fun onStopped() { try { mediaPlayer?.stop(); mediaPlayer?.release() } catch (_: Exception) {}; mediaPlayer = null; super.onStopped() }
+    override fun onStopped() { super.onStopped() }
     private fun sendDefault() { sendNotification(context.getString(R.string.reminder_notification), "1") }
     private fun sendNotification(text: String, nid: String) {
         val nm = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

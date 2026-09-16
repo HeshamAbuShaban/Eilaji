@@ -47,7 +47,7 @@
             android:layout_width="@dimen/_96sdp"
             android:layout_height="@dimen/_96sdp"
             android:contentDescription="@string/no_results_found"
-            android:src="@drawable/bg_empty_2" />
+            android:src="@drawable/empty_search" />
 
         <TextView
             android:layout_width="wrap_content"
