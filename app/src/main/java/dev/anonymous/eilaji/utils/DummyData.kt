@@ -14,20 +14,23 @@ object DummyData {
             val list = ArrayList<ModelOnBoarding>()
             list.add(
                 ModelOnBoarding(
-                    R.drawable.on_boarding_1,
-                    "هذا النص هو مثال لنص يمكن أن يستبدل في نفس المساحة، لقد تم توليد هذا النص من مولد النص "
+                    R.drawable.ic_search,
+                    "Find medicines fast",
+                    "Search 36 medicines across 6 categories, with prices and prescription flags up front."
                 )
             )
             list.add(
                 ModelOnBoarding(
-                    R.drawable.on_boarding_2,
-                    "هذا النص هو مثال لنص يمكن أن يستبدل في نفس المساحة، لقد تم توليد هذا النص من مولد النص "
+                    R.drawable.ic_add_photo,
+                    "Send a prescription",
+                    "Snap your prescription and get quotes from verified pharmacies near you."
                 )
             )
             list.add(
                 ModelOnBoarding(
-                    R.drawable.on_boarding_3,
-                    "هذا النص هو مثال لنص يمكن أن يستبدل في نفس المساحة، لقد تم توليد هذا النص من مولد النص "
+                    R.drawable.ic_notifications,
+                    "Never miss a dose",
+                    "Exact alarms with vibration and full-screen alerts — no account needed to start."
                 )
             )
             return list

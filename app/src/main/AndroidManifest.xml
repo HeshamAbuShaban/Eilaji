@@ -18,6 +18,7 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
@@ -74,6 +75,15 @@
             android:name=".reminder_system.receiver.AlarmReceiver"
             android:enabled="true"
             android:exported="false" />
+
+        <activity
+            android:name=".reminder_system.alarm.AlarmActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:showOnLockScreen="true"
+            android:showWhenLocked="true"
+            android:theme="@style/Theme.Eilaji.BaseActivity"
+            android:turnScreenOn="true" />
 
         <receiver
             android:name=".reminder_system.receiver.BootReceiver"

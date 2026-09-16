@@ -42,7 +42,7 @@
                 android:layout_width="200dp"
                 android:layout_height="200dp"
                 android:alpha="0.7"
-                android:src="@drawable/bg_empty_3"
+                android:src="@drawable/empty_reminders"
                 tools:ignore="ContentDescription" />
 
             <TextView

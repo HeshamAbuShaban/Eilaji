@@ -1,52 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:adjustViewBounds="true"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:gravity="center"
+    android:orientation="vertical"
+    android:paddingHorizontal="@dimen/_24sdp">
 
-    <Space
+    <FrameLayout
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_height="wrap_content">
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardView"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/_220sdp"
-        app:cardCornerRadius="@dimen/_10sdp"
-        app:cardElevation="@dimen/_5sdp"
-        app:cardUseCompatPadding="true">
+        <View
+            android:layout_width="@dimen/_140sdp"
+            android:layout_height="@dimen/_140sdp"
+            android:background="@drawable/bg_icon_circle" />
 
         <ImageView
             android:id="@+id/ivOnBoarding"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="@dimen/_64sdp"
+            android:layout_height="@dimen/_64sdp"
+            android:layout_gravity="center"
             android:contentDescription="@null"
-            android:scaleType="centerCrop"
-            android:src="@drawable/on_boarding_2" />
-    </androidx.cardview.widget.CardView>
+            android:src="@drawable/ic_search"
+            app:tint="@color/primary_color" />
 
-    <Space
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="0.9" />
+    </FrameLayout>
 
     <TextView
-        android:id="@+id/tvOnBoarding"
+        android:id="@+id/tvOnBoardingTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="@dimen/_14sdp"
-        android:text="@string/example_text_for_on_boarding"
-        android:textAlignment="center"
-        android:textColor="@color/black"
-        android:textSize="@dimen/_17sdp"
-        android:textStyle="bold" />
+        android:layout_marginTop="@dimen/_24sdp"
+        android:gravity="center"
+        android:textSize="@dimen/_20ssp"
+        android:textStyle="bold"
+        tools:text="Find medicines fast" />
 
-    <Space
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="0.7" />
+    <TextView
+        android:id="@+id/tvOnBoardingSubtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_8sdp"
+        android:gravity="center"
+        android:lineSpacingExtra="3dp"
+        android:textColor="@color/gray_dark"
+        android:textSize="@dimen/_14ssp"
+        tools:text="Search 36 medicines across 6 categories." />
 
 </LinearLayout>

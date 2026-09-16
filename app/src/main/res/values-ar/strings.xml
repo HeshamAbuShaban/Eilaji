@@ -112,4 +112,13 @@
     <string name="rate_pharmacy">قيّم الصيدلية</string>
     <string name="my_orders">طلباتي</string>
     <string name="no_orders_yet">لا توجد طلبات بعد</string>
+    <string name="next_dose_in">الجرعة التالية بعد</string>
+    <string name="reminder_alarm_note">تنبيه بملء الشاشة مع اهتزاز. بدون موسيقى — دواؤك في وقته.</string>
+    <string name="day_mon">ن</string>
+    <string name="day_tue">ث</string>
+    <string name="day_wed">ر</string>
+    <string name="day_thu">خ</string>
+    <string name="day_fri">ج</string>
+    <string name="day_sat">س</string>
+    <string name="day_sun">ح</string>
 </resources>
