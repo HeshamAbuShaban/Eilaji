@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
@@ -57,6 +58,7 @@ class ReminderFragment : Fragment(), RequestPermissionsListener {
     private var customDays: List<String> = emptyList()
     private var intervalVal: Long = 2
     private var intervalUnit: TimeUnit = TimeUnit.DAYS
+    private var intervalIsWeeks: Boolean = false
 
     private val suggestHandler = Handler(Looper.getMainLooper())
     private var suggestRunnable: Runnable? = null
@@ -94,7 +96,9 @@ class ReminderFragment : Fragment(), RequestPermissionsListener {
         setupRepeatSection()
         setupAutocomplete()
         binding.buSaveReminder.setOnClickListener { onSavePressed() }
-        refreshAll()
+        renderTime()
+        renderInterval()
+        renderSummary()
     }
 
     // ---------- time ----------
@@ -160,22 +164,32 @@ class ReminderFragment : Fragment(), RequestPermissionsListener {
         binding.buIntervalPlus.setOnClickListener { intervalVal = (intervalVal + 1).coerceAtMost(30); renderInterval(); renderSummary() }
         binding.chipUnitHours.setOnClickListener { setUnit(TimeUnit.HOURS) }
         binding.chipUnitDays.setOnClickListener { setUnit(TimeUnit.DAYS) }
-        binding.chipUnitWeeks.setOnClickListener { setUnit(TimeUnit.WEEKS) }
+        binding.chipUnitWeeks.setOnClickListener { setUnitWeeks() }
         renderInterval()
     }
 
     private fun setUnit(u: TimeUnit) {
         intervalUnit = u
+        intervalIsWeeks = false
         binding.chipUnitHours.isChecked = u == TimeUnit.HOURS
         binding.chipUnitDays.isChecked = u == TimeUnit.DAYS
-        binding.chipUnitWeeks.isChecked = u == TimeUnit.WEEKS
+        binding.chipUnitWeeks.isChecked = false
+        renderInterval(); renderSummary()
+    }
+
+    private fun setUnitWeeks() {
+        intervalUnit = TimeUnit.DAYS
+        intervalIsWeeks = true
+        binding.chipUnitHours.isChecked = false
+        binding.chipUnitDays.isChecked = false
+        binding.chipUnitWeeks.isChecked = true
         renderInterval(); renderSummary()
     }
 
     private fun renderInterval() {
-        val unitName = when (intervalUnit) {
-            TimeUnit.HOURS -> if (intervalVal == 1L) "hour" else "hours"
-            TimeUnit.WEEKS -> if (intervalVal == 1L) "week" else "weeks"
+        val unitName = when {
+            intervalIsWeeks -> if (intervalVal == 1L) "week" else "weeks"
+            intervalUnit == TimeUnit.HOURS -> if (intervalVal == 1L) "hour" else "hours"
             else -> if (intervalVal == 1L) "day" else "days"
         }
         binding.tvIntervalValue.text = "Every $intervalVal $unitName"
@@ -270,9 +284,9 @@ class ReminderFragment : Fragment(), RequestPermissionsListener {
             Mode.DAILY -> "Daily"
             Mode.DAYS -> if (customDays.isEmpty()) "Pick days" else customDays.joinToString(", ") { it.take(3) }
             Mode.INTERVAL -> {
-                val u = when (intervalUnit) {
-                    TimeUnit.HOURS -> if (intervalVal == 1L) "hour" else "hours"
-                    TimeUnit.WEEKS -> if (intervalVal == 1L) "week" else "weeks"
+                val u = when {
+                    intervalIsWeeks -> if (intervalVal == 1L) "week" else "weeks"
+                    intervalUnit == TimeUnit.HOURS -> if (intervalVal == 1L) "hour" else "hours"
                     else -> if (intervalVal == 1L) "day" else "days"
                 }
                 "Every $intervalVal $u"
@@ -322,9 +336,8 @@ class ReminderFragment : Fragment(), RequestPermissionsListener {
             Mode.DAYS -> { freq = "CUSTOM"; interval = 1; unit = TimeUnit.DAYS; days = customDays }
             Mode.INTERVAL -> {
                 // hours / days / weeks only (minutes dropped by design)
-                val u = if (intervalUnit == TimeUnit.MINUTES) TimeUnit.HOURS else intervalUnit
-                if (u == TimeUnit.WEEKS) { freq = "CUSTOM"; interval = intervalVal * 7; unit = TimeUnit.DAYS; days = emptyList() }
-                else if (u == TimeUnit.HOURS) { freq = "CUSTOM"; interval = intervalVal; unit = TimeUnit.HOURS; days = emptyList() }
+                if (intervalIsWeeks) { freq = "CUSTOM"; interval = intervalVal * 7; unit = TimeUnit.DAYS; days = emptyList() }
+                else if (intervalUnit == TimeUnit.HOURS) { freq = "CUSTOM"; interval = intervalVal; unit = TimeUnit.HOURS; days = emptyList() }
                 else {
                     if (intervalVal == 1L) { freq = "DAILY"; interval = 1; unit = TimeUnit.DAYS; days = emptyList() }
                     else if (intervalVal == 7L) { freq = "WEEKLY"; interval = 7; unit = TimeUnit.DAYS; days = emptyList() }
