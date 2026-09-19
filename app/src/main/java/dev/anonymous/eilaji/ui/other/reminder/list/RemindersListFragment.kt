@@ -44,12 +44,25 @@ class RemindersListFragment : Fragment(), RemindersAdapter.RemindersListCallback
         syncRepo = ReminderSyncRepository(requireContext().applicationContext)
         return binding.root
     }
+    private var highlightId: String? = null
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        highlightId = arguments?.getString("highlightId")
         binding.fabAddAReminder.setOnClickListener { findNavController().navigate(R.id.action_navigation_reminders_list_to_navigation_add_reminder) }
         binding.recViewRemindersList.setHasFixedSize(false)
         vm.getAllReminders().observe(viewLifecycleOwner) { list ->
-            if (list.isEmpty()) showEmpty() else { hideEmpty(); adapter = RemindersAdapter(list as ArrayList<Reminder>); adapter.registerRemindersListCallback(this); binding.recViewRemindersList.adapter = adapter; attachSwipe() }
+            if (list.isEmpty()) {
+                showEmpty()
+            } else {
+                hideEmpty()
+                renderSummary(list)
+                adapter = RemindersAdapter(list as ArrayList<Reminder>)
+                adapter.registerRemindersListCallback(this)
+                binding.recViewRemindersList.adapter = adapter
+                attachSwipe()
+                highlightId?.let { flashNew(it, list) }
+            }
         }
         syncRepo.syncFetch { remote ->
             if (remote != null && remote.isNotEmpty()) {
@@ -89,8 +102,55 @@ class RemindersListFragment : Fragment(), RemindersAdapter.RemindersListCallback
         ItemTouchHelper(callback).attachToRecyclerView(binding.recViewRemindersList)
     }
 
+    private fun renderSummary(list: List<Reminder>) {
+        try {
+            val active = list.filter { it.isActive() }
+            if (active.isEmpty()) {
+                binding.cardTodaySummary.visibility = View.GONE
+                return
+            }
+            binding.cardTodaySummary.visibility = View.VISIBLE
+            binding.tvTodayCount.text = if (active.size == 1) "1 dose today" else "${active.size} doses today"
+            val next = active.minByOrNull { nextIn(it) }
+            binding.tvNextDoseSummary.text = next?.let {
+                "Next: ${it.medicineName ?: it.text} at ${it.scheduleTime?.substring(0, 5)}"
+            } ?: ""
+        } catch (_: Exception) {}
+    }
+
+    private fun nextIn(r: Reminder): Long {
+        return try {
+            val st = r.scheduleTime ?: return Long.MAX_VALUE
+            val lt = dev.anonymous.eilaji.reminder_system.util.ReminderTimeUtils.parseScheduleTime(st) ?: return Long.MAX_VALUE
+            val now = java.time.ZonedDateTime.now(java.time.ZoneId.systemDefault())
+            var cand = now.withHour(lt.hour).withMinute(lt.minute).withSecond(0).withNano(0)
+            if (!cand.isAfter(now)) cand = cand.plusDays(1)
+            cand.toInstant().toEpochMilli()
+        } catch (_: Exception) { Long.MAX_VALUE }
+    }
+
+    private fun flashNew(id: String, list: List<Reminder>) {
+        try {
+            highlightId = null
+            val pos = list.indexOfFirst { it.id == id }
+            if (pos == -1) return
+            binding.recViewRemindersList.scrollToPosition(pos)
+            binding.recViewRemindersList.postDelayed({
+                try {
+                    val holder = binding.recViewRemindersList.findViewHolderForAdapterPosition(pos)
+                    holder?.itemView?.let { v ->
+                        v.alpha = 0.3f
+                        v.animate().alpha(1f).setDuration(450).start()
+                        com.google.android.material.snackbar.Snackbar.make(binding.root, "Reminder saved", com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show()
+                    }
+                } catch (_: Exception) {}
+            }, 350)
+        } catch (_: Exception) {}
+    }
+
     private fun showEmpty() {
         binding.emptyStateContainer.visibility = View.VISIBLE
+        try { binding.cardTodaySummary.visibility = View.GONE } catch (_: Exception) {}
         binding.emptyListText.text = SpannableStringBuilder().apply { bold { append(getString(R.string.empty_reminders)) }; append("\ncreate a reminder and it will show up here.") }
     }
     private fun hideEmpty() { binding.emptyStateContainer.visibility = View.GONE }

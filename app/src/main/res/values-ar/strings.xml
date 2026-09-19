@@ -121,4 +121,20 @@
     <string name="day_fri">ج</string>
     <string name="day_sat">س</string>
     <string name="day_sun">ح</string>
+    <string name="step1_medicine">١ · الدواء</string>
+    <string name="step2_time">٢ · الوقت</string>
+    <string name="step3_repeat">٣ · التكرار</string>
+    <string name="freq_once">مرة</string>
+    <string name="freq_daily">يومي</string>
+    <string name="freq_days">أيام</string>
+    <string name="freq_interval">فترة</string>
+    <string name="quick_morning">صباحا</string>
+    <string name="quick_noon">ظهرا</string>
+    <string name="quick_evening">مساء</string>
+    <string name="quick_night">ليلا</string>
+    <string name="unit_hours">ساعات</string>
+    <string name="unit_days">أيام</string>
+    <string name="unit_weeks">أسابيع</string>
+    <string name="active_label">مفعّل</string>
+    <string name="save_reminder">حفظ التذكير</string>
 </resources>
