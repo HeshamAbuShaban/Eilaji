@@ -13,7 +13,10 @@ import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
-class RemindersAdapter(val remindersList: ArrayList<Reminder>) : RecyclerView.Adapter<RemindersAdapter.RemindersViewHolder>() {
+class RemindersAdapter(
+    val remindersList: ArrayList<Reminder>,
+    var highlightId: String? = null
+) : RecyclerView.Adapter<RemindersAdapter.RemindersViewHolder>() {
     private lateinit var cb: RemindersListCallback
     fun registerRemindersListCallback(c: RemindersListCallback) { cb = c }
     override fun onCreateViewHolder(p: ViewGroup, v: Int) = RemindersViewHolder(ItemReminderBinding.inflate(LayoutInflater.from(p.context), p, false))
@@ -49,7 +52,23 @@ class RemindersAdapter(val remindersList: ArrayList<Reminder>) : RecyclerView.Ad
                 deleteReminder.setOnClickListener { cb.onDeleteClicked(r) }
                 root.alpha = if (r.isActive()) 1f else 0.55f
                 cardReminder.alpha = if (r.isActive()) 1f else 0.7f
+                try {
+                    val mins = nextInMinutes(r)
+                    tvNextIn.text = if (!r.isActive()) "" else if (mins < 0) "" else "Next in ${mins / 60}h ${mins % 60}m"
+                    tvNextIn.visibility = if (!r.isActive() || mins < 0) android.view.View.GONE else android.view.View.VISIBLE
+                } catch (_: Exception) {}
             }
+        }
+
+        private fun nextInMinutes(r: Reminder): Long {
+            return try {
+                val st = r.scheduleTime ?: return -1
+                val lt = ReminderTimeUtils.parseScheduleTime(st) ?: return -1
+                val now = java.time.ZonedDateTime.now(java.time.ZoneId.systemDefault())
+                var cand = now.withHour(lt.hour).withMinute(lt.minute).withSecond(0).withNano(0)
+                if (!cand.isAfter(now)) cand = cand.plusDays(1)
+                java.util.concurrent.TimeUnit.MILLISECONDS.toMinutes(cand.toInstant().toEpochMilli() - System.currentTimeMillis())
+            } catch (_: Exception) { -1 }
         }
     }
     interface RemindersListCallback { fun onDeleteClicked(reminder: Reminder); fun onToggleActive(reminder: Reminder, active: Boolean) }

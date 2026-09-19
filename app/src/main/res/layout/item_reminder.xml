@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingStart="8dp"
-    android:paddingEnd="0dp"
     android:paddingTop="6dp"
     android:paddingBottom="6dp">
 
@@ -39,138 +38,160 @@
         app:cardElevation="2dp"
         app:strokeWidth="0dp">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="12dp">
-
-            <TextView
-                android:id="@+id/chipDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_chip_date"
-                android:fontFamily="@font/cairo_medium"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="4dp"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:textSize="11sp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="09 Sep 2026" />
-
-            <TextView
-                android:id="@+id/chipFrequency"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/bg_chip_freq"
-                android:fontFamily="@font/cairo_medium"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="4dp"
-                android:textColor="@color/primary_color"
-                android:textSize="11sp"
-                app:layout_constraintBottom_toBottomOf="@id/chipDate"
-                app:layout_constraintStart_toEndOf="@id/chipDate"
-                app:layout_constraintTop_toTopOf="@id/chipDate"
-                tools:text="DAILY" />
-
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/switchActive"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:id="@+id/reminder_time"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:fontFamily="@font/cairo_medium"
-                android:textColor="?attr/colorOnSurface"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                app:layout_constraintEnd_toStartOf="@id/delete_reminder"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/chipDate"
-                tools:text="08:30" />
-
-            <TextView
-                android:id="@+id/reminder_name"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:ellipsize="end"
-                android:fontFamily="@font/cairo_medium"
-                android:maxLines="1"
-                android:textColor="?attr/colorOnSurface"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                app:layout_constraintEnd_toStartOf="@id/delete_reminder"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/reminder_time"
-                tools:text="Amoxicillin 500mg" />
-
-            <TextView
-                android:id="@+id/reminder_dosage"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:fontFamily="@font/cairo_medium"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:textSize="13sp"
-                app:layout_constraintEnd_toStartOf="@id/delete_reminder"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/reminder_name"
-                tools:text="1 pill • DAILY" />
-
-            <ImageView
-                android:id="@+id/reminder_type"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:background="@drawable/bg_icon_circle"
-                android:padding="6dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/switchActive"
-                app:tint="@color/primary_color"
-                tools:src="@drawable/ic_medication" />
-
-            <ImageButton
-                android:id="@+id/delete_reminder"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginTop="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_delete_reminder"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/reminder_dosage"
-                app:tint="@color/gray_dark"
-                tools:ignore="ContentDescription" />
-
-            <TextView
-                android:id="@+id/reminder_delayTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                tools:text="08:30:00" />
-
-            <TextView
-                android:id="@+id/reminder_creationTimestamp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                tools:text="2026-09-09" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="14dp">
 
             <LinearLayout
-                android:id="@+id/reminderTimesContainer"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:visibility="gone" />
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/chipDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_chip_date"
+                        android:fontFamily="@font/cairo_medium"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="11sp"
+                        tools:text="09 Sep 2026" />
+
+                    <TextView
+                        android:id="@+id/chipFrequency"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_chip_freq"
+                        android:fontFamily="@font/cairo_medium"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:textColor="@color/primary_color"
+                        android:textSize="11sp"
+                        tools:text="DAILY" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/reminder_time"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="@font/cairo_medium"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    tools:text="08:30" />
+
+                <TextView
+                    android:id="@+id/reminder_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/cairo_medium"
+                    android:maxLines="1"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    tools:text="Amoxicillin 500mg" />
+
+                <TextView
+                    android:id="@+id/reminder_dosage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/cairo_medium"
+                    android:maxLines="1"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="13sp"
+                    tools:text="500mg · DAILY" />
+
+                <TextView
+                    android:id="@+id/tvNextIn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="@font/cairo_medium"
+                    android:textColor="@color/primary_color"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    tools:text="Next in 7h 12m" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="top|center_horizontal"
+                android:orientation="vertical"
+                android:paddingStart="8dp">
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/switchActive"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <ImageView
+                    android:id="@+id/reminder_type"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_icon_circle"
+                    android:padding="7dp"
+                    app:tint="@color/primary_color"
+                    tools:src="@drawable/ic_medication" />
+
+                <Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <ImageButton
+                    android:id="@+id/delete_reminder"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/delete"
+                    android:src="@drawable/ic_delete_reminder"
+                    app:tint="@color/gray_dark" />
+
+            </LinearLayout>
+
+        </LinearLayout>
 
     </com.google.android.material.card.MaterialCardView>
+
+    <TextView
+        android:id="@+id/reminder_delayTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        tools:text="08:30:00" />
+
+    <TextView
+        android:id="@+id/reminder_creationTimestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        tools:text="2026-09-09" />
+
+    <LinearLayout
+        android:id="@+id/reminderTimesContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -159,4 +159,20 @@
     <string name="day_fri">Fri</string>
     <string name="day_sat">Sat</string>
     <string name="day_sun">Sun</string>
+    <string name="step1_medicine">1 · Medicine</string>
+    <string name="step2_time">2 · Time</string>
+    <string name="step3_repeat">3 · Repeat</string>
+    <string name="freq_once">Once</string>
+    <string name="freq_daily">Daily</string>
+    <string name="freq_days">Days</string>
+    <string name="freq_interval">Interval</string>
+    <string name="quick_morning">Morning</string>
+    <string name="quick_noon">Noon</string>
+    <string name="quick_evening">Evening</string>
+    <string name="quick_night">Night</string>
+    <string name="unit_hours">Hours</string>
+    <string name="unit_days">Days</string>
+    <string name="unit_weeks">Weeks</string>
+    <string name="active_label">Active</string>
+    <string name="save_reminder">Save reminder</string>
 </resources>
