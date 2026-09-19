@@ -70,8 +70,6 @@ class RemindersAdapter(
                 java.util.concurrent.TimeUnit.MILLISECONDS.toMinutes(cand.toInstant().toEpochMilli() - System.currentTimeMillis())
             } catch (_: Exception) { -1 }
         }
-            }
-        }
     }
     interface RemindersListCallback { fun onDeleteClicked(reminder: Reminder); fun onToggleActive(reminder: Reminder, active: Boolean) }
 }
