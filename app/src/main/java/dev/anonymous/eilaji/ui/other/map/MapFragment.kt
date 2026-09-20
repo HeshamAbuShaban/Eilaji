@@ -70,10 +70,44 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
 
     private var permissionDialogShown = false
 
+    override fun onResume() {
+        super.onResume()
+        // Permission granted elsewhere (Settings) applies without exit/re-enter:
+        // (re)attach map, refresh blue-dot layer, and fetch if list is empty.
+        try {
+            if (mapViewModel.arePermissionsGranted()) {
+                if (googleMap == null) obtainGoogleMapInstance() else refreshLocationLayer()
+                if (pharmacyDtos.isEmpty()) mapViewModel.getUserLastLocation()
+            }
+        } catch (_: Exception) {}
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun refreshLocationLayer() {
+        try {
+            val gm = googleMap ?: return
+            if (!isAdded || _binding == null) return
+            if (mapViewModel.arePermissionsGranted()) {
+                gm.isMyLocationEnabled = true
+                gm.uiSettings.isMyLocationButtonEnabled = false
+            }
+        } catch (_: SecurityException) {} catch (_: Exception) {}
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         observeCurrentLocation()
         observePharmacies()
+        try {
+            bindingOrNull?.fabRecenter?.setOnClickListener {
+                val ll = currentLatLngCache
+                if (ll != null) {
+                    try { mapViewModel.animateCameraToPosition(ll, 15f) } catch (_: Exception) {}
+                } else {
+                    try { mapViewModel.getUserLastLocation() } catch (_: Exception) {}
+                }
+            }
+        } catch (_: Exception) {}
         if (mapViewModel.arePermissionsGranted()) {
             obtainGoogleMapInstance()
         } else if (!permissionDialogShown) {
@@ -97,6 +131,17 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
         googleMap = gMap
         mapReady = true
         try { mapViewModel.setMap(gMap) } catch (_: Exception) {}
+        // Night surprise: dark map style follows app theme
+        try {
+            val night = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                android.content.res.Configuration.UI_MODE_NIGHT_YES
+            if (night) {
+                gMap.setMapStyle(com.google.android.gms.maps.model.MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.map_style_night))
+            } else {
+                gMap.setMapStyle(null)
+            }
+        } catch (_: Exception) {}
+        try { bindingOrNull?.fabRecenter?.visibility = View.VISIBLE } catch (_: Exception) {}
         try {
             if (mapViewModel.arePermissionsGranted()) {
                 gMap.isMyLocationEnabled = true
@@ -171,6 +216,20 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
     private fun setupPager() {
         val b = bindingOrNull ?: return
         if (!isAdded) return
+        try {
+            // Peek neighbors + depth zoom: pager cards feel swipeable, current pops
+            b.pharmaciesLocationsPager.offscreenPageLimit = 1
+            val margin = (12 * resources.displayMetrics.density).toInt()
+            b.pharmaciesLocationsPager.setPageTransformer(androidx.viewpager2.widget.CompositePageTransformer().apply {
+                addTransformer(androidx.viewpager2.widget.MarginPageTransformer(margin))
+                addTransformer { page, position ->
+                    val scale = 0.92f + (1 - kotlin.math.abs(position).coerceAtMost(1f)) * 0.08f
+                    page.scaleX = scale
+                    page.scaleY = scale
+                    page.alpha = 0.65f + (1 - kotlin.math.abs(position).coerceAtMost(1f)) * 0.35f
+                }
+            })
+        } catch (_: Exception) {}
         val list = ArrayList(pharmacyDtos.map { dto -> Pharmacy(uid = dto.id, pharmacy_image_url = dto.imageUrl ?: "", pharmacy_name = dto.name, phone = dto.phone ?: "", address = dto.address, lat = dto.latitude, lng = dto.longitude, token = "", ratingAvg = dto.ratingAvg, totalRatings = dto.totalRatings, isOpen = dto.isOpen, distanceKm = dto.distanceKm) })
         try { b.pharmaciesLocationsPager.adapter = PharmaciesLocationsAdapter(list) {
             val b = android.os.Bundle().apply {

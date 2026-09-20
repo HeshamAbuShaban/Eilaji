@@ -23,8 +23,24 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/_25sdp"
+        android:clipToPadding="false"
+        android:paddingHorizontal="@dimen/_16sdp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabRecenter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/_16sdp"
+        android:layout_marginBottom="@dimen/_16sdp"
+        android:contentDescription="@string/use_my_location"
+        android:src="@drawable/ic_map"
+        android:visibility="gone"
+        app:backgroundTint="@color/white_fixed"
+        app:layout_constraintBottom_toTopOf="@+id/pharmaciesLocationsPager"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="@color/primary_color" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
