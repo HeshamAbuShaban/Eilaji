@@ -377,6 +377,7 @@ class HomeFragment : Fragment() {
     }
 
     private var adsAutoScroll: Runnable? = null
+    private var adsMediator: com.google.android.material.tabs.TabLayoutMediator? = null
 
     private fun setupAdsPager(adsList: ArrayList<Ad>) {
         if (adsList.isEmpty()) {
@@ -400,7 +401,10 @@ class HomeFragment : Fragment() {
                 })
             } catch (_: Exception) { setPageTransformer(DepthPageTransformer()) }
             adsAdapter.setListAds(adsList)
-            binding.indicatorAds.setupViewPager2(this, adsList.size, 0)
+            try {
+                adsMediator?.detach()
+                adsMediator = com.google.android.material.tabs.TabLayoutMediator(binding.indicatorAds, this) { _, _ -> }.also { it.attach() }
+            } catch (_: Exception) {}
             startAdsAutoplay(adsList.size)
         }
         removeAdsShimmer(true)
@@ -425,21 +429,46 @@ class HomeFragment : Fragment() {
         try { adsAutoScroll?.let { binding.pagerAds.removeCallbacks(it) } } catch (_: Exception) {}
     }
 
+    private fun serveFromCacheOrEmpty() {
+        // Offline: serve last saved catalog so lists never go blank on disconnect.
+        try {
+            val ctx = requireContext()
+            val meds = dev.anonymous.eilaji.data.repository.CatalogCache.getMedicines(ctx)
+            val best = dev.anonymous.eilaji.data.repository.CatalogCache.getBestSellers(ctx)
+            val cats = dev.anonymous.eilaji.data.repository.CatalogCache.getCategories(ctx)
+            if (meds.isNotEmpty() || best.isNotEmpty() || cats.isNotEmpty()) {
+                if (meds.isNotEmpty()) homeViewModel.setAdsList(ArrayList(meds.map { dto -> Ad(dto.id, dto.imageUrl ?: "", dto.titleEn.ifBlank { dto.titleAr }) }))
+                if (best.isNotEmpty()) homeViewModel.setBestSellers(best)
+                if (cats.isNotEmpty()) homeViewModel.setCategories(cats)
+                try {
+                    com.google.android.material.snackbar.Snackbar.make(binding.root, "Offline — showing saved data", com.google.android.material.snackbar.Snackbar.LENGTH_LONG).show()
+                } catch (_: Exception) {}
+            } else {
+                homeViewModel.setAdsList(ArrayList())
+                homeViewModel.setBestSellers(emptyList())
+                homeViewModel.setCategories(emptyList())
+            }
+        } catch (_: Exception) {}
+    }
+
     private fun fetchAds() {
         NetworkModule.provideApiService(requireContext()).getMedicines(page = 0, pageSize = 5).enqueue(object : Callback<ApiResponse<PaginatedResult<MedicineDto>>> {
             override fun onResponse(call: Call<ApiResponse<PaginatedResult<MedicineDto>>>, response: Response<ApiResponse<PaginatedResult<MedicineDto>>>) {
                 if (response.isSuccessful && response.body()?.success == true) {
                     val items = response.body()?.data?.items ?: emptyList()
                     if (items.isEmpty()) homeViewModel.setAdsList(ArrayList())
-                    else homeViewModel.setAdsList(ArrayList(items.map { dto -> Ad(dto.id, dto.imageUrl ?: "", dto.titleEn.ifBlank { dto.titleAr }) }))
+                    else {
+                        homeViewModel.setAdsList(ArrayList(items.map { dto -> Ad(dto.id, dto.imageUrl ?: "", dto.titleEn.ifBlank { dto.titleAr }) }))
+                        try { dev.anonymous.eilaji.data.repository.CatalogCache.saveMedicines(requireContext(), items) } catch (_: Exception) {}
+                    }
                 } else {
                     Log.e("HomeFragment", "fetchAds: ${response.body()?.error}")
-                    homeViewModel.setAdsList(ArrayList())
+                    serveFromCacheOrEmpty()
                 }
             }
             override fun onFailure(call: Call<ApiResponse<PaginatedResult<MedicineDto>>>, t: Throwable) {
                 Log.e("HomeFragment", "fetchAds: network error", t)
-                homeViewModel.setAdsList(ArrayList())
+                serveFromCacheOrEmpty()
             }
         })
     }
@@ -448,14 +477,17 @@ class HomeFragment : Fragment() {
         NetworkModule.provideApiService(requireContext()).getCategories().enqueue(object : Callback<ApiResponse<List<CategoryDto>>> {
             override fun onResponse(call: Call<ApiResponse<List<CategoryDto>>>, response: Response<ApiResponse<List<CategoryDto>>>) {
                 if (response.isSuccessful && response.body()?.success == true) {
-                    homeViewModel.setCategories(response.body()?.data ?: emptyList())
+                    val items = response.body()?.data ?: emptyList()
+                    homeViewModel.setCategories(items)
+                    try { dev.anonymous.eilaji.data.repository.CatalogCache.saveCategories(requireContext(), items) } catch (_: Exception) {}
                 } else {
                     homeViewModel.setCategories(emptyList())
                 }
             }
             override fun onFailure(call: Call<ApiResponse<List<CategoryDto>>>, t: Throwable) {
                 Log.e("HomeFragment", "fetchCategories fail", t)
-                homeViewModel.setCategories(emptyList())
+                val cached = try { dev.anonymous.eilaji.data.repository.CatalogCache.getCategories(requireContext()) } catch (_: Exception) { emptyList() }
+                homeViewModel.setCategories(cached)
             }
         })
     }
@@ -464,12 +496,15 @@ class HomeFragment : Fragment() {
         NetworkModule.provideApiService(requireContext()).getMedicines(page = 0, pageSize = 10).enqueue(object : Callback<ApiResponse<PaginatedResult<MedicineDto>>> {
             override fun onResponse(call: Call<ApiResponse<PaginatedResult<MedicineDto>>>, response: Response<ApiResponse<PaginatedResult<MedicineDto>>>) {
                 if (response.isSuccessful && response.body()?.success == true) {
-                    homeViewModel.setBestSellers(response.body()?.data?.items ?: emptyList())
+                    val items = response.body()?.data?.items ?: emptyList()
+                    homeViewModel.setBestSellers(items)
+                    try { dev.anonymous.eilaji.data.repository.CatalogCache.saveBestSellers(requireContext(), items) } catch (_: Exception) {}
                 } else homeViewModel.setBestSellers(emptyList())
             }
             override fun onFailure(call: Call<ApiResponse<PaginatedResult<MedicineDto>>>, t: Throwable) {
                 Log.e("HomeFragment", "fetchBestSellers fail", t)
-                homeViewModel.setBestSellers(emptyList())
+                val cached = try { dev.anonymous.eilaji.data.repository.CatalogCache.getBestSellers(requireContext()) } catch (_: Exception) { emptyList() }
+                homeViewModel.setBestSellers(cached)
             }
         })
     }

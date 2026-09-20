@@ -15,4 +15,3 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Eilaji"
 include ':app'
-include ':Horizontal-indicator-for-pager2-and-recycler'

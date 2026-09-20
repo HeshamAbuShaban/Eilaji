@@ -109,20 +109,23 @@
                     android:layout_marginTop="@dimen/_8sdp" />
             </LinearLayout>
 
-            <dev.anonymous.horizontal_indicator.HorizontalIndicator
+            <com.google.android.material.tabs.TabLayout
                 android:id="@+id/indicatorAds"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:horizontalIndicatorSize="@dimen/_3sdp"
-                app:indicatorColor="@color/gray_dark"
-                app:indicatorMargin="@dimen/_4sdp"
-                app:indicatorRadius="@dimen/_5sdp"
-                app:indicatorWidthScale="4"
+                android:layout_marginTop="8dp"
+                android:background="@android:color/transparent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/adsContainer"
-                app:selectedIndicatorColor="@color/primary_color"
-                app:selectedIndicatorWidthScale="8" />
+                app:tabBackground="@drawable/dot_page_selector"
+                app:tabGravity="center"
+                app:tabIndicatorHeight="0dp"
+                app:tabMaxWidth="32dp"
+                app:tabMinWidth="12dp"
+                app:tabMode="scrollable"
+                app:tabPaddingEnd="4dp"
+                app:tabPaddingStart="4dp" />
 
             <LinearLayout
                 android:id="@+id/linearLayout"

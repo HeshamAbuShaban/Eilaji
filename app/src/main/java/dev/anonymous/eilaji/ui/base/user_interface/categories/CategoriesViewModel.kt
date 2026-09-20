@@ -21,8 +21,11 @@ class CategoriesViewModel : ViewModel() {
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> get() = _error
 
+    private var appContext: Context? = null
+
     fun init(context: Context) {
         apiService = NetworkModule.provideApiService(context)
+        appContext = context.applicationContext
     }
 
     fun loadCategories() {
@@ -37,7 +40,9 @@ class CategoriesViewModel : ViewModel() {
                 response: Response<dev.anonymous.eilaji.network.ApiResponse<List<dev.anonymous.eilaji.network.CategoryDto>>>
             ) {
                 if (response.isSuccessful && response.body()?.success == true) {
-                    _categoryList.value = response.body()?.data ?: emptyList()
+                    val items = response.body()?.data ?: emptyList()
+                    _categoryList.value = items
+                    try { appContext?.let { dev.anonymous.eilaji.data.repository.CatalogCache.saveCategories(it, items) } } catch (_: Exception) {}
                 } else {
                     _error.value = response.body()?.error ?: "Failed to load categories"
                 }
@@ -47,7 +52,9 @@ class CategoriesViewModel : ViewModel() {
                 call: Call<dev.anonymous.eilaji.network.ApiResponse<List<dev.anonymous.eilaji.network.CategoryDto>>>,
                 t: Throwable
             ) {
-                _error.value = "Network error: ${t.message}"
+                val cached = try { appContext?.let { dev.anonymous.eilaji.data.repository.CatalogCache.getCategories(it) } ?: emptyList() } catch (_: Exception) { emptyList() }
+                if (cached.isNotEmpty()) _categoryList.value = cached
+                else _error.value = "Network error: ${t.message}"
             }
         })
     }

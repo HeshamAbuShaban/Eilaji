@@ -51,10 +51,17 @@ The API will be available at `http://localhost:8080`.
 ### Orders (Protected)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/v1/orders` | Create order from accepted prescription |
-| GET | `/api/v1/orders` | List user orders |
+| POST | `/api/v1/orders` | Create order (prescription-linked or direct OTC with `prescriptionId: null`) |
+| GET | `/api/v1/orders` | List user orders (pharmacists see only owned stores) |
 | GET | `/api/v1/orders/{id}` | Get order details |
-| PUT | `/api/v1/orders/{id}/status` | Update order status (PHARMACIST/ADMIN only) |
+| PUT | `/api/v1/orders/{id}/status` | Update status `PENDING→CONFIRMED→PREPARING→SHIPPED→DELIVERED` (PHARMACIST/ADMIN only, terminal states locked) |
+| PUT | `/api/v1/orders/{id}/courier` | Update live courier position `{lat, lng, etaMinutes}` or `{clear: true}` (PHARMACIST/ADMIN only) |
+
+### Stock (read public, write PHARMACIST/ADMIN)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/pharmacies/{id}/stock` | List stock rows for a pharmacy |
+| PUT | `/api/v1/pharmacies/{id}/stock` | Upsert `{medicineId, price?, stockQuantity?, isAvailable?}` (own stores only) |
 
 **Example: Create Order**
 ```bash
@@ -92,6 +99,16 @@ ws.send(JSON.stringify({ type: 'MESSAGE', content: 'Hello!' }));
 |--------|----------|-------------|
 | GET | `/health` | Service health check |
 | GET | `/metrics` | Prometheus metrics |
+
+## Ops Dashboard (dev)
+
+Visual tester for pharmacy flows at `http://localhost:8080/dashboard` — sign in with a seed account, no E-Doctor repo needed:
+
+- **Pharmacy tab** — order queue with status advance/cancel/COD-collect, courier simulator slider (drives the app's live tracking map), pending prescriptions with image preview + quote/accept/reject.
+- **Stock tab** — search medicines, set quantity/price, add or hide items (powers future stock badges).
+- **Chats tab** — thread list with message peek for testing ghost conversations.
+- **Customer tab** — place direct OTC test orders, view your orders.
+- Session persists in browser, 10s live-polling toggle, dark mode. All calls use the same public API above.
 
 ## Environment Variables
 
@@ -157,19 +174,21 @@ backend/src/main/kotlin/com/eilaji/backend/
 │   ├── DatabaseConfig.kt
 │   └── RateLimitPlugin.kt
 ├── controller/             # Route handlers
-│   ├── Routes.kt
-│   └── WebSocketController.kt
+│   ├── Routes.kt           # incl. courier + stock routes
+│   ├── AdminController.kt
+│   └── AuthController.kt
 ├── data/                   # Database tables
-│   ├── Tables.kt
-│   └── UserTable.kt
+│   └── Tables.kt
 ├── dto/                    # Data transfer objects
-├── model/                  # Domain models
+├── initialization/         # DatabaseSeeder (v2 taxonomy)
 ├── security/               # JWT & auth
 ├── service/                # Business logic
-│   ├── OrderService.kt
+│   ├── OrderService.kt     # state machine + courier updates
 │   ├── PrescriptionService.kt
-│   └── RedisService.kt
-└── websocket/              # WebSocket handling
+│   ├── ChatService.kt / MessageService.kt
+│   ├── EilajiPlusService.kt / MinioService.kt / RedisService.kt
+├── websocket/              # WebSocketController + SessionManager
+└── resources/static/dashboard/  # Ops dashboard (index.html + app.js)
 ```
 
 ## License

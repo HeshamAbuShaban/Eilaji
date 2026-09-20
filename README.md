@@ -21,6 +21,7 @@
 - [Features](#features)
 - [Architecture](#architecture)
 - [Quickstart](#quickstart)
+- [Connecting a phone & offline behavior](#connecting-a-phone--offline-behavior)
 - [Configuration](#configuration)
 - [API](#api)
 - [Demo data](#demo-data)
@@ -78,12 +79,18 @@ curl "http://localhost:8080/api/v1/pharmacies/nearby?lat=31.5&lng=34.46&radius=1
 
 ```bash
 # 3. App — download app-debug.apk from Releases, then:
-adb reverse tcp:8080 tcp:8080   # physical device
+adb reverse tcp:8080 tcp:8080   # physical device (see below)
 adb install -r app-debug.apk
 # Emulator debug builds already target http://10.0.2.2:8080
 ```
 
 **Demo accounts (password `password123`):** `patient@eilaji.com` · `pharmacist1@eilaji.com` · `pharmacist2@eilaji.com` · `admin@eilaji.com`
+
+## Connecting a phone & offline behavior
+
+**Why `adb reverse`?** An emulator reaches your PC via the special address `10.0.2.2`, but a physical phone has no route to your PC's `localhost`. `adb reverse tcp:8080 tcp:8080` opens a reverse tunnel so the phone's own `localhost:8080` forwards to the PC — the debug app points at `http://localhost:8080`, so it just works over USB. No Wi-Fi, no firewall rules. Re-run it each time you unplug/replug (check with `adb reverse --list`).
+
+**If you disconnect:** the app no longer goes blank. Catalog, categories and best-sellers are cached on every successful fetch and served with an "Offline — showing saved data" notice; nearby pharmacies fall back to the last saved list; favorites, reminders and cart are local-first and sync later. Chat, search-as-you-type, checkout and live tracking need a connection and will tell you so with a retry action instead of an empty screen.
 
 ## Configuration
 
@@ -110,7 +117,9 @@ See `eilaji-backend/README.md` for the full variable list.
 | `GET /api/v1/pharmacies/nearby?lat=&lng=&radius=` | Radius search |
 | `POST /api/v1/auth/register` · `/auth/login` · `/auth/refresh` | Auth |
 | `POST /api/v1/prescriptions` (multipart) · `GET /api/v1/prescriptions` | Prescription upload & list |
-| `POST /api/v1/orders` · `GET /api/v1/orders` | Orders |
+| `POST /api/v1/orders` · `GET /api/v1/orders` | Orders (direct OTC supported) |
+| `PUT /api/v1/orders/{id}/courier` | Live courier position (pharmacist) |
+| `GET/PUT /api/v1/pharmacies/{id}/stock` | Stock list / upsert (write: own stores) |
 | `GET /api/v1/chats` · `POST /api/v1/chats` · `GET /api/v1/chats/{id}/messages` | Chat REST |
 | `WS /api/v1/ws/chat?token=JWT` | Chat socket |
 | `GET/POST /api/v1/favorites` | Favorites |
@@ -125,10 +134,13 @@ Seeded automatically on first start (`DatabaseSeeder.kt`): 6 categories, 12 subc
 ```
 app/src/main/java/dev/anonymous/eilaji/
 ├── ui/base/.../home|categories|chatting|profile|send_prescription
-├── ui/other/{map,add_address,medicine,checkout,search,favorite,reminder,messaging}
-├── adapters/  network/  data/repository/  reminder_system/  storage/
+├── ui/other/{map,add_address,medicine,checkout,orders,tracking,search,favorite,reminder,messaging}
+├── adapters/  network/  data/repository/ (CartRepository, CatalogCache)
+├── reminder_system/ (Room + WorkManager + AlarmReceiver + AlarmActivity)
+└── storage/ (AppSharedPreferences)
 eilaji-backend/backend/src/main/kotlin/com/eilaji/backend/
 ├── controller/  service/  data/  websocket/  security/  initialization/  config/
+├── resources/static/dashboard/ (ops dashboard: pharmacy, stock, chats, courier sim, customer)
 .github/workflows/  android-ci.yml  backend-ci.yml
 docs/assets/  docs/screenshots/
 ```
@@ -141,8 +153,9 @@ docs/assets/  docs/screenshots/
 
 ## Roadmap
 
-- Pharmacist workbench (quote inbox, stock toggles, order queue)
-- Delivery zones and courier tracking
+- Pharmacist workbench app (dashboard covers testing until then)
+- Stock badges on storefront (APIs ready: `GET/PUT /pharmacies/{id}/stock`)
+- Real courier feed (app prefers backend position when present; simulator drives it today)
 - Ranked search with filters
 - Phone OTP onboarding, refill prediction, referrals
 
