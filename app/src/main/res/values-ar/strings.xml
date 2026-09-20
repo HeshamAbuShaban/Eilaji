@@ -137,4 +137,7 @@
     <string name="unit_weeks">أسابيع</string>
     <string name="active_label">مفعّل</string>
     <string name="save_reminder">حفظ التذكير</string>
+    <string name="rate_action">قيّم</string>
+    <string name="phone">الهاتف</string>
+    <string name="edit_profile">تعديل الملف</string>
 </resources>

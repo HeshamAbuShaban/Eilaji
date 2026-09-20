@@ -134,8 +134,8 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
                 }
                 startActivity(emailIntent)
             }
-            try { buEditProfileHeader.setOnClickListener { Toast.makeText(requireContext(), "Edit Profile coming soon", Toast.LENGTH_SHORT).show() } } catch (_: Exception) {}
-            try { buEditProfile.setOnClickListener { Toast.makeText(requireContext(), "Edit Profile coming soon", Toast.LENGTH_SHORT).show() } } catch (_: Exception) {}
+            try { buEditProfileHeader.setOnClickListener { showEditProfileDialog() } } catch (_: Exception) {}
+            try { buEditProfile.setOnClickListener { showEditProfileDialog() } } catch (_: Exception) {}
             buOrders.setOnClickListener {
                 val intent = Intent(requireContext(), AlternativesActivity::class.java)
                 intent.putExtra("fragmentType", "orders")
@@ -161,6 +161,71 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
                 }
             }
         }
+    }
+
+    private fun showEditProfileDialog() {
+        val ctx = try { requireContext() } catch (_: Exception) { return }
+        val prefs = AppSharedPreferences.getInstance(ctx)
+        if (prefs.getToken().isNullOrBlank()) {
+            Toast.makeText(ctx, "Sign in to edit your profile", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val container = android.widget.LinearLayout(ctx).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            val pad = (16 * resources.displayMetrics.density).toInt()
+            setPadding(pad, (8 * resources.displayMetrics.density).toInt(), pad, 0)
+        }
+        val nameInput = com.google.android.material.textfield.TextInputEditText(ctx).apply {
+            hint = getString(R.string.full_name)
+            setText(prefs.getFullName())
+            inputType = android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS
+        }
+        val phoneInput = com.google.android.material.textfield.TextInputEditText(ctx).apply {
+            hint = getString(R.string.phone)
+            setText(prefs.getPhone())
+            inputType = android.text.InputType.TYPE_CLASS_PHONE
+        }
+        container.addView(nameInput)
+        container.addView(phoneInput)
+        androidx.appcompat.app.AlertDialog.Builder(ctx)
+            .setTitle(getString(R.string.edit_profile))
+            .setView(container)
+            .setPositiveButton(getString(R.string.save)) { _, _ ->
+                val name = nameInput.text.toString().trim()
+                val phone = phoneInput.text.toString().trim()
+                if (name.isEmpty()) {
+                    Toast.makeText(ctx, "Name can't be empty", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                saveProfile(name, phone.ifBlank { null })
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
+    }
+
+    private fun saveProfile(fullName: String, phone: String?) {
+        val ctx = try { requireContext() } catch (_: Exception) { return }
+        NetworkModule.provideApiService(ctx).updateProfile(
+            dev.anonymous.eilaji.network.UpdateProfileRequest(fullName = fullName, phone = phone)
+        ).enqueue(object : Callback<ApiResponse<dev.anonymous.eilaji.network.UserDto>> {
+            override fun onResponse(call: Call<ApiResponse<dev.anonymous.eilaji.network.UserDto>>, response: Response<ApiResponse<dev.anonymous.eilaji.network.UserDto>>) {
+                if (!isAdded) return
+                val user = response.body()?.data
+                if (response.isSuccessful && response.body()?.success == true && user != null) {
+                    val prefs = AppSharedPreferences.getInstance(ctx)
+                    prefs.putFullName(user.fullName)
+                    if (user.phone != null) prefs.putPhone(user.phone)
+                    bindIdentity()
+                    Toast.makeText(ctx, "Profile updated", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(ctx, response.body()?.error ?: "Update failed", Toast.LENGTH_SHORT).show()
+                }
+            }
+            override fun onFailure(call: Call<ApiResponse<dev.anonymous.eilaji.network.UserDto>>, t: Throwable) {
+                if (!isAdded || call.isCanceled) return
+                Toast.makeText(ctx, "Network error — retry", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     override fun onLogoutClicked() {

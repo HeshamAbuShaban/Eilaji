@@ -369,8 +369,8 @@ class MedicineFragment : Fragment() {
         if (!isAdded || _binding == null) return
         try {
             val price = currentDto?.price ?: 0.0
-            val total = price * qty
-            bindingOrNull?.textView?.text = String.format("%.2f $", total)
+            bindingOrNull?.textView?.text = String.format("%.2f $", price)
+            bindingOrNull?.tvBottomTotal?.text = String.format("%.2f $", price * qty)
         } catch (_: Exception) {}
     }
 

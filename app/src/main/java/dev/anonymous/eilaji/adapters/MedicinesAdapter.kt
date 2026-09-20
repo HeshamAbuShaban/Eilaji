@@ -32,6 +32,8 @@ class MedicinesAdapter(
         notifyDataSetChanged()
     }
 
+    fun currentList(): List<Medicine> = medicineModels.toList()
+
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
         try { recyclerView.scheduleLayoutAnimation() } catch (_: Exception) {}
@@ -58,6 +60,9 @@ class MedicinesAdapter(
                 binding.root.layoutParams.width = halfScreenWidth
                 if (position == 0 || position == 1) binding.root.setPadding(0, 60, 0, 0)
             }
+            try {
+                model.isFavorite = FavoriteSyncRepository(binding.root.context).isFavoriteLocal(model.id, null)
+            } catch (_: Exception) {}
             binding.apply {
                 GeneralUtils.getInstance().loadImage(model.imageUrl).into(ivMedicine)
                 tvMedicineName.text = model.title
@@ -78,19 +83,16 @@ class MedicinesAdapter(
                 }
                 buAddMedicineToFavorite.setOnClickListener {
                     val ctx = it.context
+                    // Single source of truth: local DB, not the recycled view-model flag
+                    val wasFav = try { FavoriteSyncRepository(ctx).isFavoriteLocal(model.id, null) } catch (_: Exception) { model.isFavorite }
                     try {
                         val repo = FavoriteSyncRepository(ctx)
-                        val isFav = repo.isFavoriteLocal(model.id, null)
-                        if (isFav) {
-                            val ent = dev.anonymous.eilaji.favorite_system.database.db.FavoriteDatabase.getDatabase(ctx).favoriteDao().findByMedicineId(model.id)
-                            if (ent != null) repo.syncDelete(ent.id) else repo.syncDelete(model.id)
-                        } else {
-                            repo.syncCreateLocalFirst(model.id, null)
-                        }
+                        if (wasFav) repo.syncDeleteByMedicine(model.id, null)
+                        else repo.syncCreateLocalFirst(model.id, null)
                     } catch (_: Exception) {}
                     pop(it)
                     onFavClick?.invoke(model)
-                    model.isFavorite = !model.isFavorite
+                    model.isFavorite = !wasFav
                     setUpFavoriteIcon(model)
                 }
             }

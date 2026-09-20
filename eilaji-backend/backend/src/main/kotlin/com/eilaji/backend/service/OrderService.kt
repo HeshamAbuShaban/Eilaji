@@ -18,7 +18,8 @@ class OrderService {
         val totalAmount: Double,
         val paymentMethod: String? = null,
         val deliveryAddress: String? = null,
-        val deliveryNotes: String? = null
+        val deliveryNotes: String? = null,
+        val notes: String? = null
     )
 
     companion object {
@@ -99,7 +100,7 @@ class OrderService {
                 it[Orders.paymentMethod] = request.paymentMethod
                 it[Orders.paymentStatus] = "PENDING"
                 it[Orders.deliveryAddress] = request.deliveryAddress
-                it[Orders.deliveryNotes] = request.deliveryNotes
+                it[Orders.deliveryNotes] = request.deliveryNotes ?: request.notes
                 try { it[Orders.handoffCode] = (1000 + kotlin.random.Random.nextInt(9000)).toString() } catch (_: Exception) {}
                 it[Orders.createdAt] = Instant.now()
                 it[Orders.updatedAt] = Instant.now()

@@ -34,6 +34,8 @@ class WebSocketManager @JvmOverloads constructor(
     var onPong: Runnable? = null
     var onConnected: Runnable? = null
     var onError: java.util.function.Consumer<String>? = null
+    @Volatile var isConnected: Boolean = false
+        private set
 
     private fun buildUrl(): String {
         val base = if (BuildConfig.DEBUG) "http://10.0.2.2:8080/api/v1/" else "https://api.eilaji.com/api/v1/"
@@ -44,11 +46,11 @@ class WebSocketManager @JvmOverloads constructor(
     fun connect() {
         val request = Request.Builder().url(buildUrl()).build()
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
-            override fun onOpen(ws: WebSocket, response: Response) { onConnected?.run() }
+            override fun onOpen(ws: WebSocket, response: Response) { isConnected = true; onConnected?.run() }
             override fun onMessage(ws: WebSocket, text: String) { handleMessage(text) }
             override fun onMessage(ws: WebSocket, bytes: ByteString) { handleMessage(bytes.utf8()) }
-            override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) { onError?.accept(t.message ?: "ws failure") }
-            override fun onClosed(ws: WebSocket, code: Int, reason: String) { }
+            override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) { isConnected = false; onError?.accept(t.message ?: "ws failure") }
+            override fun onClosed(ws: WebSocket, code: Int, reason: String) { isConnected = false }
         })
     }
 
@@ -61,6 +63,7 @@ class WebSocketManager @JvmOverloads constructor(
                     onMessage?.accept(dto)
                 }
                 "MESSAGE_SENT" -> msg.message?.let { onMessage?.accept(it) }
+                "ERROR" -> msg.content?.let { onError?.accept(it) }
                 "READ" -> msg.chatId?.let { onRead?.accept(it) }
                 "PRESENCE" -> if (msg.userId != null && msg.isOnline != null) onPresence?.accept(msg.userId, msg.isOnline)
                 "PONG" -> onPong?.run()

@@ -63,7 +63,12 @@ object DatabaseSeeder {
             if (dosage == null) return true
             val subs = Subcategories.selectAll().limit(20).map { it[Subcategories.nameEn] }
             // v1 marker: generic "Tablets" duplicated across categories
-            subs.count { it == "Tablets" } > 1
+            if (subs.count { it == "Tablets" } > 1) return true
+            // v2 marker: shared owners instead of per-pharmacy logins
+            val legacyOwned = (Pharmacies innerJoin Users).selectAll()
+                .where { Users.email inList listOf("pharmacist1@eilaji.com", "pharmacist2@eilaji.com") }
+                .count()
+            legacyOwned > 0
         } catch (_: Exception) { false }
     }
 
@@ -246,11 +251,32 @@ object DatabaseSeeder {
         println("Seeded ${medicines.size} medicines")
     }
 
+    private fun slugEmail(name: String): String {
+        val slug = name.lowercase().replace(Regex("[^a-z0-9]+"), ".").trim('.')
+        return "$slug@eilaji.com"
+    }
+
+    private fun ensurePharmacist(email: String, displayName: String): UUID {
+        val existing = Users.selectAll().where { Users.email eq email }.singleOrNull()
+        if (existing != null) return existing[Users.id]
+        val id = UUID.randomUUID()
+        Users.insert {
+            it[Users.id] = id
+            it[Users.email] = email
+            it[Users.passwordHash] = BCrypt.hashpw("password123", BCrypt.gensalt())
+            it[Users.fullName] = displayName
+            it[Users.role] = "PHARMACIST"
+            it[Users.isVerified] = true
+            it[Users.isActive] = true
+            it[Users.createdAt] = Instant.now()
+            it[Users.updatedAt] = Instant.now()
+        }
+        return id
+    }
+
     private fun seedPharmacies() {
         println("Seeding pharmacies...")
-        val pharmacistIds = Users.selectAll().where { Users.role eq "PHARMACIST" }.map { it[Users.id] }
-        val primaryOwner = pharmacistIds.firstOrNull() ?: UUID.randomUUID()
-        val secondaryOwner = if (pharmacistIds.size > 1) pharmacistIds[1] else primaryOwner
+        // Every pharmacy gets its own owner login: <pharmacy-name-slug>@eilaji.com / password123
         data class PharmSeed(
             val name: String,
             val address: String,
@@ -261,40 +287,39 @@ object DatabaseSeeder {
             val isOpen: Boolean,
             val ratingAvg: Double,
             val totalRatings: Int,
-            val license: String,
-            val owner: UUID
+            val license: String
         )
         val pharmacies = listOf(
-            PharmSeed("Al-Shifa Gaza", "Al-Rimal District, Omar Al-Mukhtar St, Gaza", "Gaza", 31.4495, 34.3925, "+970-8-2841234", true, 4.8, 150, "LIC-001", primaryOwner),
-            PharmSeed("Al-Quds Gaza", "Al-Nasr St, Gaza City", "Gaza", 31.4498, 34.3932, "+970-8-2841235", false, 4.5, 120, "LIC-002", secondaryOwner),
-            PharmSeed("Al-Aqsa Gaza", "Al-Wehda St, Gaza", "Gaza", 31.4500, 34.3940, "+970-8-2841236", true, 4.2, 85, "LIC-003", primaryOwner),
-            PharmSeed("Al-Rimal Gaza", "Al-Rashid St, Gaza Beach Camp", "Gaza", 31.4492, 34.3950, "+970-8-2841237", false, 4.6, 95, "LIC-004", secondaryOwner),
-            PharmSeed("Al-Zahra Gaza", "Al-Jalaa St, Gaza", "Gaza", 31.4496, 34.3960, "+970-8-2841238", true, 3.9, 60, "LIC-005", primaryOwner),
-            PharmSeed("Al-Salam Gaza", "Salah Al-Din St, Gaza", "Gaza", 31.5000, 34.4700, "+970-8-2841239", false, 4.4, 110, "LIC-006", secondaryOwner),
-            PharmSeed("Al-Noor Gaza", "Al-Maghazi Camp St, Gaza", "Gaza", 31.5010, 34.4710, "+970-8-2841240", true, 3.7, 45, "LIC-007", primaryOwner),
-            PharmSeed("Al-Amal Gaza", "Khan Younis Border St, Gaza", "Gaza", 31.4980, 34.4690, "+970-8-2841241", false, 4.1, 70, "LIC-008", secondaryOwner),
-            PharmSeed("Al-Hayat Gaza", "Beach Road, Gaza Port", "Gaza", 31.4485, 34.3920, "+970-8-2841242", true, 3.5, 30, "LIC-009", primaryOwner),
-            PharmSeed("Al-Wafa Gaza", "Al-Shifa Hospital St, Gaza", "Gaza", 31.4510, 34.3970, "+970-8-2841243", false, 4.0, 55, "LIC-010", secondaryOwner),
-            PharmSeed("Al-Shifa Damascus", "123 Main St, Damascus", "Damascus", 33.5138, 36.2765, "+963-11-1234567", true, 4.7, 140, "LIC-011", primaryOwner),
-            PharmSeed("Al-Hayat Aleppo", "456 Old City, Aleppo", "Aleppo", 36.2021, 37.1343, "+963-21-7654321", false, 4.3, 100, "LIC-012", secondaryOwner),
-            PharmSeed("Al-Noor Homs", "Al-Hamra St, Homs", "Homs", 34.7260, 36.7230, "+963-31-2345678", true, 4.0, 80, "LIC-013", primaryOwner),
-            PharmSeed("Al-Amal Latakia", "Corniche St, Latakia", "Latakia", 35.5407, 35.7890, "+963-41-3456789", false, 4.5, 90, "LIC-014", secondaryOwner),
-            PharmSeed("Al-Salam Hama", "Al-Assi Sq, Hama", "Hama", 35.1318, 36.7578, "+963-33-4567890", true, 3.8, 65, "LIC-015", primaryOwner),
-            PharmSeed("Cairo Central Pharmacy", "Tahrir Square, Downtown Cairo", "Cairo", 30.0444, 31.2357, "+20-2-27912345", false, 4.6, 130, "LIC-016", secondaryOwner),
-            PharmSeed("Alexandria Care Pharmacy", "Corniche Road, Alexandria", "Alexandria", 31.2001, 29.9187, "+20-3-4845678", true, 4.2, 95, "LIC-017", primaryOwner),
-            PharmSeed("Giza Health Pharmacy", "Pyramids Ave, Giza", "Giza", 30.0131, 31.2089, "+20-2-35678901", false, 4.4, 105, "LIC-018", secondaryOwner),
-            PharmSeed("Luxor Nile Pharmacy", "Karnak Temple St, Luxor", "Luxor", 25.6872, 32.6396, "+20-95-2376789", true, 3.9, 75, "LIC-019", primaryOwner),
-            PharmSeed("Aswan Nubian Pharmacy", "Corniche El Nil St, Aswan", "Aswan", 24.0889, 32.8998, "+20-97-2314567", false, 4.1, 85, "LIC-020", secondaryOwner),
-            PharmSeed("Jeddah Seaside Pharmacy", "Corniche Road, Jeddah", "Jeddah", 21.5433, 39.1728, "+966-12-6531234", true, 4.8, 160, "LIC-021", primaryOwner),
-            PharmSeed("Riyadh Central Pharmacy", "King Fahd Road, Riyadh", "Riyadh", 24.7136, 46.6753, "+966-11-4612345", false, 4.7, 155, "LIC-022", secondaryOwner),
-            PharmSeed("Mecca Holy Pharmacy", "Ajyad St, Mecca", "Mecca", 21.3891, 39.8579, "+966-12-5426789", true, 4.6, 145, "LIC-023", primaryOwner),
-            PharmSeed("Medina Noor Pharmacy", "Quba Road, Medina", "Medina", 24.4672, 39.6111, "+966-14-8223456", false, 4.5, 135, "LIC-024", secondaryOwner),
-            PharmSeed("Dammam Gulf Pharmacy", "King Saud St, Dammam", "Dammam", 26.4207, 50.0888, "+966-13-8334567", true, 4.3, 115, "LIC-025", primaryOwner),
-            PharmSeed("Khobar Care Pharmacy", "Corniche St, Khobar", "Khobar", 26.2833, 50.2100, "+966-13-8645678", false, 4.2, 100, "LIC-026", secondaryOwner),
-            PharmSeed("Taif Mountain Pharmacy", "Shubra St, Taif", "Taif", 21.2703, 40.4158, "+966-12-7326789", true, 3.8, 70, "LIC-027", primaryOwner),
-            PharmSeed("Tabuk Northern Pharmacy", "Tabuk City Center", "Tabuk", 28.3838, 36.5550, "+966-14-4227890", false, 3.6, 50, "LIC-028", secondaryOwner),
-            PharmSeed("Abha Heights Pharmacy", "King Khalid St, Abha", "Abha", 18.2164, 42.5052, "+966-17-2298901", true, 4.0, 80, "LIC-029", primaryOwner),
-            PharmSeed("Najran Oasis Pharmacy", "King Abdulaziz St, Najran", "Najran", 17.4917, 44.1320, "+966-17-5229012", false, 3.9, 60, "LIC-030", secondaryOwner)
+            PharmSeed("Al-Shifa Gaza", "Al-Rimal District, Omar Al-Mukhtar St, Gaza", "Gaza", 31.4495, 34.3925, "+970-8-2841234", true, 4.8, 150, "LIC-001"),
+            PharmSeed("Al-Quds Gaza", "Al-Nasr St, Gaza City", "Gaza", 31.4498, 34.3932, "+970-8-2841235", false, 4.5, 120, "LIC-002"),
+            PharmSeed("Al-Aqsa Gaza", "Al-Wehda St, Gaza", "Gaza", 31.4500, 34.3940, "+970-8-2841236", true, 4.2, 85, "LIC-003"),
+            PharmSeed("Al-Rimal Gaza", "Al-Rashid St, Gaza Beach Camp", "Gaza", 31.4492, 34.3950, "+970-8-2841237", false, 4.6, 95, "LIC-004"),
+            PharmSeed("Al-Zahra Gaza", "Al-Jalaa St, Gaza", "Gaza", 31.4496, 34.3960, "+970-8-2841238", true, 3.9, 60, "LIC-005"),
+            PharmSeed("Al-Salam Gaza", "Salah Al-Din St, Gaza", "Gaza", 31.5000, 34.4700, "+970-8-2841239", false, 4.4, 110, "LIC-006"),
+            PharmSeed("Al-Noor Gaza", "Al-Maghazi Camp St, Gaza", "Gaza", 31.5010, 34.4710, "+970-8-2841240", true, 3.7, 45, "LIC-007"),
+            PharmSeed("Al-Amal Gaza", "Khan Younis Border St, Gaza", "Gaza", 31.4980, 34.4690, "+970-8-2841241", false, 4.1, 70, "LIC-008"),
+            PharmSeed("Al-Hayat Gaza", "Beach Road, Gaza Port", "Gaza", 31.4485, 34.3920, "+970-8-2841242", true, 3.5, 30, "LIC-009"),
+            PharmSeed("Al-Wafa Gaza", "Al-Shifa Hospital St, Gaza", "Gaza", 31.4510, 34.3970, "+970-8-2841243", false, 4.0, 55, "LIC-010"),
+            PharmSeed("Al-Shifa Damascus", "123 Main St, Damascus", "Damascus", 33.5138, 36.2765, "+963-11-1234567", true, 4.7, 140, "LIC-011"),
+            PharmSeed("Al-Hayat Aleppo", "456 Old City, Aleppo", "Aleppo", 36.2021, 37.1343, "+963-21-7654321", false, 4.3, 100, "LIC-012"),
+            PharmSeed("Al-Noor Homs", "Al-Hamra St, Homs", "Homs", 34.7260, 36.7230, "+963-31-2345678", true, 4.0, 80, "LIC-013"),
+            PharmSeed("Al-Amal Latakia", "Corniche St, Latakia", "Latakia", 35.5407, 35.7890, "+963-41-3456789", false, 4.5, 90, "LIC-014"),
+            PharmSeed("Al-Salam Hama", "Al-Assi Sq, Hama", "Hama", 35.1318, 36.7578, "+963-33-4567890", true, 3.8, 65, "LIC-015"),
+            PharmSeed("Cairo Central Pharmacy", "Tahrir Square, Downtown Cairo", "Cairo", 30.0444, 31.2357, "+20-2-27912345", false, 4.6, 130, "LIC-016"),
+            PharmSeed("Alexandria Care Pharmacy", "Corniche Road, Alexandria", "Alexandria", 31.2001, 29.9187, "+20-3-4845678", true, 4.2, 95, "LIC-017"),
+            PharmSeed("Giza Health Pharmacy", "Pyramids Ave, Giza", "Giza", 30.0131, 31.2089, "+20-2-35678901", false, 4.4, 105, "LIC-018"),
+            PharmSeed("Luxor Nile Pharmacy", "Karnak Temple St, Luxor", "Luxor", 25.6872, 32.6396, "+20-95-2376789", true, 3.9, 75, "LIC-019"),
+            PharmSeed("Aswan Nubian Pharmacy", "Corniche El Nil St, Aswan", "Aswan", 24.0889, 32.8998, "+20-97-2314567", false, 4.1, 85, "LIC-020"),
+            PharmSeed("Jeddah Seaside Pharmacy", "Corniche Road, Jeddah", "Jeddah", 21.5433, 39.1728, "+966-12-6531234", true, 4.8, 160, "LIC-021"),
+            PharmSeed("Riyadh Central Pharmacy", "King Fahd Road, Riyadh", "Riyadh", 24.7136, 46.6753, "+966-11-4612345", false, 4.7, 155, "LIC-022"),
+            PharmSeed("Mecca Holy Pharmacy", "Ajyad St, Mecca", "Mecca", 21.3891, 39.8579, "+966-12-5426789", true, 4.6, 145, "LIC-023"),
+            PharmSeed("Medina Noor Pharmacy", "Quba Road, Medina", "Medina", 24.4672, 39.6111, "+966-14-8223456", false, 4.5, 135, "LIC-024"),
+            PharmSeed("Dammam Gulf Pharmacy", "King Saud St, Dammam", "Dammam", 26.4207, 50.0888, "+966-13-8334567", true, 4.3, 115, "LIC-025"),
+            PharmSeed("Khobar Care Pharmacy", "Corniche St, Khobar", "Khobar", 26.2833, 50.2100, "+966-13-8645678", false, 4.2, 100, "LIC-026"),
+            PharmSeed("Taif Mountain Pharmacy", "Shubra St, Taif", "Taif", 21.2703, 40.4158, "+966-12-7326789", true, 3.8, 70, "LIC-027"),
+            PharmSeed("Tabuk Northern Pharmacy", "Tabuk City Center", "Tabuk", 28.3838, 36.5550, "+966-14-4227890", false, 3.6, 50, "LIC-028"),
+            PharmSeed("Abha Heights Pharmacy", "King Khalid St, Abha", "Abha", 18.2164, 42.5052, "+966-17-2298901", true, 4.0, 80, "LIC-029"),
+            PharmSeed("Najran Oasis Pharmacy", "King Abdulaziz St, Najran", "Najran", 17.4917, 44.1320, "+966-17-5229012", false, 3.9, 60, "LIC-030")
         )
         pharmacies.forEachIndexed { idx, p ->
             val tier = when {
@@ -304,7 +329,7 @@ object DatabaseSeeder {
                 else -> Triple(3.0, 15.0, 25.0)
             }
             Pharmacies.insert {
-                it[ownerUserId] = p.owner
+                it[ownerUserId] = ensurePharmacist(slugEmail(p.name), p.name)
                 it[name] = p.name
                 it[description] = "Verified community pharmacy in ${p.city} — prescription dispensing, OTC and daily essentials with pharmacist chat support."
                 it[address] = p.address

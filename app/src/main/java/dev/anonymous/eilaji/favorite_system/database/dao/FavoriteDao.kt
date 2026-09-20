@@ -36,6 +36,9 @@ interface FavoriteDao {
     @Query("DELETE FROM favorites WHERE id = :id")
     fun deleteById(id: String)
 
+    @androidx.room.Delete
+    fun delete(entity: FavoriteEntity)
+
     @Query("DELETE FROM favorites")
     fun clearAll()
 

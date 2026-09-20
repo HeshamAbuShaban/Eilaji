@@ -33,7 +33,7 @@
         android:id="@+id/fabRecenter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_16sdp"
+        android:layout_marginTop="@dimen/_56sdp"
         android:layout_marginEnd="@dimen/_16sdp"
         android:contentDescription="@string/use_my_location"
         android:src="@drawable/ic_map"

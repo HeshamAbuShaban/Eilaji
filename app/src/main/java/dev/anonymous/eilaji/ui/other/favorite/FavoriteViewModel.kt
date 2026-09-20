@@ -145,7 +145,20 @@ class FavoriteViewModel : ViewModel() {
         return Medicine(id, imageUrl ?: "", title, price ?: 0.0, details, ArrayList(), "", "", true)
     }
 
-    private fun toggleFavorite(med: Medicine) { repo.syncDelete(med.id) }
+    // Adapter already synced the repo; just drop the row from this list (no double delete)
+    private fun toggleFavorite(med: Medicine) {
+        try {
+            val current = adapter
+            if (current != null) {
+                val list = current.currentList().filterNot { it.id == med.id }
+                current.updateList(list)
+                if (list.isEmpty()) {
+                    binding.recyclerFavorites.visibility = View.GONE
+                    binding.emptyFavoritesView.visibility = View.VISIBLE
+                }
+            }
+        } catch (_: Exception) {}
+    }
 
     fun setToolBarTitle(context: Context) {
         binding.includeAppBarLayoutAlternatives.toolbarApp.title = context.getString(R.string.favorite)

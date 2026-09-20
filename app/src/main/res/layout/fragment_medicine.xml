@@ -293,50 +293,74 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tvAlternativesTitle" />
 
-            <LinearLayout
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/rateRow"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/_15sdp"
                 android:layout_marginTop="@dimen/_12sdp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="1dp"
+                app:strokeWidth="0dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/cardMedicineFacts">
 
-                <RatingBar
-                    android:id="@+id/ratingPharmacy"
-                    style="?android:attr/ratingBarStyleSmall"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:numStars="5"
-                    android:stepSize="1.0" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="@dimen/_14sdp">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buRatePharmacy"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_8sdp"
-                    android:text="@string/rate_pharmacy"
-                    android:textSize="@dimen/_12ssp"
-                    app:cornerRadius="10dp" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
 
-                <Space
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/rate_pharmacy"
+                            android:textSize="@dimen/_13ssp"
+                            android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/tvPharmacyRatingAvg"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/gray_dark"
-                    android:textSize="@dimen/_12ssp"
-                    tools:text="4.5 ★ (120)" />
+                        <RatingBar
+                            android:id="@+id/ratingPharmacy"
+                            style="?android:attr/ratingBarStyle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/_4sdp"
+                            android:numStars="5"
+                            android:rating="4"
+                            android:scaleX="0.85"
+                            android:scaleY="0.85"
+                            android:stepSize="1.0"
+                            android:transformPivotX="0dp"
+                            android:transformPivotY="0dp" />
 
-            </LinearLayout>
+                        <TextView
+                            android:id="@+id/tvPharmacyRatingAvg"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/_2sdp"
+                            android:textColor="@color/gray_dark"
+                            android:textSize="@dimen/_12ssp"
+                            tools:text="4.5 ★ (120)" />
+
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buRatePharmacy"
+                        style="@style/PrimaryButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/rate_action"
+                        android:textSize="@dimen/_13ssp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <Space
                 android:layout_width="match_parent"
@@ -395,14 +419,29 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <TextView
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/_11sdp"
-                android:text="@string/total_price"
-                android:textColor="@color/white_fixed"
-                android:textSize="@dimen/_14ssp"
-                android:textStyle="bold" />
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/total_price"
+                    android:textColor="#BFFFFFFF"
+                    android:textSize="@dimen/_11ssp" />
+
+                <TextView
+                    android:id="@+id/tvBottomTotal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/white_fixed"
+                    android:textSize="@dimen/_16ssp"
+                    android:textStyle="bold"
+                    tools:text="11.98 $" />
+
+            </LinearLayout>
 
             <androidx.legacy.widget.Space
                 android:layout_width="0dp"

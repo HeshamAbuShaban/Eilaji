@@ -181,6 +181,7 @@ fun Application.mainModule(
 
         // Test dashboard (pharmacy ops + customer mini-view) — dev testing until E-Doctor lands
         staticResources("/dashboard", "static.dashboard")
+        staticResources("/assets", "static.assets")
 
         apiRoutes(
             jwtIssuer = jwtIssuer,

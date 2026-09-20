@@ -60,31 +60,40 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
 
     @SuppressLint("MissingPermission")
     fun getUserLastLocation() {
-        if (arePermissionsGranted()) {
+        if (!arePermissionsGranted()) {
+            requestPermissions()
+            return
+        }
+        if (locationFetchInFlight) return
+        locationFetchInFlight = true
+        try {
             val locationController = LocationController(AppController.getInstance() ?: appContext)
             val location = locationController.getUserLocationLatLng()
             if (location != null) {
-                _currentLocation.value = location
+                locationFetchInFlight = false
+                emitLocationOnce(location)
                 Log.i("MVM", "updateLastLocation: $location")
             } else {
                 fusedLocationClient.lastLocation.addOnSuccessListener { fusedLocation ->
+                    locationFetchInFlight = false
                     if (fusedLocation != null) {
                         val latLng = LatLng(fusedLocation.latitude, fusedLocation.longitude)
-                        _currentLocation.value = latLng
+                        emitLocationOnce(latLng)
                         Log.i("MVM", "FusedUpdateLastLocation: $latLng")
                     } else {
                         val fallback = LatLng(FALLBACK_LAT, FALLBACK_LNG)
-                        _currentLocation.value = fallback
+                        emitLocationOnce(fallback)
                         Log.i("MVM", "fallback location used: $fallback")
                     }
                 }.addOnFailureListener {
+                    locationFetchInFlight = false
                     val fallback = LatLng(FALLBACK_LAT, FALLBACK_LNG)
-                    _currentLocation.value = fallback
+                    emitLocationOnce(fallback)
                     Log.e("MVM", "lastLocation failure, fallback: $fallback msg=${it.message}")
                 }
             }
-        } else {
-            requestPermissions()
+        } catch (_: Exception) {
+            locationFetchInFlight = false
         }
     }
 
@@ -189,13 +198,32 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         this.googleMap = googleMap
     }
 
+    fun clearMap() {
+        googleMap = null
+    }
+
     fun addMarkerToMap(markerOptions: MarkerOptions): Marker? {
-        return googleMap?.addMarker(markerOptions)
+        return try { googleMap?.addMarker(markerOptions) } catch (_: Exception) { null }
     }
 
     fun animateCameraToPosition(latLng: LatLng, zoomLevel: Float) {
-        val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel)
-        googleMap?.animateCamera(cameraUpdate)
+        try {
+            val cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel)
+            googleMap?.animateCamera(cameraUpdate)
+        } catch (_: Exception) {}
+    }
+
+    private var locationFetchInFlight = false
+    private var lastEmittedLocation: LatLng? = null
+
+    private fun emitLocationOnce(latLng: LatLng) {
+        val last = lastEmittedLocation
+        if (last != null) {
+            val moved = haversineKm(last.latitude, last.longitude, latLng.latitude, latLng.longitude)
+            if (moved < 0.5) return
+        }
+        lastEmittedLocation = latLng
+        _currentLocation.value = latLng
     }
 
     fun arePermissionsGranted(): Boolean {

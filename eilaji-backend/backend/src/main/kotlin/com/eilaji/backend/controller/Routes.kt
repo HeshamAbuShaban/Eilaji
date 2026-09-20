@@ -827,7 +827,7 @@ fun Route.apiRoutes(
                     val userId = principal!!.payload.subject
 
                     try {
-                        val request = Json.decodeFromString<OrderService.OrderCreateRequest>(call.receiveText())
+                        val request = Json { ignoreUnknownKeys = true }.decodeFromString<OrderService.OrderCreateRequest>(call.receiveText())
                         val order = orderService.createOrder(request, userId)
 
                         if (order != null) {

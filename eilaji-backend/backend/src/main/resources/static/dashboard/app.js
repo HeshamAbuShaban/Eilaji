@@ -22,7 +22,7 @@ $("darkToggle").onchange = (e) => {
 };
 
 // tabs
-const panes = { tabPharm: "panePharm", tabStock: "paneStock", tabChats: "paneChats", tabCust: "paneCust" };
+const panes = { tabPharm: "panePharm", tabStock: "paneStock", tabChats: "paneChats", tabCust: "paneCust", tabUsers: "paneUsers" };
 function showTab(id) {
   Object.entries(panes).forEach(([t, p]) => {
     $(p).style.display = t === id ? "" : "none";
@@ -45,20 +45,33 @@ function paintSession() {
     $("btnLogout").style.display = "none";
   }
 }
-$("btnLogin").onclick = async () => {
-  const r = await fetch(API + "/auth/login", { method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: $("email").value.trim(), password: $("password").value }) });
+async function apiFetch(path, opts) {
+  const r = await fetch(API + path, opts);
   const j = await r.json().catch(() => ({}));
-  if (!j.success) { toast("Login failed: " + (j.error || r.status), true); log("login failed"); return; }
-  token = j.data.accessToken || j.data.token;
-  role = (j.data.user && j.data.user.role) || "?";
-  myEmail = (j.data.user && j.data.user.email) || $("email").value.trim();
-  localStorage.setItem("eilaji_dash_token", token);
-  localStorage.setItem("eilaji_dash_role", role);
-  localStorage.setItem("eilaji_dash_email", myEmail);
-  paintSession();
-  toast("Signed in as " + role);
-  refreshAll();
+  if (!r.ok || j.success === false) throw new Error((j && j.error) || ("HTTP " + r.status));
+  return j.data;
+}
+
+$("btnLogin").onclick = async () => {
+  try {
+    const r = await fetch(API + "/auth/login", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: $("email").value.trim(), password: $("password").value }) });
+    const j = await r.json().catch(() => ({}));
+    if (!j.success || !j.data) throw new Error((j && j.error) || ("HTTP " + r.status));
+    token = j.data.accessToken || j.data.token;
+    if (!token) throw new Error("No token in response");
+    role = (j.data.user && j.data.user.role) || "?";
+    myEmail = (j.data.user && j.data.user.email) || $("email").value.trim();
+    localStorage.setItem("eilaji_dash_token", token);
+    localStorage.setItem("eilaji_dash_role", role);
+    localStorage.setItem("eilaji_dash_email", myEmail);
+    paintSession();
+    toast("Signed in as " + role);
+    refreshAll();
+  } catch (e) {
+    toast("Login failed: " + e.message, true);
+    log("login failed: " + e.message);
+  }
 };
 $("btnLogout").onclick = () => {
   token = role = myEmail = null;
@@ -81,7 +94,7 @@ let pharmCache = [];
 
 async function refreshAll(quiet) {
   if (!token) { if (!quiet) toast("Sign in first", true); return; }
-  await Promise.all([loadOrders(quiet), loadPrescs(quiet), loadPharmacies(), loadMine(quiet), loadChats(quiet)]);
+  await Promise.allSettled([loadOrders(quiet), loadPrescs(quiet), loadPharmacies(), loadMine(quiet), loadChats(quiet), loadUsers(quiet)]);
 }
 function skel(el, n) {
   el.innerHTML = Array.from({ length: n || 2 }, () => '<div class="skel"></div>').join("");
@@ -93,10 +106,8 @@ async function loadOrders(quiet) {
   if (!quiet) skel($("orders"), 2);
   let list = [];
   try {
-    const r = await fetch(API + "/orders", { headers: auth() });
-    const j = await r.json();
-    list = j.data || [];
-  } catch (e) { if (!quiet) toast("Orders failed: " + e.message, true); return; }
+    list = await apiFetch("/orders", { headers: auth() }) || [];
+  } catch (e) { if (!quiet) toast("Orders failed: " + e.message, true); $("orders").innerHTML = "<p class='hint'>Failed to load.</p>"; return; }
   orderCache = list;
   const view = list.filter(o => (!status || o.status === status) && (!q || o.id.toLowerCase().includes(q)));
   orderStatusById = {};
@@ -155,9 +166,8 @@ async function fillSimOrders(view) {
   // cache pharmacy coords
   try {
     if (!Object.keys(simPharm).length) {
-      const r = await fetch(API + "/pharmacies?page=0&pageSize=50", { headers: auth() });
-      const j = await r.json();
-      (j.data.items || []).forEach(p => simPharm[p.id] = p);
+      const items = await apiFetch("/pharmacies?page=0&pageSize=50", { headers: auth() });
+      ((items && items.items) || []).forEach(p => simPharm[p.id] = p);
     }
   } catch (e) {}
 }
@@ -180,27 +190,30 @@ $("btnSimPush").onclick = async () => {
   if (!id) return;
   const t = $("simSlider").value / 100;
   const pos = simPos(id, t);
-  const r = await fetch(API + "/orders/" + id + "/courier", { method: "PUT", headers: auth(),
-    body: JSON.stringify({ lat: pos.lat, lng: pos.lng, etaMinutes: pos.eta }) });
-  const j = await r.json().catch(() => ({}));
-  if (j.success) toast("Courier pushed · ETA " + pos.eta + "m");
-  else toast("Push failed: " + (j.error || r.status), true);
+  try {
+    const r = await fetch(API + "/orders/" + id + "/courier", { method: "PUT", headers: auth(),
+      body: JSON.stringify({ lat: pos.lat, lng: pos.lng, etaMinutes: pos.eta }) });
+    const j = await r.json().catch(() => ({}));
+    if (j.success) toast("Courier pushed · ETA " + pos.eta + "m");
+    else toast("Push failed: " + (j.error || r.status), true);
+  } catch (e) { toast("Push failed: " + e.message, true); }
   log("courier " + id.slice(0, 8) + " t=" + t.toFixed(2));
 };
 $("btnSimClear").onclick = async () => {
   const id = $("simOrderSel").value;
   if (!id) return;
-  await fetch(API + "/orders/" + id + "/courier", { method: "PUT", headers: auth(), body: JSON.stringify({ clear: true }) });
-  toast("Courier cleared");
+  try {
+    await fetch(API + "/orders/" + id + "/courier", { method: "PUT", headers: auth(), body: JSON.stringify({ clear: true }) });
+    toast("Courier cleared");
+  } catch (e) { toast("Clear failed: " + e.message, true); }
 };
 
 // ---- prescriptions ----
 async function loadPrescs(quiet) {
   let list = [];
   try {
-    const r = await fetch(API + "/prescriptions?status=PENDING", { headers: auth() });
-    const j = await r.json();
-    list = (j.data && j.data.items) || j.data || [];
+    const pdata = await apiFetch("/prescriptions?status=PENDING", { headers: auth() });
+    list = (pdata && pdata.items) || pdata || [];
   } catch (e) { if (!quiet) toast("Rx failed", true); return; }
   $("prescs").innerHTML = list.map(p => `
     <div class="order"><h4>Rx #${esc(p.id.slice(0, 8))} <span class="pill">${esc(p.status || "PENDING")}</span></h4>
@@ -235,9 +248,8 @@ async function loadPharmacies() {
     const sel = $(selId);
     if (sel.options.length) continue;
     try {
-      const r = await fetch(API + "/pharmacies?page=0&pageSize=50", { headers: auth() });
-      const j = await r.json();
-      pharmCache = j.data.items || [];
+      const pdata2 = await apiFetch("/pharmacies?page=0&pageSize=50", { headers: auth() });
+      pharmCache = (pdata2 && pdata2.items) || [];
       pharmCache.forEach(p => {
         const o = document.createElement("option");
         o.value = p.id; o.textContent = p.name + " (" + p.city + ")";
@@ -260,14 +272,13 @@ async function loadStock() {
   skel($("stockList"), 2);
   let stock = [];
   try {
-    const r = await fetch(API + "/pharmacies/" + pid + "/stock", { headers: auth() });
-    stock = (await r.json()).data || [];
+    stock = await apiFetch("/pharmacies/" + pid + "/stock", { headers: auth() }) || [];
   } catch (e) { toast("Stock failed", true); return; }
   const q = $("medSearch").value.trim().toLowerCase();
   let meds = [];
   try {
     const r = await fetch(API + "/medicines/search?q=" + encodeURIComponent(q || "a") + "&page=0&pageSize=20", { headers: auth() });
-    const j = await r.json();
+    const j = await r.json().catch(() => ({}));
     meds = (j.data && j.data.items) || [];
   } catch (e) {}
   const byId = {};
@@ -307,7 +318,7 @@ async function loadChats(quiet) {
   let list = [];
   try {
     const r = await fetch(API + "/chats?page=0&pageSize=20", { headers: auth() });
-    const j = await r.json();
+    const j = await r.json().catch(() => ({}));
     list = (j.data && j.data.items) || j.data || [];
   } catch (e) { if (!quiet) toast("Chats failed", true); return; }
   $("chatList").innerHTML = list.map(c => `
@@ -337,7 +348,7 @@ async function loadMine(quiet) {
   let list = [];
   try {
     const r = await fetch(API + "/orders", { headers: auth() });
-    list = (await r.json()).data || [];
+    list = ((await r.json().catch(() => ({}))).data) || [];
   } catch (e) { if (!quiet) toast("My orders failed", true); return; }
   $("myOrders").innerHTML = list.slice(0, 10).map(o =>
     `<div class="order"><h4>#${esc(o.id.slice(0, 8).toUpperCase())} · ${esc(o.status)}</h4>
@@ -348,14 +359,42 @@ $("btnOrder").onclick = async () => {
   const body = { prescriptionId: null, pharmacyId: $("pharmSel").value,
     totalAmount: parseFloat($("custTotal").value || "0"),
     paymentMethod: "CASH", deliveryAddress: $("custAddr").value };
-  const r = await fetch(API + "/orders", { method: "POST", headers: auth(), body: JSON.stringify(body) });
-  const j = await r.json().catch(() => ({}));
-  if (j.success) { toast("Order placed: " + j.data.id.slice(0, 8)); const el = document.querySelector("#paneCust"); }
-  else toast("Failed: " + (j.error || r.status), true);
+  try {
+    const r = await fetch(API + "/orders", { method: "POST", headers: auth(), body: JSON.stringify(body) });
+    const j = await r.json().catch(() => ({}));
+    if (j.success) toast("Order placed: " + j.data.id.slice(0, 8));
+    else toast("Failed: " + (j.error || r.status), true);
+  } catch (e) { toast("Failed: " + e.message, true); }
   loadMine(true); loadOrders(true);
 };
 
+async function loadUsers(quiet) {
+  const role = $("roleFilter").value;
+  let list = [];
+  try {
+    const users = await apiFetch("/admin/users" + (role ? "?role=" + role : ""), { headers: auth() });
+    list = (users && users.users) || [];
+  } catch (e) {
+    $("users").innerHTML = "<p class='hint'>Admin only — sign in as admin@eilaji.com to manage accounts.</p>";
+    $("userCount").textContent = 0;
+    return;
+  }
+  $("userCount").textContent = list.length;
+  $("users").innerHTML = list.map(u => `
+    <div class="order"><h4>${esc(u.fullName || u.email)} <span class="pill">${esc(u.role || "")}</span></h4>
+      <div class="meta">${esc(u.email || "")}</div>
+      <div class="actions"><button data-verify="${u.id}">Verify</button></div></div>`).join("") || "<p class='hint'>No users.</p>";
+  document.querySelectorAll("[data-verify]").forEach(b => b.onclick = async () => {
+    try {
+      await apiFetch("/admin/users/" + b.dataset.verify + "/verify", { method: "PUT", headers: auth() });
+      toast("Verified");
+    } catch (e) { toast("Verify failed: " + e.message, true); }
+    loadUsers(true);
+  });
+}
+
 $("statusFilter").onchange = () => loadOrders(true);
 $("orderSearch").oninput = debounce(() => loadOrders(true), 300);
+$("roleFilter").onchange = () => loadUsers(true);
 paintSession();
 if (token) refreshAll();
