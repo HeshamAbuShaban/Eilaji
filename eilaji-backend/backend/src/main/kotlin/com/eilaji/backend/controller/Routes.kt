@@ -350,6 +350,33 @@ fun Route.apiRoutes(
                     call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
                 }
             }
+            get("/pharmacies/{id}/stock") {
+                val pharmacyIdStr = call.parameters["id"]
+                if (pharmacyIdStr == null || !SecurityUtils.isValidUuid(pharmacyIdStr)) {
+                    call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid pharmacy ID"))
+                    return@get
+                }
+                val pharmacyId = UUID.fromString(pharmacyIdStr)
+                try {
+                    val items = transaction {
+                        (PharmacyMedicines innerJoin Medicines).selectAll()
+                            .where { PharmacyMedicines.pharmacyId eq pharmacyId }
+                            .orderBy(Medicines.titleEn)
+                            .map { row ->
+                                StockItemDto(
+                                    medicineId = row[PharmacyMedicines.medicineId].toString(),
+                                    medicineTitleEn = row[Medicines.titleEn],
+                                    price = row[PharmacyMedicines.price]?.toDouble(),
+                                    stockQuantity = row[PharmacyMedicines.stockQuantity],
+                                    isAvailable = row[PharmacyMedicines.isAvailable]
+                                )
+                            }
+                    }
+                    call.respond(ApiResponse(success = true, data = items))
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                }
+            }
             get("/pharmacies/{id}/ratings") {
                 val pharmacyIdStr = call.parameters["id"]
                 if (pharmacyIdStr == null || !SecurityUtils.isValidUuid(pharmacyIdStr)) {
@@ -877,6 +904,105 @@ fun Route.apiRoutes(
                     } catch (e: Exception) {
                         call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
                     }
+                }
+
+                put("/{id}/courier") {
+                    val principal = call.principal<JWTPrincipal>()
+                    val userId = principal!!.payload.subject
+                    val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
+                    val orderId = call.parameters["id"]
+
+                    if (orderId == null) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid order ID"))
+                        return@put
+                    }
+
+                    if (userRole != UserRole.PHARMACIST && userRole != UserRole.ADMIN) {
+                        call.respond(HttpStatusCode.Forbidden, ApiResponse<Unit>(success = false, error = "Only pharmacists and admins can update courier position"))
+                        return@put
+                    }
+
+                    try {
+                        val request = Json { ignoreUnknownKeys = true }.decodeFromString<UpdateCourierRequest>(call.receiveText())
+                        val order = orderService.updateCourier(orderId, request.lat, request.lng, request.etaMinutes, request.clear, userId, userRole)
+
+                        if (order != null) {
+                            call.respond(ApiResponse(success = true, data = order))
+                        } else {
+                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid position or access denied"))
+                        }
+                    } catch (e: Exception) {
+                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    }
+                }
+            }
+
+            put("/pharmacies/{id}/stock") {
+                val principal = call.principal<JWTPrincipal>()
+                val userId = principal!!.payload.subject
+                val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
+                val pharmacyIdStr = call.parameters["id"]
+                if (pharmacyIdStr == null || !SecurityUtils.isValidUuid(pharmacyIdStr)) {
+                    call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid pharmacy ID"))
+                    return@put
+                }
+                if (userRole != UserRole.PHARMACIST && userRole != UserRole.ADMIN) {
+                    call.respond(HttpStatusCode.Forbidden, ApiResponse<Unit>(success = false, error = "Only pharmacists and admins can update stock"))
+                    return@put
+                }
+                try {
+                    val request = Json { ignoreUnknownKeys = true }.decodeFromString<UpsertStockRequest>(call.receiveText())
+                    if (!SecurityUtils.isValidUuid(request.medicineId)) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid medicine ID"))
+                        return@put
+                    }
+                    val pharmacyId = UUID.fromString(pharmacyIdStr)
+                    val medicineId = UUID.fromString(request.medicineId)
+                    val result = transaction {
+                        if (userRole == UserRole.PHARMACIST) {
+                            val userUuid = UUID.fromString(userId)
+                            val owned = Pharmacies.selectAll().where { Pharmacies.ownerUserId eq userUuid }.map { it[Pharmacies.id] }
+                            if (!owned.contains(pharmacyId)) return@transaction null
+                        }
+                        val medExists = Medicines.selectAll().where { Medicines.id eq medicineId }.singleOrNull() != null
+                        if (!medExists) return@transaction null
+                        val existing = PharmacyMedicines.selectAll()
+                            .where { (PharmacyMedicines.pharmacyId eq pharmacyId) and (PharmacyMedicines.medicineId eq medicineId) }
+                            .singleOrNull()
+                        if (existing == null) {
+                            PharmacyMedicines.insert {
+                                it[PharmacyMedicines.pharmacyId] = pharmacyId
+                                it[PharmacyMedicines.medicineId] = medicineId
+                                if (request.price != null) it[PharmacyMedicines.price] = request.price.toBigDecimal()
+                                if (request.stockQuantity != null) it[PharmacyMedicines.stockQuantity] = request.stockQuantity
+                                if (request.isAvailable != null) it[PharmacyMedicines.isAvailable] = request.isAvailable
+                                it[PharmacyMedicines.createdAt] = Instant.now()
+                                it[PharmacyMedicines.updatedAt] = Instant.now()
+                            }
+                        } else {
+                            PharmacyMedicines.update({ (PharmacyMedicines.pharmacyId eq pharmacyId) and (PharmacyMedicines.medicineId eq medicineId) }) {
+                                if (request.price != null) it[PharmacyMedicines.price] = request.price.toBigDecimal()
+                                if (request.stockQuantity != null) it[PharmacyMedicines.stockQuantity] = request.stockQuantity
+                                if (request.isAvailable != null) it[PharmacyMedicines.isAvailable] = request.isAvailable
+                                it[PharmacyMedicines.updatedAt] = Instant.now()
+                            }
+                        }
+                        (PharmacyMedicines innerJoin Medicines).selectAll()
+                            .where { (PharmacyMedicines.pharmacyId eq pharmacyId) and (PharmacyMedicines.medicineId eq medicineId) }
+                            .map { row ->
+                                StockItemDto(
+                                    medicineId = row[PharmacyMedicines.medicineId].toString(),
+                                    medicineTitleEn = row[Medicines.titleEn],
+                                    price = row[PharmacyMedicines.price]?.toDouble(),
+                                    stockQuantity = row[PharmacyMedicines.stockQuantity],
+                                    isAvailable = row[PharmacyMedicines.isAvailable]
+                                )
+                            }.singleOrNull()
+                    }
+                    if (result != null) call.respond(ApiResponse(success = true, data = result))
+                    else call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Unknown medicine or access denied"))
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
                 }
             }
 

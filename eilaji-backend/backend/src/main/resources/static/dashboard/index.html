@@ -5,51 +5,80 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Eilaji Ops Dashboard</title>
 <style>
-  :root { --primary: #BA324F; --pink: #FF74B1; --bg: #FAFAFA; --card: #FFFFFF; --ink: #1A1A1A; --muted: #757575; --ok: #4CAF50; --warn: #FF8705; --bad: #F44336; }
+  :root { --primary: #BA324F; --pink: #FF74B1; --bg: #FAFAFA; --card: #FFFFFF; --ink: #1A1A1A; --muted: #757575; --line: #F0E4E8; --ok: #4CAF50; --bad: #F44336; }
+  [data-theme="dark"] { --bg: #121212; --card: #1E1E1E; --ink: #FAFAFA; --muted: #9E9E9E; --line: #2C2C2C; }
   * { box-sizing: border-box; }
   body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif; background: var(--bg); color: var(--ink); }
-  header { background: linear-gradient(135deg, var(--primary), var(--pink)); color: #fff; padding: 28px 24px 64px; border-radius: 0 0 28px 28px; }
-  header h1 { margin: 0; font-size: 24px; }
+  header { background: linear-gradient(135deg, #8E1F38, var(--primary) 55%, var(--pink)); color: #fff; padding: 26px 24px 60px; border-radius: 0 0 28px 28px; }
+  header .brand { display: flex; gap: 12px; align-items: center; }
+  header .brand img { width: 44px; height: 44px; border-radius: 50%; background: #fff; }
+  header h1 { margin: 0; font-size: 22px; }
   header p { margin: 6px 0 0; opacity: .92; font-size: 13px; }
-  main { max-width: 1080px; margin: -36px auto 48px; padding: 0 16px; }
+  main { max-width: 1120px; margin: -34px auto 48px; padding: 0 16px; }
   .card { background: var(--card); border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,.07); padding: 18px; margin-bottom: 16px; }
   .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  input, select { padding: 10px 12px; border: 1px solid #E3E3E3; border-radius: 12px; font-size: 14px; }
+  input, select { padding: 10px 12px; border: 1px solid #E3E3E3; border-radius: 12px; font-size: 14px; background: var(--card); color: var(--ink); max-width: 100%; }
+  [data-theme="dark"] input, [data-theme="dark"] select { border-color: #333; }
   button { background: var(--primary); color: #fff; border: 0; border-radius: 12px; padding: 10px 16px; font-size: 14px; cursor: pointer; }
   button.ghost { background: #F3E7EB; color: var(--primary); }
+  [data-theme="dark"] button.ghost { background: #2C2C2C; }
   button:disabled { opacity: .5; cursor: default; }
-  .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .tabs button.active { outline: 2px solid var(--pink); }
   .pill { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: #F3E7EB; color: var(--primary); }
   .pill.ok { background: #E6F4EA; color: #1B7A34; }
   .pill.bad { background: #FDECEA; color: var(--bad); }
-  .order { border: 1px solid #F0E4E8; border-radius: 14px; padding: 12px; margin-top: 10px; }
+  .order { border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin-top: 10px; }
+  .order.flash { animation: flash 1.6s ease; }
+  @keyframes flash { 0% { box-shadow: 0 0 0 3px var(--pink); } 100% { box-shadow: none; } }
   .order h4 { margin: 0 0 4px; font-size: 14px; }
   .meta { color: var(--muted); font-size: 12px; }
   .actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
   #log { font-size: 12px; color: var(--muted); white-space: pre-wrap; max-height: 180px; overflow: auto; }
   .hint { font-size: 12px; color: var(--muted); }
+  .skel { border-radius: 14px; background: linear-gradient(90deg, var(--line) 25%, transparent 50%, var(--line) 75%); background-size: 200% 100%; animation: sh 1.1s infinite; height: 76px; margin-top: 10px; }
+  @keyframes sh { to { background-position: -200% 0; } }
+  .rximg { width: 100%; max-height: 220px; object-fit: contain; border-radius: 12px; background: #00000008; margin-top: 8px; }
+  .chatbox { border: 1px solid var(--line); border-radius: 12px; padding: 10px; margin-top: 8px; max-height: 260px; overflow: auto; }
+  .msg { margin: 6px 0; font-size: 13px; }
+  .msg b { color: var(--primary); }
+  .simrow { display: flex; gap: 10px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+  input[type="range"] { flex: 1; min-width: 160px; accent-color: var(--primary); }
+  #toasts { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 50; }
+  .toast { background: #1A1A1A; color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+  .toast.err { background: var(--bad); }
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 18px; }
+  .switchrow { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
 </style>
 </head>
 <body>
 <header>
-  <h1>Eilaji Ops Dashboard</h1>
-  <p>Pharmacy ops + customer mini-view for testing — same API the app uses. Dev only.</p>
+  <div class="brand">
+    <img src="../assets/logo.png" alt="Eilaji" onerror="this.style.display='none'" />
+    <div><h1>Eilaji Ops Dashboard</h1><p>Pharmacy ops · stock · chats · courier sim · customer mini-view. Dev only.</p></div>
+  </div>
 </header>
 <main>
   <div class="card">
     <div class="row">
-      <input id="email" placeholder="email (patient@eilaji.com)" size="26" />
-      <input id="password" type="password" placeholder="password123" />
+      <input id="email" placeholder="email" size="26" />
+      <input id="password" type="password" placeholder="password" />
       <button id="btnLogin">Sign in</button>
+      <button id="btnLogout" class="ghost" style="display:none">Sign out</button>
       <span id="who" class="pill">signed out</span>
+      <span style="flex:1"></span>
+      <label class="switchrow"><input type="checkbox" id="darkToggle" /> dark</label>
+      <label class="switchrow"><input type="checkbox" id="liveToggle" /> live 10s</label>
     </div>
-    <p class="hint">Demo: <b>pharmacist1@eilaji.com</b> for the pharmacy tab, <b>patient@eilaji.com</b> for the customer tab. Password <b>password123</b>.</p>
+    <p class="hint">Demo: <b>pharmacist1@eilaji.com</b> for pharmacy work, <b>patient@eilaji.com</b> for customer tests. Password <b>password123</b>. Session persists in this browser.</p>
   </div>
 
   <div class="tabs">
     <button id="tabPharm" class="ghost">Pharmacy</button>
+    <button id="tabStock" class="ghost">Stock</button>
+    <button id="tabChats" class="ghost">Chats</button>
     <button id="tabCust" class="ghost">Customer</button>
     <button id="btnRefresh" class="ghost">Refresh</button>
   </div>
@@ -63,10 +92,37 @@
           <option>PENDING</option><option>CONFIRMED</option><option>PREPARING</option>
           <option>SHIPPED</option><option>DELIVERED</option><option>CANCELLED</option>
         </select>
+        <input id="orderSearch" placeholder="order #id" size="12" />
       </div>
       <div id="orders"></div>
+      <h3 style="margin-top:18px">Courier simulator</h3>
+      <p class="hint">Drives the app's tracking map live (backend position wins over simulation).</p>
+      <div class="row">
+        <select id="simOrderSel"></select>
+      </div>
+      <div class="simrow">
+        <input type="range" id="simSlider" min="0" max="100" value="10" />
+        <span class="pill" id="simEta">~27 min</span>
+        <button id="btnSimPush" class="ghost">Push position</button>
+        <button id="btnSimClear" class="ghost">Clear</button>
+      </div>
       <h3 style="margin-top:18px">Pending prescriptions</h3>
       <div id="prescs"></div>
+    </div>
+
+    <div class="card" id="paneStock" style="display:none">
+      <h3>Stock</h3>
+      <div class="row">
+        <select id="stockPharmSel"></select>
+        <input id="medSearch" placeholder="search medicine" size="20" />
+      </div>
+      <div id="stockList"></div>
+    </div>
+
+    <div class="card" id="paneChats" style="display:none">
+      <h3>Chat threads</h3>
+      <div id="chatList"></div>
+      <div class="chatbox" id="chatMsgs" style="display:none"></div>
     </div>
 
     <div class="card" id="paneCust" style="display:none">
@@ -83,7 +139,9 @@
   </div>
 
   <div class="card"><h3>Log</h3><div id="log"></div></div>
+  <footer>Eilaji dashboard · dev only · <span id="buildTag">local</span></footer>
 </main>
+<div id="toasts"></div>
 <script src="app.js"></script>
 </body>
 </html>

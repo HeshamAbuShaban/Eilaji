@@ -188,6 +188,39 @@ class OrderService {
         }
     }
 
+    fun updateCourier(orderId: String, lat: Double?, lng: Double?, etaMinutes: Int?, clear: Boolean, userId: String, userRole: com.eilaji.backend.data.UserRole): OrderResult? {
+        val orderUuid = try { UUID.fromString(orderId) } catch (_: Exception) { return null }
+        val userUuid = try { UUID.fromString(userId) } catch (_: Exception) { return null }
+        if ((lat == null || lng == null) && !clear) return null
+        if (lat != null && (lat < -90 || lat > 90)) return null
+        if (lng != null && (lng < -180 || lng > 180)) return null
+        if (etaMinutes != null && (etaMinutes < 0 || etaMinutes > 600)) return null
+        return transaction {
+            val existingOrder = Orders.selectAll().where { Orders.id eq orderUuid }.firstOrNull()
+                ?: return@transaction null
+            if (userRole != com.eilaji.backend.data.UserRole.PHARMACIST && userRole != com.eilaji.backend.data.UserRole.ADMIN) {
+                return@transaction null
+            }
+            if (userRole == com.eilaji.backend.data.UserRole.PHARMACIST) {
+                val owned = Pharmacies.selectAll().where { Pharmacies.ownerUserId eq userUuid }.map { it[Pharmacies.id] }
+                if (!owned.contains(existingOrder[Orders.pharmacyId])) return@transaction null
+            }
+            Orders.update({ Orders.id eq orderUuid }) {
+                if (clear) {
+                    it[Orders.courierLat] = null
+                    it[Orders.courierLng] = null
+                    it[Orders.etaMinutes] = null
+                } else {
+                    if (lat != null) it[Orders.courierLat] = lat
+                    if (lng != null) it[Orders.courierLng] = lng
+                    if (etaMinutes != null) it[Orders.etaMinutes] = etaMinutes
+                }
+                it[Orders.updatedAt] = Instant.now()
+            }
+            getOrderById(orderId, userId, userRole)
+        }
+    }
+
     fun getOrdersForPharmacy(pharmacyId: String, status: String? = null, page: Int = 0, pageSize: Int = 20): PaginatedResult<OrderResult> {
         val pharmUuid = UUID.fromString(pharmacyId)
         return transaction {
