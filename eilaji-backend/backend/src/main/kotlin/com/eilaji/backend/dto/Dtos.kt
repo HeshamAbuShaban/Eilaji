@@ -146,6 +146,31 @@ data class UpdatePrescriptionStatusRequest(
 )
 
 @Serializable
+data class UpdateCourierRequest(
+    val lat: Double? = null,
+    val lng: Double? = null,
+    val etaMinutes: Int? = null,
+    val clear: Boolean = false
+)
+
+@Serializable
+data class StockItemDto(
+    val medicineId: String,
+    val medicineTitleEn: String? = null,
+    val price: Double? = null,
+    val stockQuantity: Int = 0,
+    val isAvailable: Boolean = true
+)
+
+@Serializable
+data class UpsertStockRequest(
+    val medicineId: String,
+    val price: Double? = null,
+    val stockQuantity: Int? = null,
+    val isAvailable: Boolean? = null
+)
+
+@Serializable
 data class ChatDto(
     val id: String,
     val prescriptionId: String? = null,
