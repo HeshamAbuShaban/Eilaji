@@ -159,7 +159,8 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
         try {
             if (mapViewModel.arePermissionsGranted()) {
                 gMap.isMyLocationEnabled = true
-                gMap.uiSettings.isMyLocationButtonEnabled = true
+                // Custom recenter FAB only: built-in button sits behind it
+                gMap.uiSettings.isMyLocationButtonEnabled = false
             }
         } catch (_: SecurityException) {}
         gMap.uiSettings.isZoomControlsEnabled = true
@@ -167,8 +168,10 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
             try {
                 val tag = marker.tag as? PharmacyDto
                 val idx = if (tag != null) pharmacyDtos.indexOfFirst { it.id == tag.id } else -1
-                if (idx != -1) {
-                    try { bindingOrNull?.pharmaciesLocationsPager?.currentItem = idx } catch (_: Exception) {}
+                val count = try { pagerAdapter?.itemCount ?: 0 } catch (_: Exception) { 0 }
+                if (idx != -1 && idx < count) {
+                    try { bindingOrNull?.pharmaciesLocationsPager?.setCurrentItem(idx, true) } catch (_: Exception) {}
+                } else if (idx != -1 && idx in pharmacyDtos.indices) {
                     try { mapViewModel.animateCameraToPosition(LatLng(pharmacyDtos[idx].latitude, pharmacyDtos[idx].longitude), 15f) } catch (_: Exception) {}
                 }
                 try { marker.showInfoWindow() } catch (_: Exception) {}
@@ -222,16 +225,25 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
                 try { gm.addMarker(MarkerOptions().position(it).title("My Location").snippet("You are here")) } catch (_: Exception) {}
             }
             val ctx = context ?: return
+            val icon = getMarkerIconFromDrawable(ctx, R.drawable.ic_hospital)
             pharmacyDtos.forEach { dto ->
                 try {
-                    val snippet = "${if (dto.isOpen) "Open" else "Closed"} • ${String.format("%.1f", dto.ratingAvg)}★ • ${dto.phone ?: dto.address}"
-                    val opts = MarkerOptions().position(LatLng(dto.latitude, dto.longitude)).title(dto.name).snippet(snippet).icon(getMarkerIconFromDrawable(ctx, R.drawable.ic_hospital))
+                    if (!dto.latitude.isFinite() || !dto.longitude.isFinite()) return@forEach
+                    if (dto.latitude < -90 || dto.latitude > 90 || dto.longitude < -180 || dto.longitude > 180) return@forEach
+                    val contact = dto.phone?.takeIf { it.isNotBlank() } ?: dto.address
+                    val snippet = "${if (dto.isOpen) "Open" else "Closed"} • ${String.format("%.1f", dto.ratingAvg)}★ • $contact"
+                    val opts = MarkerOptions().position(LatLng(dto.latitude, dto.longitude)).title(dto.name).snippet(snippet).icon(icon)
                     val m = gm.addMarker(opts)
                     m?.tag = dto
                 } catch (_: Exception) {}
             }
         } catch (_: Exception) {}
     }
+
+    private var pagerAdapter: PharmaciesLocationsAdapter? = null
+    private var pagerCallback: ViewPager2.OnPageChangeCallback? = null
+    private var markerIcon: BitmapDescriptor? = null
+    private var cameraSettled = false
 
     private fun setupPager() {
         val b = bindingOrNull ?: return
@@ -251,29 +263,41 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
             })
         } catch (_: Exception) {}
         val list = ArrayList(pharmacyDtos.map { dto -> Pharmacy(uid = dto.id, pharmacy_image_url = dto.imageUrl ?: "", pharmacy_name = dto.name, phone = dto.phone ?: "", address = dto.address, lat = dto.latitude, lng = dto.longitude, token = "", ratingAvg = dto.ratingAvg, totalRatings = dto.totalRatings, isOpen = dto.isOpen, distanceKm = dto.distanceKm) })
-        try { b.pharmaciesLocationsPager.adapter = PharmaciesLocationsAdapter(list) {
-            val b = android.os.Bundle().apply {
-                putString("receiverUid", it.uid)
-                putString("receiverFullName", it.pharmacy_name)
-                putString("receiverUrlImage", it.pharmacy_image_url)
-                putString("receiverToken", it.token)
-            }
-            try { findNavController().navigate(R.id.action_navigation_map_to_navigation_messaging, b) } catch (_: Exception) {}
-        } } catch (_: Exception) {}
         try {
-            if (!pagerCallbackRegistered) {
-                pagerCallbackRegistered = true
-                b.pharmaciesLocationsPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            val existing = pagerAdapter
+            if (existing == null) {
+                pagerAdapter = PharmaciesLocationsAdapter(list) { model ->
+                    val args = android.os.Bundle().apply {
+                        putString("receiverUid", model.uid)
+                        putString("receiverFullName", model.pharmacy_name)
+                        putString("receiverUrlImage", model.pharmacy_image_url)
+                        putString("receiverToken", model.token)
+                    }
+                    try { findNavController().navigate(R.id.action_navigation_map_to_navigation_messaging, args) } catch (_: Exception) {}
+                }
+                b.pharmaciesLocationsPager.adapter = pagerAdapter
+            } else {
+                existing.updateList(list)
+            }
+        } catch (_: Exception) {}
+        try {
+            if (pagerCallback == null) {
+                val cb = object : ViewPager2.OnPageChangeCallback() {
                     override fun onPageSelected(position: Int) {
                         if (!isAdded || _binding == null) return
-                        if (position in pharmacyDtos.indices) {
+                        val count = try { pagerAdapter?.itemCount ?: 0 } catch (_: Exception) { 0 }
+                        if (position in 0 until count && position in pharmacyDtos.indices) {
                             val dto = pharmacyDtos[position]
                             try { mapViewModel.animateCameraToPosition(LatLng(dto.latitude, dto.longitude), 15f) } catch (_: Exception) {}
                         }
                     }
-                })
+                }
+                pagerCallback = cb
+                b.pharmaciesLocationsPager.registerOnPageChangeCallback(cb)
             }
-            if (pharmacyDtos.isNotEmpty()) {
+            // Only settle camera on first data; never yank it back afterwards
+            if (!cameraSettled && pharmacyDtos.isNotEmpty()) {
+                cameraSettled = true
                 val first = pharmacyDtos[0]
                 try { mapViewModel.animateCameraToPosition(LatLng(first.latitude, first.longitude), 13f) } catch (_: Exception) {}
             }
@@ -281,17 +305,19 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
     }
 
     private fun getMarkerIconFromDrawable(context: Context, resId: Int): BitmapDescriptor {
-        return try {
+        markerIcon?.let { return it }
+        val icon = try {
             val d = ContextCompat.getDrawable(context, resId)
                 ?: return BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
-            val base = 96
-            val w = base.coerceIn(48, 144)
+            val w = 96
             val bmp = Bitmap.createBitmap(w, w, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bmp)
             d.setBounds(0, 0, w, w)
             d.draw(canvas)
             BitmapDescriptorFactory.fromBitmap(bmp)
         } catch (_: Exception) { BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED) }
+        markerIcon = icon
+        return icon
     }
 
     override fun onAllowClicked() { try { mapViewModel.requestPermissions() } catch (_: Exception) {} }
@@ -312,8 +338,17 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
     override fun onDestroyView() {
         try { mapViewModel.currentLocation.removeObservers(viewLifecycleOwner) } catch (_: Exception) {}
         try { mapViewModel.pharmacies.removeObservers(viewLifecycleOwner) } catch (_: Exception) {}
+        try {
+            val b = _binding
+            val cb = pagerCallback
+            if (b != null && cb != null) b.pharmaciesLocationsPager.unregisterOnPageChangeCallback(cb)
+        } catch (_: Exception) {}
+        pagerCallback = null
+        pagerAdapter = null
+        try { mapViewModel.clearMap() } catch (_: Exception) {}
         googleMap = null
         mapReady = false
+        cameraSettled = false
         _binding = null
         super.onDestroyView()
     }

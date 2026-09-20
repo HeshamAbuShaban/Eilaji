@@ -204,7 +204,7 @@ class CheckoutFragment : Fragment() {
             res.onSuccess { order ->
                 cartRepo.clear()
                 (activity as? BaseActivity)?.refreshCartBadge()
-                celebrate(order.id.take(8))
+                celebrate(order.id.take(8), order.id)
             }
             res.onFailure {
                 Snackbar.make(binding.root, it.message ?: "Order failed", Snackbar.LENGTH_LONG).show()
@@ -247,8 +247,14 @@ class CheckoutFragment : Fragment() {
                     override fun onAuthenticationSucceeded(result: androidx.biometric.BiometricPrompt.AuthenticationResult) {
                         done(true)
                     }
-                    override fun onAuthenticationFailed() {}
+                    override fun onAuthenticationFailed() {
+                        try { Snackbar.make(binding.root, "Not recognized — try again", Snackbar.LENGTH_SHORT).show() } catch (_: Exception) {}
+                    }
                     override fun onAuthenticationError(code: Int, msg: CharSequence) {
+                        if (code != androidx.biometric.BiometricPrompt.ERROR_USER_CANCELED &&
+                            code != androidx.biometric.BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
+                            try { Snackbar.make(binding.root, msg.toString(), Snackbar.LENGTH_SHORT).show() } catch (_: Exception) {}
+                        }
                         done(false)
                     }
                 }
@@ -268,6 +274,11 @@ class CheckoutFragment : Fragment() {
     }
 
     private fun submitOrder() {
+        val lines = try { (binding.recyclerOrderItems.adapter as? CheckoutAdapter)?.currentItems() ?: emptyList() } catch (_: Exception) { emptyList() }
+        if (lines.isEmpty()) {
+            Snackbar.make(binding.root, "Empty cart — add medicines first", Snackbar.LENGTH_SHORT).show()
+            return
+        }
         val prefs = AppSharedPreferences.getInstance(requireContext())
         val address = prefs.getString("delivery_address", null) ?: prefs.getString("address", null) ?: binding.tvAddress.text.toString()
         if (address.isBlank() || address == getString(R.string.add_address)) {
@@ -312,7 +323,7 @@ class CheckoutFragment : Fragment() {
         } catch (_: Exception) { done(null) }
     }
 
-    private fun celebrate(orderShortId: String?) {
+    private fun celebrate(orderShortId: String?, orderId: String? = null) {
         try {
             if (!orderShortId.isNullOrBlank()) binding.tvOrderId.text = "Order #${orderShortId.uppercase()}"
             binding.successOverlay.visibility = View.VISIBLE
@@ -326,9 +337,19 @@ class CheckoutFragment : Fragment() {
             binding.ivSuccessCheck.animate().scaleX(1f).scaleY(1f).setDuration(420)
                 .setInterpolator(android.view.animation.OvershootInterpolator(2f)).start()
             binding.confettiView.burst(110)
-            binding.root.postDelayed({
-                try { if (isAdded) findNavController().popBackStack() } catch (_: Exception) {}
-            }, 2200)
+            if (orderId != null) {
+                Snackbar.make(binding.root, "Order placed — track it live", Snackbar.LENGTH_LONG)
+                    .setAction("Track") {
+                        try {
+                            val b = Bundle().apply { putString("orderId", orderId) }
+                            findNavController().navigate(R.id.navigation_order_tracking, b)
+                        } catch (_: Exception) {}
+                    }.show()
+            } else {
+                binding.root.postDelayed({
+                    try { if (isAdded) findNavController().popBackStack() } catch (_: Exception) {}
+                }, 2200)
+            }
         } catch (_: Exception) {
             try { findNavController().popBackStack() } catch (_: Exception) {}
         }

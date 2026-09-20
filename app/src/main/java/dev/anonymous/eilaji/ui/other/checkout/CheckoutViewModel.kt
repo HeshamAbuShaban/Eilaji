@@ -21,7 +21,12 @@ class CheckoutViewModel : ViewModel() {
     val error: LiveData<String?> = _error
 
     fun placeOrder(context: Context, prescriptionId: String?, pharmacyId: String, totalAmount: Double?, paymentMethod: String, deliveryAddress: String?, notes: String? = null) {
+        if (totalAmount == null || totalAmount <= 0) {
+            _error.value = "Empty cart — add medicines first"
+            return
+        }
         _loading.value = true
+        _error.value = null
         val req = CreateOrderRequest(
             prescriptionId = prescriptionId,
             pharmacyId = pharmacyId,
@@ -36,12 +41,17 @@ class CheckoutViewModel : ViewModel() {
                 if (response.isSuccessful && response.body()?.success == true && response.body()?.data != null) {
                     _orderResult.value = Result.success(response.body()!!.data!!)
                 } else {
-                    _error.value = response.body()?.error ?: response.body()?.message ?: "Order failed"
+                    val msg = response.body()?.error ?: response.body()?.message ?: "Order failed (${response.code()})"
+                    _error.value = msg
+                    _orderResult.value = Result.failure(Exception(msg))
                 }
             }
             override fun onFailure(call: Call<ApiResponse<OrderDto>>, t: Throwable) {
+                if (call.isCanceled) return
                 _loading.value = false
-                _error.value = t.message ?: "Network error"
+                val msg = t.message ?: "Network error"
+                _error.value = msg
+                _orderResult.value = Result.failure(Exception(msg))
             }
         })
     }

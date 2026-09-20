@@ -44,8 +44,43 @@
             android:id="@+id/recyclerChats"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layoutAnimation="@anim/layout_animation_fall_down"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/item_chat" />
+
+        <LinearLayout
+            android:id="@+id/emptyChatsView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:contentDescription="@string/chats"
+                android:src="@drawable/empty_chats" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/no_chats_yet"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center"
+                android:text="@string/no_chats_hint"
+                android:textColor="@color/gray_dark"
+                android:textSize="13sp" />
+
+        </LinearLayout>
     </LinearLayout>
 
     <!--    <com.google.android.material.progressindicator.CircularProgressIndicator-->

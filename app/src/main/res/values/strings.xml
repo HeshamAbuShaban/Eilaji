@@ -57,7 +57,7 @@
     <string name="send_prescription">Send Prescription</string>
     <string name="search">Search</string>
 
-    <string name="total_price">Total price : 60$</string>
+    <string name="total_price">Total</string>
     <string name="favorite">Favorite</string>
     <string name="add_address">Add Address</string>
     <string name="add">Add</string>
@@ -179,4 +179,9 @@
     <string name="confirm_card_payment">Confirm card payment</string>
     <string name="pay_with_fingerprint">Verify to pay by card</string>
     <string name="card_biometric_hint">Card is confirmed with fingerprint or device PIN at checkout.</string>
+    <string name="no_chats_yet">No chats yet</string>
+    <string name="no_chats_hint">Pick a pharmacy and say hello — replies land here</string>
+    <string name="rate_action">Rate</string>
+    <string name="phone">Phone</string>
+    <string name="edit_profile">Edit profile</string>
 </resources>

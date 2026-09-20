@@ -115,6 +115,10 @@ public class MessagingFragment extends Fragment {
 
     private void sendMessage(String message) {
         if (webSocketManager != null && chatId != null) {
+            if (!webSocketManager.isConnected()) {
+                reconnectWebSocket();
+                com.google.android.material.snackbar.Snackbar.make(binding.getRoot(), "Reconnecting… send again in a moment", com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show();
+            }
             webSocketManager.sendMessage(chatId, message);
             MessageModel local = getMessageModel(message, null);
             local.setTimestamp(System.currentTimeMillis());
@@ -225,6 +229,8 @@ public class MessagingFragment extends Fragment {
         messagesAdapter.registerAdapterDataObserver(new MyScrollToBottomObserver(binding.recyclerMessaging, messagesAdapter));
     }
 
+    private int wsReconnectAttempts = 0;
+
     private void connectWebSocket() {
         if (webSocketManager == null || chatId == null) return;
         webSocketManager.setOnMessage(dto -> {
@@ -243,9 +249,31 @@ public class MessagingFragment extends Fragment {
         });
         webSocketManager.setOnPresence((uid, online) -> {});
         webSocketManager.setOnPong(() -> {});
+        webSocketManager.setOnConnected(() -> {
+            wsReconnectAttempts = 0;
+            webSocketManager.sendJoin(chatId);
+            webSocketManager.sendPing();
+        });
+        webSocketManager.setOnError(err -> {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    if (binding != null) {
+                        com.google.android.material.snackbar.Snackbar.make(binding.getRoot(), err != null ? err : "Chat connection failed", com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
+                            .setAction("Retry", v -> reconnectWebSocket()).show();
+                    }
+                });
+            }
+        });
         webSocketManager.connect();
-        webSocketManager.sendJoin(chatId);
-        webSocketManager.sendPing();
+    }
+
+    private void reconnectWebSocket() {
+        if (wsReconnectAttempts >= 3 || webSocketManager == null || chatId == null) return;
+        wsReconnectAttempts++;
+        webSocketManager.disconnect();
+        binding.getRoot().postDelayed(() -> {
+            if (isAdded() && webSocketManager != null) webSocketManager.connect();
+        }, 2000);
     }
 
     private void markAsRead() {

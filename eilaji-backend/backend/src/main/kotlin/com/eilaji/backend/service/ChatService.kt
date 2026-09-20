@@ -76,10 +76,26 @@ class ChatService {
     fun createChat(userId: String, prescriptionId: UUID?, pharmacyUserId: UUID?): ChatDto {
         val userUuid = UUID.fromString(userId)
         return transaction {
+            // Accept either a pharmacist user id or a pharmacy entity id (resolves to its owner)
+            val resolvedPharmacyUserId = when {
+                pharmacyUserId == null -> UUID.fromString("00000000-0000-0000-0000-000000000000")
+                Users.selectAll().where { Users.id eq pharmacyUserId }.singleOrNull() != null -> pharmacyUserId
+                else -> Pharmacies.selectAll().where { Pharmacies.id eq pharmacyUserId }.singleOrNull()
+                    ?.let { it[Pharmacies.ownerUserId] }
+                    ?: return@transaction getOrCreateGhostChat(userUuid, prescriptionId)
+            }
+            // Reuse existing thread between the same participants instead of duplicating
+            val existing = Chats.selectAll().where {
+                (Chats.patientUserId eq userUuid) and (Chats.pharmacyUserId eq resolvedPharmacyUserId) and
+                (if (prescriptionId != null) (Chats.prescriptionId eq prescriptionId) else Chats.prescriptionId.isNull())
+            }.singleOrNull()
+            if (existing != null) {
+                return@transaction getChatDto(existing[Chats.id])
+            }
             val chatId = Chats.insert {
                 it[Chats.prescriptionId] = prescriptionId
                 it[Chats.patientUserId] = userUuid
-                it[Chats.pharmacyUserId] = pharmacyUserId ?: UUID.fromString("00000000-0000-0000-0000-000000000000")
+                it[Chats.pharmacyUserId] = resolvedPharmacyUserId
                 it[Chats.lastMessageText] = null
                 it[Chats.lastMessageImageUrl] = null
                 it[Chats.lastMessageSenderId] = null
@@ -110,6 +126,51 @@ class ChatService {
                     )
                 }.first()
         }
+    }
+
+    private fun getChatDto(chatId: UUID): ChatDto {
+        return Chats.join(Users, JoinType.LEFT, Chats.pharmacyUserId, Users.id)
+            .join(Pharmacies, JoinType.LEFT, Chats.pharmacyUserId, Pharmacies.ownerUserId)
+            .selectAll()
+            .where { Chats.id eq chatId }
+            .map { row ->
+                ChatDto(
+                    id = row[Chats.id].toString(),
+                    prescriptionId = row[Chats.prescriptionId]?.toString(),
+                    pharmacyId = row[Chats.pharmacyUserId].toString(),
+                    pharmacyName = row.getOrNull(Pharmacies.name),
+                    userId = row[Chats.patientUserId].toString(),
+                    userName = row.getOrNull(Users.fullName),
+                    lastMessage = row[Chats.lastMessageText],
+                    lastMessageAt = row[Chats.lastMessageAt]?.toString(),
+                    unreadCount = 0,
+                    createdAt = row[Chats.createdAt].toString()
+                )
+            }.first()
+    }
+
+    private fun getOrCreateGhostChat(patientUuid: UUID, prescriptionId: UUID?): ChatDto {
+        val ghostId = UUID.fromString("00000000-0000-0000-0000-000000000000")
+        val existing = Chats.selectAll().where {
+            (Chats.patientUserId eq patientUuid) and (Chats.pharmacyUserId eq ghostId) and
+            (if (prescriptionId != null) (Chats.prescriptionId eq prescriptionId) else Chats.prescriptionId.isNull())
+        }.singleOrNull()
+        if (existing != null) return getChatDto(existing[Chats.id])
+        val chatId = Chats.insert {
+            it[Chats.prescriptionId] = prescriptionId
+            it[Chats.patientUserId] = patientUuid
+            it[Chats.pharmacyUserId] = ghostId
+            it[Chats.lastMessageText] = null
+            it[Chats.lastMessageImageUrl] = null
+            it[Chats.lastMessageSenderId] = null
+            it[Chats.lastMessageAt] = Instant.now()
+            it[Chats.unreadCountPatient] = 0
+            it[Chats.unreadCountPharmacy] = 0
+            it[Chats.isArchived] = false
+            it[Chats.createdAt] = Instant.now()
+            it[Chats.updatedAt] = Instant.now()
+        } get Chats.id
+        return getChatDto(chatId)
     }
 
     fun updateLastMessage(chatId: UUID, message: String, senderId: String, messageType: String = "TEXT", imageUrl: String? = null) {

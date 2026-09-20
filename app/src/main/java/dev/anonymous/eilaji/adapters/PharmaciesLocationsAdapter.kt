@@ -10,10 +10,15 @@ import dev.anonymous.eilaji.models.Pharmacy
 import dev.anonymous.eilaji.utils.GeneralUtils
 
 class PharmaciesLocationsAdapter(
-    private val listPharmacies: ArrayList<Pharmacy>,
+    private var listPharmacies: ArrayList<Pharmacy>,
     private val navigateToChat: (model: Pharmacy) -> Unit
 ) :
     RecyclerView.Adapter<PharmaciesLocationsAdapter.PharmaciesLocationsViewHolder>() {
+
+    fun updateList(newList: List<Pharmacy>) {
+        listPharmacies = ArrayList(newList)
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(
         parent: ViewGroup,

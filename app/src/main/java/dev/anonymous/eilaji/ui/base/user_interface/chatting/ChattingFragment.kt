@@ -57,15 +57,31 @@ class ChattingFragment : Fragment(), ChatListCallback, AccountAccessListener {
         chattingViewModel.chats.observe(viewLifecycleOwner) { list ->
             chatsAdapter?.setChats(list)
             removeChatShimmer()
-            if (list.isEmpty()) {
-                Toast.makeText(requireContext(), "No chats yet", Toast.LENGTH_SHORT).show()
-            }
+            try {
+                binding.emptyChatsView.visibility = if (list.isNullOrEmpty()) View.VISIBLE else View.GONE
+                binding.recyclerChats.visibility = if (list.isNullOrEmpty()) View.GONE else View.VISIBLE
+            } catch (_: Exception) {}
         }
         chattingViewModel.isEmpty.observe(viewLifecycleOwner) { empty ->
-            if (empty == true) removeChatShimmer()
+            if (empty == true) {
+                removeChatShimmer()
+                try {
+                    binding.emptyChatsView.visibility = View.VISIBLE
+                    binding.recyclerChats.visibility = View.GONE
+                } catch (_: Exception) {}
+            }
         }
         chattingViewModel.error.observe(viewLifecycleOwner) { err ->
-            if (err != null) Toast.makeText(requireContext(), err, Toast.LENGTH_SHORT).show()
+            if (err != null) {
+                try {
+                    com.google.android.material.snackbar.Snackbar.make(binding.root, err, com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
+                        .setAction("Retry") {
+                            try { chattingViewModel.loadChats(requireContext()) } catch (_: Exception) {}
+                        }.show()
+                } catch (_: Exception) {
+                    try { Toast.makeText(requireContext(), err, Toast.LENGTH_SHORT).show() } catch (_: Exception) {}
+                }
+            }
         }
     }
 
@@ -87,10 +103,19 @@ class ChattingFragment : Fragment(), ChatListCallback, AccountAccessListener {
     override fun onDestroyView() { super.onDestroyView(); chatsAdapter = null }
 
     override fun onChatItemClicked(chatModel: ChatModel, key: String) {
+        // key carries chatId from the adapter; the receiver is the OTHER participant:
+        // patient (lastMessageSenderUid) <-> pharmacy owner (userToken)
+        val me = userUid
+        val otherUid = when {
+            !me.isNullOrBlank() && me == chatModel.lastMessageSenderUid && !chatModel.userToken.isNullOrBlank() -> chatModel.userToken
+            !me.isNullOrBlank() && me == chatModel.userToken && !chatModel.lastMessageSenderUid.isNullOrBlank() -> chatModel.lastMessageSenderUid
+            !chatModel.userToken.isNullOrBlank() -> chatModel.userToken
+            else -> key
+        }
         val intent = Intent(requireContext(), AlternativesActivity::class.java)
         intent.putExtra("fragmentType", FragmentsKeys.messaging.name)
         intent.putExtra("chatId", chatModel.chatId)
-        intent.putExtra("receiverUid", key)
+        intent.putExtra("receiverUid", otherUid)
         intent.putExtra("receiverFullName", chatModel.userFullName)
         intent.putExtra("receiverUrlImage", chatModel.userImageUrl)
         intent.putExtra("receiverToken", chatModel.userToken)

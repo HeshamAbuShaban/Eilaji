@@ -101,12 +101,38 @@ class FavoriteSyncRepository(private val context: Context) {
         })
     }
 
-    fun syncDelete(favoriteId: String, onDone: (Boolean) -> Unit = {}) {
-        Thread { dao.deleteById(favoriteId) }.start()
+    /** Delete by medicine/pharmacy: resolves the backend id FIRST, then deletes locally. */
+    fun syncDeleteByMedicine(medicineId: String?, pharmacyId: String?, onDone: (Boolean) -> Unit = {}) {
+        val entity = try {
+            if (medicineId != null && pharmacyId != null) dao.findByMedicineAndPharmacy(medicineId, pharmacyId)
+            else if (medicineId != null) dao.findByMedicineId(medicineId)
+            else if (pharmacyId != null) dao.findByPharmacyId(pharmacyId)
+            else null
+        } catch (_: Exception) { null }
+        val remoteId = entity?.backendId
+        Thread { try { if (entity != null) dao.delete(entity) } catch (_: Exception) {} }.start()
+        if (remoteId == null) {
+            if (!hasToken() || !isOnline()) enqueueWorker()
+            onDone(remoteId != null)
+            return
+        }
         if (!hasToken()) { onDone(false); return }
         if (!isOnline()) { enqueueWorker(); onDone(false); return }
+        api.deleteFavorite(remoteId).enqueue(object : Callback<dev.anonymous.eilaji.network.ApiResponse<Any>> {
+            override fun onResponse(c: Call<dev.anonymous.eilaji.network.ApiResponse<Any>>, r: Response<dev.anonymous.eilaji.network.ApiResponse<Any>>) {
+                if (r.isSuccessful || r.code() == 404) onDone(true) else { enqueueWorker(); onDone(false) }
+            }
+            override fun onFailure(c: Call<dev.anonymous.eilaji.network.ApiResponse<Any>>, t: Throwable) { enqueueWorker(); onDone(false) }
+        })
+    }
+
+    fun syncDelete(favoriteId: String, onDone: (Boolean) -> Unit = {}) {
+        // Resolve backend id before deleting so the server copy actually dies
         val entity = try { dao.getById(favoriteId) } catch (_: Exception) { null }
         val remoteId = entity?.backendId ?: favoriteId
+        Thread { try { dao.deleteById(favoriteId) } catch (_: Exception) {} }.start()
+        if (!hasToken()) { onDone(false); return }
+        if (!isOnline()) { enqueueWorker(); onDone(false); return }
         api.deleteFavorite(remoteId).enqueue(object : Callback<dev.anonymous.eilaji.network.ApiResponse<Any>> {
             override fun onResponse(c: Call<dev.anonymous.eilaji.network.ApiResponse<Any>>, r: Response<dev.anonymous.eilaji.network.ApiResponse<Any>>) {
                 if (r.isSuccessful) onDone(true) else if (r.code() == 404) onDone(false) else { enqueueWorker(); onDone(false) }
