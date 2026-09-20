@@ -14,17 +14,17 @@
         android:fitsSystemWindows="true">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/collapsingToolbar"
             android:layout_width="match_parent"
             android:layout_height="@dimen/_222sdp"
             android:fitsSystemWindows="true"
             app:collapsedTitleGravity="center_horizontal"
             app:collapsedTitleTextAppearance="@style/TextAppearance.expandedTitle"
-            app:collapsedTitleTextColor="@color/white"
+            app:collapsedTitleTextColor="@color/white_fixed"
             app:contentScrim="@color/primary_color"
             app:expandedTitleTextColor="@android:color/transparent"
             app:layout_scrollFlags="scroll|snap|exitUntilCollapsed"
-            app:statusBarScrim="@android:color/transparent"
-            app:title="مثبط هرمونات">
+            app:statusBarScrim="@android:color/transparent">
 
             <!--      parallax + 1.0 = pin   -->
             <androidx.appcompat.widget.AppCompatImageView
@@ -225,7 +225,7 @@
                 android:orientation="horizontal"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tvMedicineDescription">
+                app:layout_constraintTop_toBottomOf="@+id/rateRow">
 
                 <TextView
                     android:layout_width="0dp"
@@ -294,16 +294,16 @@
                 app:layout_constraintTop_toBottomOf="@+id/tvAlternativesTitle" />
 
             <LinearLayout
+                android:id="@+id/rateRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/_15sdp"
-                android:layout_marginTop="@dimen/_16sdp"
-                android:layout_marginBottom="@dimen/_90sdp"
+                android:layout_marginTop="@dimen/_12sdp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/recyclerAlternatives">
+                app:layout_constraintTop_toBottomOf="@+id/cardMedicineFacts">
 
                 <RatingBar
                     android:id="@+id/ratingPharmacy"
@@ -323,7 +323,27 @@
                     android:textSize="@dimen/_12ssp"
                     app:cornerRadius="10dp" />
 
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/tvPharmacyRatingAvg"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/gray_dark"
+                    android:textSize="@dimen/_12ssp"
+                    tools:text="4.5 ★ (120)" />
+
             </LinearLayout>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_90sdp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/recyclerAlternatives" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -334,8 +354,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_vertical"
+        android:background="?attr/colorSurface"
+        android:elevation="8dp"
         android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingBottom="@dimen/_8sdp">
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardCart"

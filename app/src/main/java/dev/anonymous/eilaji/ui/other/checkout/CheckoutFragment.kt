@@ -90,6 +90,7 @@ class CheckoutFragment : Fragment() {
                 "card" -> "CARD"
                 else -> "CASH"
             }
+            try { binding.tvCardHint.visibility = if (selectedPayment == "CARD") View.VISIBLE else View.GONE } catch (_: Exception) {}
         }
         binding.chipCash.isChecked = true
     }
@@ -102,24 +103,48 @@ class CheckoutFragment : Fragment() {
         } else if (cartItems.isNotEmpty()) {
             val adapter = CheckoutAdapter(cartItems.map {
                 CheckoutItem(it.medicineId, it.title, it.price, it.imageUrl, it.quantity)
-            })
+            }.toMutableList()) { syncLinesToCart() }
             binding.recyclerOrderItems.adapter = adapter
             updateTotal(adapter.getTotal())
             refreshFee(pharmacyId ?: cartItems.firstOrNull()?.pharmacyId)
         } else {
-            binding.recyclerOrderItems.adapter = CheckoutAdapter(emptyList())
+            binding.recyclerOrderItems.adapter = CheckoutAdapter(mutableListOf())
             updateTotal(0.0)
         }
+    }
+
+    /** Push line edits back to the persistent cart + badge + totals. */
+    private fun syncLinesToCart() {
+        try {
+            val adapter = binding.recyclerOrderItems.adapter as? CheckoutAdapter ?: return
+            val lines = adapter.currentItems()
+            if (medicineId != null) {
+                quantity = lines.firstOrNull()?.qty?.coerceAtLeast(1) ?: 1
+            } else {
+                val repo = cartRepo.getAll()
+                lines.forEach { line ->
+                    repo.find { it.medicineId == line.id }?.let { it.quantity = line.qty }
+                }
+                // Drop removed lines
+                repo.filter { r -> lines.any { it.id == r.medicineId } }.let { kept ->
+                    cartRepo.clear()
+                    kept.forEach { cartRepo.addItem(it) }
+                }
+                try { (activity as? BaseActivity)?.refreshCartBadge() } catch (_: Exception) {}
+            }
+            updateTotal(adapter.getTotal())
+        } catch (_: Exception) {}
     }
 
     private fun loadSingleMedicine(id: String) {
         NetworkModule.provideApiService(requireContext()).getMedicine(id).enqueue(object : Callback<ApiResponse<MedicineDto>> {
             override fun onResponse(call: Call<ApiResponse<MedicineDto>>, response: Response<ApiResponse<MedicineDto>>) {
+                if (!isAdded) return
                 if (response.isSuccessful && response.body()?.data != null) {
                     currentMedicine = response.body()!!.data
                     val dto = currentMedicine!!
                     val item = CheckoutItem(dto.id, dto.titleEn.ifBlank { dto.titleAr }, dto.price ?: 0.0, dto.imageUrl, quantity)
-                    val adapter = CheckoutAdapter(listOf(item))
+                    val adapter = CheckoutAdapter(mutableListOf(item)) { syncLinesToCart() }
                     binding.recyclerOrderItems.adapter = adapter
                     updateTotal(adapter.getTotal())
                     refreshFee(pharmacyId)
@@ -188,6 +213,60 @@ class CheckoutFragment : Fragment() {
     }
 
     private fun doPlaceOrder() {
+        if (selectedPayment == "CARD") {
+            confirmCardWithBiometrics { ok -> if (ok) submitOrder() }
+            return
+        }
+        submitOrder()
+    }
+
+    /** Card paywall: biometric (or device credential) confirm before charging. */
+    private fun confirmCardWithBiometrics(done: (Boolean) -> Unit) {
+        try {
+            val manager = androidx.biometric.BiometricManager.from(requireContext())
+            val can = manager.canAuthenticate(
+                androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
+            )
+            if (can != androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS) {
+                // No biometrics enrolled: fall back to an explicit confirm dialog
+                androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    .setTitle(getString(R.string.confirm_card_payment))
+                    .setMessage(getString(R.string.pay_with_fingerprint))
+                    .setPositiveButton(android.R.string.ok) { _, _ -> done(true) }
+                    .setNegativeButton(android.R.string.cancel) { _, _ -> done(false) }
+                    .show()
+                return
+            }
+            val executor = androidx.core.content.ContextCompat.getMainExecutor(requireContext())
+            val prompt = androidx.biometric.BiometricPrompt(
+                this,
+                executor,
+                object : androidx.biometric.BiometricPrompt.AuthenticationCallback() {
+                    override fun onAuthenticationSucceeded(result: androidx.biometric.BiometricPrompt.AuthenticationResult) {
+                        done(true)
+                    }
+                    override fun onAuthenticationFailed() {}
+                    override fun onAuthenticationError(code: Int, msg: CharSequence) {
+                        done(false)
+                    }
+                }
+            )
+            val info = androidx.biometric.BiometricPrompt.PromptInfo.Builder()
+                .setTitle(getString(R.string.confirm_card_payment))
+                .setSubtitle(getString(R.string.pay_with_fingerprint))
+                .setAllowedAuthenticators(
+                    androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                    androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
+                )
+                .build()
+            prompt.authenticate(info)
+        } catch (_: Exception) {
+            submitOrder()
+        }
+    }
+
+    private fun submitOrder() {
         val prefs = AppSharedPreferences.getInstance(requireContext())
         val address = prefs.getString("delivery_address", null) ?: prefs.getString("address", null) ?: binding.tvAddress.text.toString()
         if (address.isBlank() || address == getString(R.string.add_address)) {
@@ -257,24 +336,54 @@ class CheckoutFragment : Fragment() {
     override fun onDestroyView() { super.onDestroyView(); _binding = null }
 }
 
-data class CheckoutItem(val id: String, val title: String, val price: Double, val imageUrl: String?, val qty: Int)
+data class CheckoutItem(val id: String, val title: String, val price: Double, val imageUrl: String?, var qty: Int)
 
-class CheckoutAdapter(private val items: List<CheckoutItem>) : androidx.recyclerview.widget.RecyclerView.Adapter<CheckoutAdapter.Holder>() {
+class CheckoutAdapter(
+    private val items: MutableList<CheckoutItem>,
+    private val onChanged: (() -> Unit)? = null
+) : androidx.recyclerview.widget.RecyclerView.Adapter<CheckoutAdapter.Holder>() {
     fun getTotal(): Double = items.sumOf { it.price * it.qty }
+    fun currentItems(): List<CheckoutItem> = items
     override fun onCreateViewHolder(p: ViewGroup, v: Int): Holder {
         val b = dev.anonymous.eilaji.databinding.ItemCheckoutBinding.inflate(LayoutInflater.from(p.context), p, false)
-        return Holder(b)
+        return Holder(b,
+            onQty = { item, delta ->
+                item.qty = (item.qty + delta).coerceAtLeast(1)
+                notifyItemChanged(items.indexOf(item))
+                onChanged?.invoke()
+            },
+            onRemove = { item ->
+                val pos = items.indexOf(item)
+                if (pos != -1) {
+                    items.removeAt(pos)
+                    notifyItemRemoved(pos)
+                    onChanged?.invoke()
+                }
+            })
     }
     override fun getItemCount() = items.size
     override fun onBindViewHolder(h: Holder, pos: Int) = h.bind(items[pos])
-    class Holder(private val b: dev.anonymous.eilaji.databinding.ItemCheckoutBinding) : androidx.recyclerview.widget.RecyclerView.ViewHolder(b.root) {
+    class Holder(
+        private val b: dev.anonymous.eilaji.databinding.ItemCheckoutBinding,
+        private val onQty: (CheckoutItem, Int) -> Unit,
+        private val onRemove: (CheckoutItem) -> Unit
+    ) : RecyclerView.ViewHolder(b.root) {
+        private var current: CheckoutItem? = null
+        init {
+            b.buQtyPlus.setOnClickListener { current?.let { onQty(it, 1) } }
+            b.buQtyMinus.setOnClickListener { current?.let { onQty(it, -1) } }
+            b.buRemoveItem.setOnClickListener { current?.let { onRemove(it) } }
+        }
         fun bind(i: CheckoutItem) {
+            current = i
             b.tvMedicineName.text = i.title
             b.tvMedicinePrice.text = String.format("%.2f $", i.price)
             b.tvQty.text = "x${i.qty}"
             b.tvLineTotal.text = String.format("%.2f $", i.price * i.qty)
             if (!i.imageUrl.isNullOrBlank()) {
                 try { dev.anonymous.eilaji.utils.GeneralUtils.getInstance().loadImage(i.imageUrl).into(b.ivMedicine) } catch (_: Exception) {}
+            } else {
+                try { b.ivMedicine.setImageResource(dev.anonymous.eilaji.R.drawable.temp_medicine_1) } catch (_: Exception) {}
             }
         }
     }

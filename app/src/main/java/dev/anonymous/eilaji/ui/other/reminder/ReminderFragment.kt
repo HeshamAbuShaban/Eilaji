@@ -302,7 +302,29 @@ class ReminderFragment : Fragment(), RequestPermissionsListener {
         } catch (_: Exception) {}
     }
 
+    private fun ensureFullScreenPermission(): Boolean {
+        // Android 14+: full-screen alarm needs explicit user grant, else only the notification shows.
+        return try {
+            if (Build.VERSION.SDK_INT >= 34) {
+                val nm = requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+                if (!nm.canUseFullScreenIntent()) {
+                    Snackbar.make(binding.root, "Allow full-screen alarms for the loud alert", Snackbar.LENGTH_LONG)
+                        .setAction("Settings") {
+                            try {
+                                startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                    putExtra(Settings.EXTRA_APP_PACKAGE, requireContext().packageName)
+                                })
+                            } catch (_: Exception) {}
+                        }.show()
+                    return false
+                }
+            }
+            true
+        } catch (_: Exception) { true }
+    }
+
     private fun onSavePressed() {
+        if (!ensureFullScreenPermission()) return
         val name = binding.actMedicineName.text.toString().trim()
         if (name.isEmpty()) {
             try {

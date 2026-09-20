@@ -44,7 +44,22 @@ class FavoriteViewModel : ViewModel() {
 
     fun setupFavoritesRecycler(context: Activity) {
         val halfScreenWidth: Int = UtilsScreen.screenWidth / 2
-        adapter = MedicinesAdapter(arrayListOf(), true, halfScreenWidth, onFavClick = { med -> toggleFavorite(med) })
+        adapter = MedicinesAdapter(arrayListOf(), true, halfScreenWidth,
+            onFavClick = { med -> toggleFavorite(med) },
+            onItemClick = { med, sharedView ->
+                try {
+                    val intent = android.content.Intent(context, dev.anonymous.eilaji.ui.other.base.AlternativesActivity::class.java)
+                    intent.putExtra("fragmentType", dev.anonymous.eilaji.storage.enums.FragmentsKeys.medicine.name)
+                    intent.putExtra("medicineId", med.id)
+                    intent.putExtra("sharedTransitionName", try { sharedView.transitionName } catch (_: Exception) { "medicine_image_${med.id}" })
+                    try {
+                        val opts = androidx.core.app.ActivityOptionsCompat.makeSceneTransitionAnimation(
+                            context, sharedView, try { sharedView.transitionName } catch (_: Exception) { "medicine_image_${med.id}" }
+                        )
+                        context.startActivity(intent, opts.toBundle())
+                    } catch (_: Exception) { context.startActivity(intent) }
+                } catch (_: Exception) {}
+            })
         with(binding.recyclerFavorites) {
             setHasFixedSize(false)
             layoutManager = GridLayoutManager(context, 2)

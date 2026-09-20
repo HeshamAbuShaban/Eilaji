@@ -33,14 +33,14 @@
         android:id="@+id/fabRecenter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_16sdp"
         android:layout_marginEnd="@dimen/_16sdp"
-        android:layout_marginBottom="@dimen/_16sdp"
         android:contentDescription="@string/use_my_location"
         android:src="@drawable/ic_map"
         android:visibility="gone"
         app:backgroundTint="@color/white_fixed"
-        app:layout_constraintBottom_toTopOf="@+id/pharmaciesLocationsPager"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:tint="@color/primary_color" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

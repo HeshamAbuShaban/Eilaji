@@ -46,8 +46,12 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentMapBinding.inflate(inflater, container, false)
-        try { MapsInitializer.initialize(requireContext(), MapsInitializer.Renderer.LATEST) { _: MapsInitializer.Renderer? -> } } catch (_: Exception) {}
-        setupVMComponent()
+        try {
+            MapsInitializer.initialize(
+                requireContext().applicationContext, MapsInitializer.Renderer.LATEST
+            ) { _: MapsInitializer.Renderer? -> }
+        } catch (_: Exception) {}
+        try { setupVMComponent() } catch (_: Exception) {}
         return binding.root
     }
 
@@ -113,11 +117,21 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
         } else if (!permissionDialogShown) {
             permissionDialogShown = true
             try {
-                RequestPermissionsDialogFragment.newInstance("Please allow the map permission to be able to use the app properly")
-                    .show(childFragmentManager, "MapPermissions")
+                view.post {
+                    try {
+                        if (!isAdded || _binding == null || childFragmentManager.isStateSaved) {
+                            throw IllegalStateException("not ready")
+                        }
+                        RequestPermissionsDialogFragment.newInstance("Please allow the map permission to be able to use the app properly")
+                            .show(childFragmentManager, "MapPermissions")
+                    } catch (_: Exception) {
+                        try { mapViewModel.loadFromCache() } catch (_: Exception) {}
+                        try { mapViewModel.fetchAllPharmacies(31.5, 34.46) } catch (_: Exception) {}
+                    }
+                }
             } catch (_: Exception) {
-                mapViewModel.loadFromCache()
-                mapViewModel.fetchAllPharmacies(31.5, 34.46)
+                try { mapViewModel.loadFromCache() } catch (_: Exception) {}
+                try { mapViewModel.fetchAllPharmacies(31.5, 34.46) } catch (_: Exception) {}
             }
         } else {
             mapViewModel.loadFromCache()
@@ -168,8 +182,14 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
     private fun obtainGoogleMapInstance() {
         try {
             if (!isAdded || _binding == null) return
-            val mapFragment = childFragmentManager.findFragmentById(R.id.mapFragment) as? SupportMapFragment ?: return
-            mapFragment.getMapAsync(this)
+            val mapFragment = try {
+                childFragmentManager.findFragmentById(R.id.mapFragment) as? SupportMapFragment
+            } catch (_: Exception) { null } ?: return
+            try { mapFragment.getMapAsync(this) } catch (_: Exception) {
+                // Play Services missing/outdated: fall back to list-only mode
+                try { mapViewModel.loadFromCache() } catch (_: Exception) {}
+                try { mapViewModel.fetchAllPharmacies(31.5, 34.46) } catch (_: Exception) {}
+            }
         } catch (_: Exception) {}
     }
 

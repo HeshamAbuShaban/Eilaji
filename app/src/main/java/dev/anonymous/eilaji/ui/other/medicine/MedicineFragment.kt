@@ -66,11 +66,39 @@ class MedicineFragment : Fragment() {
         }
         setupFavorite()
         setupQuantity()
+        setupToolbar()
         try { binding.cardCart?.setOnClickListener { addToCart() } } catch (_: Exception) {}
         try { binding.cardCheckout?.setOnClickListener { goCheckout() } } catch (_: Exception) {}
         setupAvailability()
         setupRating()
         setupAlternatives()
+    }
+
+    private fun setupToolbar() {
+        try {
+            bindingOrNull?.toolbarMedicine?.setOnMenuItemClickListener { item ->
+                if (item.itemId == R.id.share_menu_item) {
+                    shareMedicine()
+                    true
+                } else false
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun shareMedicine() {
+        val dto = currentDto ?: return
+        if (!isAdded) return
+        try {
+            val text = "${dto.titleEn.ifBlank { dto.titleAr }} — ${dto.price ?: 0.0}$" +
+                (if (!dto.descriptionEn.isNullOrBlank()) "\n${dto.descriptionEn}" else "") +
+                "\nvia Eilaji"
+            val share = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(android.content.Intent.EXTRA_SUBJECT, dto.titleEn.ifBlank { dto.titleAr })
+                putExtra(android.content.Intent.EXTRA_TEXT, text)
+            }
+            startActivity(android.content.Intent.createChooser(share, getString(R.string.share)))
+        } catch (_: Exception) {}
     }
 
     override fun onDestroyView() {
@@ -159,6 +187,12 @@ class MedicineFragment : Fragment() {
             }
             binding.tvAvailabilityCount?.visibility = View.VISIBLE
             binding.tvAvailabilityCount?.text = "${top.size} nearby"
+            try {
+                val best = top.maxByOrNull { it.ratingAvg }
+                bindingOrNull?.tvPharmacyRatingAvg?.text = if (best != null && best.totalRatings > 0) {
+                    String.format("%.1f ★ (%d)", best.ratingAvg, best.totalRatings)
+                } else ""
+            } catch (_: Exception) {}
             val ui = ArrayList(top.map { dto ->
                 dev.anonymous.eilaji.models.Pharmacy(uid = dto.id, pharmacy_image_url = dto.imageUrl ?: "", pharmacy_name = dto.name, phone = dto.phone ?: "", address = dto.address, lat = dto.latitude, lng = dto.longitude, token = "", ratingAvg = dto.ratingAvg, totalRatings = dto.totalRatings, isOpen = dto.isOpen, distanceKm = dto.distanceKm)
             })
@@ -260,6 +294,7 @@ class MedicineFragment : Fragment() {
         } catch (_: Exception) { try { startPostponedEnterTransition() } catch (_: Exception) {} }
         bindingOrNull?.textView2?.text = dto.titleEn.ifBlank { dto.titleAr }
         bindingOrNull?.toolbarMedicine?.title = dto.titleEn.ifBlank { dto.titleAr }
+        try { bindingOrNull?.collapsingToolbar?.title = dto.titleEn.ifBlank { dto.titleAr } } catch (_: Exception) {}
         bindingOrNull?.tvMedicineManufacturer?.text = dto.manufacturer ?: ""
         bindingOrNull?.tvMedicineManufacturer?.visibility = if (dto.manufacturer.isNullOrBlank()) View.GONE else View.VISIBLE
         bindingOrNull?.tvMedicineDescription?.text = dto.descriptionEn?.ifBlank { dto.descriptionAr } ?: dto.descriptionAr ?: ""
