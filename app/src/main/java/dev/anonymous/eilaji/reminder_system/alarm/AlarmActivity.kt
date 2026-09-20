@@ -24,6 +24,7 @@ class AlarmActivity : AppCompatActivity() {
     private var vibrator: Vibrator? = null
     @Volatile private var vibrating = false
     private var vibeThread: Thread? = null
+    private var ringtone: android.media.Ringtone? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,19 +51,41 @@ class AlarmActivity : AppCompatActivity() {
         binding.tvAlarmTime.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
 
         startPulse()
+        startAlertTone()
         binding.buTakeNow.setOnClickListener {
-            stopPulse()
+            stopAlert()
             try { (getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager).cancel(nid) } catch (_: Exception) {}
             finish()
         }
         binding.buSnooze.setOnClickListener {
-            stopPulse()
+            stopAlert()
             try {
                 val id = intent.getStringExtra("reminder_id") ?: return@setOnClickListener
                 ReminderScheduler(applicationContext).snoozeOnce(id, text, nid, 10)
             } catch (_: Exception) {}
             finish()
         }
+    }
+
+    /** Strongest default beep/bell: the system's own alarm tone. No custom music. */
+    private fun startAlertTone() {
+        try {
+            val uri = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_ALARM)
+                ?: android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
+                ?: return
+            ringtone = android.media.RingtoneManager.getRingtone(applicationContext, uri)?.also {
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) it.isLooping = true
+                } catch (_: Exception) {}
+                it.play()
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun stopAlert() {
+        stopPulse()
+        try { ringtone?.stop() } catch (_: Exception) {}
+        ringtone = null
     }
 
     private fun startPulse() {
@@ -105,7 +128,7 @@ class AlarmActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        stopPulse()
+        stopAlert()
         super.onDestroy()
     }
 }

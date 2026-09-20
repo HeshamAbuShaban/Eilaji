@@ -91,7 +91,20 @@ class SearchFragment : Fragment() {
 
     private fun setupMedicinesAdapter(medicinesList: ArrayList<Medicine>) {
         with(binding.recVSearchMedicines) {
-            adapter = MedicinesAdapter(medicinesList)
+            adapter = MedicinesAdapter(medicinesList, onItemClick = { med, sharedView ->
+                try {
+                    val intent = android.content.Intent(requireContext(), dev.anonymous.eilaji.ui.other.base.AlternativesActivity::class.java)
+                    intent.putExtra("fragmentType", dev.anonymous.eilaji.storage.enums.FragmentsKeys.medicine.name)
+                    intent.putExtra("medicineId", med.id)
+                    intent.putExtra("sharedTransitionName", try { sharedView.transitionName } catch (_: Exception) { "medicine_image_${med.id}" })
+                    try {
+                        val opts = androidx.core.app.ActivityOptionsCompat.makeSceneTransitionAnimation(
+                            requireActivity(), sharedView, try { sharedView.transitionName } catch (_: Exception) { "medicine_image_${med.id}" }
+                        )
+                        startActivity(intent, opts.toBundle())
+                    } catch (_: Exception) { startActivity(intent) }
+                } catch (_: Exception) {}
+            })
         }
     }
 

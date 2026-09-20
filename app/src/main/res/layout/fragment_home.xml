@@ -112,7 +112,7 @@
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/indicatorAds"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="16dp"
                 android:layout_marginTop="8dp"
                 android:background="@android:color/transparent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -121,11 +121,12 @@
                 app:tabBackground="@drawable/dot_page_selector"
                 app:tabGravity="center"
                 app:tabIndicatorHeight="0dp"
-                app:tabMaxWidth="32dp"
-                app:tabMinWidth="12dp"
-                app:tabMode="scrollable"
-                app:tabPaddingEnd="4dp"
-                app:tabPaddingStart="4dp" />
+                app:tabMaxWidth="28dp"
+                app:tabMinWidth="8dp"
+                app:tabMode="fixed"
+                app:tabPaddingEnd="3dp"
+                app:tabPaddingStart="3dp"
+                app:tabRippleColor="@android:color/transparent" />
 
             <LinearLayout
                 android:id="@+id/linearLayout"

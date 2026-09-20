@@ -28,6 +28,7 @@
 - [Project layout](#project-layout)
 - [CI & releases](#ci--releases)
 - [Roadmap](#roadmap)
+- [Testing the dashboard](docs/TESTING-DASHBOARD.md)
 - [License](#license)
 
 ## Features

@@ -102,6 +102,8 @@ ws.send(JSON.stringify({ type: 'MESSAGE', content: 'Hello!' }));
 
 ## Ops Dashboard (dev)
 
+Full testing guide (loops, roles, troubleshooting): [`docs/TESTING-DASHBOARD.md`](../docs/TESTING-DASHBOARD.md).
+
 Visual tester for pharmacy flows at `http://localhost:8080/dashboard` — sign in with a seed account, no E-Doctor repo needed:
 
 - **Pharmacy tab** — order queue with status advance/cancel/COD-collect, courier simulator slider (drives the app's live tracking map), pending prescriptions with image preview + quote/accept/reject.

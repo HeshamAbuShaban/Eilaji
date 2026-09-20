@@ -17,7 +17,7 @@
         android:padding="@dimen/_2sdp"
         tools:text="@string/pick_a_favorite_sound"
         android:textAlignment="center"
-        android:textColor="@color/white_fixed"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="@dimen/_17ssp"
         android:textStyle="bold" />
 
@@ -30,14 +30,13 @@
         android:text="@string/allow"
         tools:ignore="TextContrastCheck,VisualLintButtonSize" />
     <!--Button Deny-->
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/denyPermissions"
-        style="@style/PrimaryButton"
+        style="@style/Widget.Material3.Button.TonalButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:backgroundTint="@color/c1_reminder_item"
         android:text="@string/deny"
-        android:textColor="@color/red"
+        app:cornerRadius="12dp"
         tools:ignore="TextContrastCheck,VisualLintButtonSize" />
 
 </LinearLayout>

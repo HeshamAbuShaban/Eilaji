@@ -37,14 +37,13 @@
         app:layout_constraintStart_toStartOf="parent"
         tools:ignore="VisualLintButtonSize,TextContrastCheck" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_cancel"
-        style="@style/PrimaryButton"
+        style="@style/Widget.Material3.Button.TonalButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="@string/cancel"
-        android:textColor="@color/white_fixed"
-        android:backgroundTint="#1AFFC4D6"
+        app:cornerRadius="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:elevation="@dimen/_15sdp"

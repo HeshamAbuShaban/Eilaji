@@ -175,4 +175,8 @@
     <string name="unit_weeks">Weeks</string>
     <string name="active_label">Active</string>
     <string name="save_reminder">Save reminder</string>
+    <string name="decrease">Decrease quantity</string>
+    <string name="confirm_card_payment">Confirm card payment</string>
+    <string name="pay_with_fingerprint">Verify it's you to pay by card</string>
+    <string name="card_biometric_hint">Card is confirmed with fingerprint or device PIN at checkout.</string>
 </resources>
