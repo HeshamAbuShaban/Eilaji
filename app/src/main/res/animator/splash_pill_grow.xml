@@ -1,0 +1,16 @@
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <objectAnimator
+        android:duration="500"
+        android:propertyName="scaleX"
+        android:valueFrom="0.6"
+        android:valueTo="1.0"
+        android:valueType="floatType"
+        android:interpolator="@android:interpolator/overshoot" />
+    <objectAnimator
+        android:duration="500"
+        android:propertyName="scaleY"
+        android:valueFrom="0.6"
+        android:valueTo="1.0"
+        android:valueType="floatType"
+        android:interpolator="@android:interpolator/overshoot" />
+</set>

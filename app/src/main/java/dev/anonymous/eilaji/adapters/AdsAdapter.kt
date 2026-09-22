@@ -37,6 +37,12 @@ class AdsAdapter(private var listAds: ArrayList<Ad>, private val onClick: ((Ad) 
                 GeneralUtils.getInstance().loadImage(model.imageUrl).into(ivAds)
                 tvAds.text = model.title
                 root.setOnClickListener { onClick?.invoke(model) }
+                // Ken Burns drift: slow zoom keeps the hero alive
+                try {
+                    ivAds.scaleX = 1f; ivAds.scaleY = 1f
+                    ivAds.animate().scaleX(1.09f).scaleY(1.09f).setDuration(5200)
+                        .setInterpolator(android.view.animation.DecelerateInterpolator()).start()
+                } catch (_: Exception) {}
             }
         }
     }

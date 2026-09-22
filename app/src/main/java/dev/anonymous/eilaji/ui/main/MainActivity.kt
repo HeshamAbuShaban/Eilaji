@@ -20,8 +20,26 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        try { dev.anonymous.eilaji.utils.AppController.applyDynamicIfEnabled(this) } catch (_: Exception) {}
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
+        try {
+            window.statusBarColor = android.graphics.Color.TRANSPARENT
+            window.navigationBarColor = android.graphics.Color.TRANSPARENT
+        } catch (_: Exception) {}
         // Show SplashScreen by it androidx library
-        installSplashScreen()
+        val splash = installSplashScreen()
+        try {
+            splash.setOnExitAnimationListener { provider ->
+                try {
+                    provider.view.alpha = 1f
+                    provider.view.animate().alpha(0f).setDuration(320)
+                        .withEndAction { try { provider.remove() } catch (_: Exception) {} }
+                        .start()
+                } catch (_: Exception) {
+                    try { provider.remove() } catch (_: Exception) {}
+                }
+            }
+        } catch (_: Exception) {}
         setContentView(R.layout.activity_main)
         // bring the isFirstTime value from the shared
         isFirstTime = AppSharedPreferences.getInstance(this).isHeFirstTime

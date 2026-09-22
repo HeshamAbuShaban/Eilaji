@@ -236,6 +236,23 @@ class OrderTrackingFragment : Fragment(), OnMapReadyCallback {
         } catch (_: Exception) {}
     }
 
+    private var composeStatus = androidx.compose.runtime.mutableStateOf("SHIPPED")
+    private var composeProgress = androidx.compose.runtime.mutableStateOf(0.1f)
+    private var composeBound = false
+
+    private fun bindComposeIsland() {
+        try {
+            val cv = binding.composeSteps
+            cv.setViewCompositionStrategy(androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            cv.setContent {
+                androidx.compose.material3.MaterialTheme {
+                    TrackingSteps(status = composeStatus.value, progress = composeProgress.value)
+                }
+            }
+            composeBound = true
+        } catch (_: Exception) {}
+    }
+
     private fun renderMotion(remainKm: Double, eta: Int) {
         try {
             _binding ?: return
@@ -250,6 +267,9 @@ class OrderTrackingFragment : Fragment(), OnMapReadyCallback {
                 "CANCELLED" -> "Cancelled"
                 else -> "On the way"
             }
+            if (!composeBound) bindComposeIsland()
+            composeStatus.value = status
+            composeProgress.value = progress.coerceIn(0f, 1f)
         } catch (_: Exception) {}
     }
 

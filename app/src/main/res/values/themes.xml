@@ -36,7 +36,7 @@
 
     <style name="Theme.App.MySplash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/white</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/avd_splash_pill</item>
         <item name="postSplashScreenTheme">@style/Theme.Eilaji.MainActivity</item>
     </style>
 
@@ -52,7 +52,7 @@
         <item name="android:scaleType">fitXY</item>
         <item name="android:scaleX">1.7</item>
         <item name="android:scaleY">1.7</item>
-        <item name="android:src">@drawable/ic_launcher_foreground</item>
+        <item name="android:src">@drawable/avd_splash_pill</item>
     </style>
 
     <style name="CircularProgressStyle" parent="Widget.Material3.CircularProgressIndicator">

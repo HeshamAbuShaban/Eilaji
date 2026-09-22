@@ -1,0 +1,6 @@
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/splash_pill">
+    <target
+        android:name="pill"
+        android:animation="@animator/splash_pill_grow" />
+</animated-vector>

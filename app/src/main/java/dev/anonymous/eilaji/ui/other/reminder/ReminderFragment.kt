@@ -95,6 +95,7 @@ class ReminderFragment : Fragment(), RequestPermissionsListener {
         setupTimeSection()
         setupRepeatSection()
         setupAutocomplete()
+        try { dev.anonymous.eilaji.utils.SpringFx.pressable(binding.buSaveReminder) } catch (_: Exception) {}
         binding.buSaveReminder.setOnClickListener { onSavePressed() }
         renderTime()
         renderInterval()

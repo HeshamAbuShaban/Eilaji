@@ -41,6 +41,7 @@ class MedicinesAdapter(
 
     companion object {
         fun pop(v: android.view.View) {
+            try { dev.anonymous.eilaji.utils.SpringFx.pop(v); return } catch (_: Exception) {}
             try {
                 v.animate().scaleX(0.82f).scaleY(0.82f).setDuration(80)
                     .withEndAction {

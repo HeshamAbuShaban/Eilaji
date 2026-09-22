@@ -57,6 +57,10 @@ class CheckoutFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        try {
+            val root = requireActivity().findViewById<android.view.ViewGroup>(android.R.id.content)
+            if (root != null) dev.anonymous.eilaji.utils.Glass.frost(activity, binding.blurCheckoutBar, root)
+        } catch (_: Exception) {}
         setupAddress()
         setupPaymentChips()
         setupList()
@@ -158,13 +162,37 @@ class CheckoutFragment : Fragment() {
     private var currentFee = 0.0
     private var currentMinOrder: Double? = null
     private var currentSubtotal = 0.0
+    private var currentPrepMin: Int? = null
+    private var composeTotalsBound = false
+    private var composeSubtotal = androidx.compose.runtime.mutableStateOf(0.0)
+    private var composeFee = androidx.compose.runtime.mutableStateOf(0.0)
+    private var composePrep = androidx.compose.runtime.mutableStateOf<Int?>(null)
+
+    private fun bindTotalsIsland() {
+        if (composeTotalsBound) return
+        try {
+            binding.composeTotals.setViewCompositionStrategy(androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            binding.composeTotals.setContent {
+                androidx.compose.material3.MaterialTheme {
+                    dev.anonymous.eilaji.ui.other.orders.CheckoutTotals(
+                        subtotal = composeSubtotal.value,
+                        fee = composeFee.value,
+                        prepMin = composePrep.value
+                    )
+                }
+            }
+            composeTotalsBound = true
+        } catch (_: Exception) {}
+    }
 
     private fun updateTotal(subtotal: Double) {
         currentSubtotal = subtotal
         val total = subtotal + currentFee
-        binding.tvTotalAmount.text = String.format("%.2f $", total)
-        binding.tvSubtotal.text = String.format("%.2f $", subtotal)
-        binding.tvDeliveryFee.text = String.format("%.2f $", currentFee)
+        try { binding.tvTotalAmount.text = String.format("%.2f $", total) } catch (_: Exception) {}
+        bindTotalsIsland()
+        composeSubtotal.value = subtotal
+        composeFee.value = currentFee
+        composePrep.value = currentPrepMin
     }
 
     private fun refreshFee(pharmacyId: String?) {
@@ -180,9 +208,7 @@ class CheckoutFragment : Fragment() {
                 val dto = response.body()?.data
                 currentFee = dto?.deliveryFee ?: dummyFee(dto?.distanceKm)
                 currentMinOrder = dto?.minOrderAmount
-                try {
-                    binding.tvDeliveryFeeLabel.text = if (dto?.prepTimeMin != null) "Delivery · ~${dto.prepTimeMin} min" else "Delivery"
-                } catch (_: Exception) {}
+                currentPrepMin = dto?.prepTimeMin
                 updateTotal(currentSubtotal)
             }
             override fun onFailure(call: Call<ApiResponse<PharmacyDto>>, t: Throwable) {
@@ -332,10 +358,18 @@ class CheckoutFragment : Fragment() {
             binding.successOverlay.scaleY = 0.85f
             binding.successOverlay.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(320)
                 .setInterpolator(android.view.animation.OvershootInterpolator(1.4f)).start()
-            binding.ivSuccessCheck.scaleX = 0.4f
-            binding.ivSuccessCheck.scaleY = 0.4f
-            binding.ivSuccessCheck.animate().scaleX(1f).scaleY(1f).setDuration(420)
-                .setInterpolator(android.view.animation.OvershootInterpolator(2f)).start()
+            try {
+                binding.lottieSuccess.visibility = View.VISIBLE
+                binding.lottieSuccess.playAnimation()
+            } catch (_: Exception) {
+                try {
+                    binding.ivSuccessCheck.visibility = View.VISIBLE
+                    binding.ivSuccessCheck.scaleX = 0.4f
+                    binding.ivSuccessCheck.scaleY = 0.4f
+                    binding.ivSuccessCheck.animate().scaleX(1f).scaleY(1f).setDuration(420)
+                        .setInterpolator(android.view.animation.OvershootInterpolator(2f)).start()
+                } catch (_: Exception) {}
+            }
             binding.confettiView.burst(110)
             if (orderId != null) {
                 Snackbar.make(binding.root, "Order placed — track it live", Snackbar.LENGTH_LONG)

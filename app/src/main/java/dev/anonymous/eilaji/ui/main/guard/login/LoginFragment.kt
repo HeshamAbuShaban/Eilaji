@@ -37,6 +37,7 @@ class LoginFragment : Fragment() {
         setupViewModel()
         setupListeners()
         observeLoginResult()
+        try { dev.anonymous.eilaji.utils.SpringFx.gradientText(binding.tvLoginTitle) } catch (_: Exception) {}
         playEntrance()
     }
 

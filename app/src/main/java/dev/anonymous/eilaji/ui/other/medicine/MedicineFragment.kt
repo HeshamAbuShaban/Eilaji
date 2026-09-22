@@ -54,6 +54,10 @@ class MedicineFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        try {
+            val root = requireActivity().findViewById<android.view.ViewGroup>(android.R.id.content)
+            if (root != null) dev.anonymous.eilaji.utils.Glass.frost(activity, binding.blurMedicineBar, root)
+        } catch (_: Exception) {}
         try { medicineViewModel.init(requireContext()) } catch (_: Exception) { return }
         if (medicineId != null) loadDetails(medicineId!!)
         else {
@@ -208,6 +212,11 @@ class MedicineFragment : Fragment() {
     }
 
     private fun setupRating() {
+        try {
+            bindingOrNull?.ratingPharmacy?.setOnRatingBarChangeListener { bar, _, _ ->
+                try { dev.anonymous.eilaji.utils.SpringFx.pop(bar) } catch (_: Exception) {}
+            }
+        } catch (_: Exception) {}
         try {
             bindingOrNull?.buRatePharmacy?.setOnClickListener {
                 if (!isAdded || _binding == null) return@setOnClickListener

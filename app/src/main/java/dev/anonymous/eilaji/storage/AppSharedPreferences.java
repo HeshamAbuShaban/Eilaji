@@ -19,7 +19,7 @@ public class AppSharedPreferences {
     }
 
     public enum Theme {
-        light, dark, system
+        light, dark, system, dynamic
     }
 
     private static AppSharedPreferences Instance;
@@ -188,7 +188,7 @@ public class AppSharedPreferences {
     }
 
     public void putTheme(String theme) {
-        if (!theme.equals(Theme.light.name()) && !theme.equals(Theme.dark.name()) && !theme.equals(Theme.system.name())) {
+        if (!theme.equals(Theme.light.name()) && !theme.equals(Theme.dark.name()) && !theme.equals(Theme.system.name()) && !theme.equals(Theme.dynamic.name())) {
             theme = Theme.system.name();
         }
         editor = sharedPreferences.edit();
