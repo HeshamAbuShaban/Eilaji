@@ -63,7 +63,7 @@ fun TrackingSteps(status: String, progress: Float) {
             }
         }
         LinearProgressIndicator(
-            progress = { animProgress },
+            progress = animProgress,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 10.dp),
