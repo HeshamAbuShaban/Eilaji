@@ -45,6 +45,7 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
             val checkedId = when (theme) {
                 AppSharedPreferences.Theme.light.name -> R.id.buThemeLight
                 AppSharedPreferences.Theme.dark.name -> R.id.buThemeDark
+                AppSharedPreferences.Theme.dynamic.name -> R.id.buThemeDynamic
                 else -> R.id.buThemeSystem
             }
             if (binding.toggleThemeGroup.checkedButtonId != checkedId) {
@@ -53,6 +54,7 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
             binding.checkLight.visibility = if (theme == AppSharedPreferences.Theme.light.name) View.VISIBLE else View.GONE
             binding.checkDark.visibility = if (theme == AppSharedPreferences.Theme.dark.name) View.VISIBLE else View.GONE
             binding.checkSystem.visibility = if (theme == AppSharedPreferences.Theme.system.name) View.VISIBLE else View.GONE
+            binding.checkDynamic.visibility = if (theme == AppSharedPreferences.Theme.dynamic.name) View.VISIBLE else View.GONE
         }
         updateChecks(prefs.getTheme())
         fun selectTheme(theme: String) {
@@ -67,12 +69,14 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
             when (checkedId) {
                 R.id.buThemeLight -> selectTheme(AppSharedPreferences.Theme.light.name)
                 R.id.buThemeDark -> selectTheme(AppSharedPreferences.Theme.dark.name)
+                R.id.buThemeDynamic -> selectTheme(AppSharedPreferences.Theme.dynamic.name)
                 R.id.buThemeSystem -> selectTheme(AppSharedPreferences.Theme.system.name)
             }
         }
         binding.buThemeLight.setOnClickListener { selectTheme(AppSharedPreferences.Theme.light.name) }
         binding.buThemeDark.setOnClickListener { selectTheme(AppSharedPreferences.Theme.dark.name) }
         binding.buThemeSystem.setOnClickListener { selectTheme(AppSharedPreferences.Theme.system.name) }
+        binding.buThemeDynamic.setOnClickListener { selectTheme(AppSharedPreferences.Theme.dynamic.name) }
     }
 
     private fun bindIdentity() {

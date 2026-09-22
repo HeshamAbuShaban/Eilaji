@@ -14,6 +14,12 @@ class AlternativesActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        try { dev.anonymous.eilaji.utils.AppController.applyDynamicIfEnabled(this) } catch (_: Exception) {}
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
+        try {
+            window.statusBarColor = android.graphics.Color.TRANSPARENT
+            window.navigationBarColor = android.graphics.Color.TRANSPARENT
+        } catch (_: Exception) {}
         setContentView(R.layout.activity_alternatives)
 
         setupViewModel()

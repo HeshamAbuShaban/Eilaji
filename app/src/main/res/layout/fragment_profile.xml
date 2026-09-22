@@ -171,6 +171,19 @@
                             app:iconGravity="top"
                             app:iconSize="@dimen/_16sdp"
                             app:iconTint="@color/primary_color" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buThemeDynamic"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/theme_dynamic"
+                            android:textSize="@dimen/_11ssp"
+                            app:icon="@drawable/ic_visibility"
+                            app:iconGravity="top"
+                            app:iconSize="@dimen/_16sdp"
+                            app:iconTint="@color/primary_color" />
                     </com.google.android.material.button.MaterialButtonToggleGroup>
 
                     <View
@@ -222,6 +235,11 @@
                         android:visibility="gone" />
                     <ImageView
                         android:id="@+id/checkSystem"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:visibility="gone" />
+                    <ImageView
+                        android:id="@+id/checkDynamic"
                         android:layout_width="0dp"
                         android:layout_height="0dp"
                         android:visibility="gone" />

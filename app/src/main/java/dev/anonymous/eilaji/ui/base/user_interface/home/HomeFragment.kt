@@ -84,6 +84,7 @@ class HomeFragment : Fragment() {
                 else -> "Good evening"
             }
             binding.tvHomeGreeting.text = greet
+            try { dev.anonymous.eilaji.utils.SpringFx.gradientText(binding.tvHomeGreeting) } catch (_: Exception) {}
             val fmt = java.text.SimpleDateFormat("MMM d", java.util.Locale.getDefault())
             binding.tvHomeDate.text = fmt.format(java.util.Date())
         } catch (_: Exception) {}

@@ -182,90 +182,17 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <LinearLayout
+                    <androidx.compose.ui.platform.ComposeView
+                        android:id="@+id/composeTotals"
                         android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
+                        android:id="@+id/tvTotalAmount"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:fontFamily="@font/cairo_medium"
-                            android:text="Subtotal"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            android:id="@+id/tvSubtotal"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/cairo_medium"
-                            android:textColor="?attr/colorOnSurface"
-                            android:textSize="13sp"
-                            tools:text="24.00 $" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:id="@+id/tvDeliveryFeeLabel"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:fontFamily="@font/cairo_medium"
-                            android:text="Delivery"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            android:id="@+id/tvDeliveryFee"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/cairo_medium"
-                            android:textColor="?attr/colorOnSurface"
-                            android:textSize="13sp"
-                            tools:text="1.50 $" />
-
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginVertical="12dp"
-                        android:background="#11000000" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:fontFamily="@font/cairo_medium"
-                            android:text="Total"
-                            android:textColor="?attr/colorOnSurface"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvTotalAmount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/cairo_medium"
-                            android:textColor="@color/primary_color"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            tools:text="24.00 $" />
-
-                    </LinearLayout>
+                        android:visibility="gone"
+                        tools:text="24.00 $" />
 
                 </LinearLayout>
 
@@ -294,12 +221,23 @@
         android:background="@drawable/shape_bottom_sheet"
         android:padding="24dp">
 
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/lottieSuccess"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:contentDescription="@string/order_placed"
+            app:lottie_autoPlay="false"
+            app:lottie_fallbackRes="@drawable/ic_check_circle"
+            app:lottie_loop="false"
+            app:lottie_rawRes="@raw/success_check" />
+
         <ImageView
             android:id="@+id/ivSuccessCheck"
             android:layout_width="72dp"
             android:layout_height="72dp"
             android:contentDescription="@string/order_placed"
-            android:src="@drawable/ic_check_circle" />
+            android:src="@drawable/ic_check_circle"
+            android:visibility="gone" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -319,12 +257,21 @@
 
     </LinearLayout>
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:background="?android:windowBackground"
-        android:elevation="8dp"
+        android:elevation="8dp">
+
+        <eightbitlab.com.blurview.BlurView
+            android:id="@+id/blurCheckoutBar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#40000000"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:padding="16dp">
@@ -345,5 +292,7 @@
             android:text="Place Order" />
 
     </LinearLayout>
+
+    </FrameLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
