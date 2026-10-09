@@ -1,6 +1,7 @@
 package com.eilaji.backend.initialization
 
 import com.eilaji.backend.data.*
+import com.eilaji.backend.security.AppConfig
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteAll
@@ -14,9 +15,37 @@ import org.mindrot.jbcrypt.BCrypt
 
 object DatabaseSeeder {
 
+    /** Random passwords for seeded accounts unless demo credentials were explicitly enabled. */
+    private val generatedPasswords = mutableListOf<String>()
+
+    private fun demoOrRandomPassword(): String {
+        if (AppConfig.seedDemoCredentials) return DEMO_PASSWORD
+        val alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789"
+        val password = (1 until 16).map { alphabet.random() }.joinToString("")
+        generatedPasswords += password
+        return password
+    }
+
+    /** Called once after seeding so the operator sees the generated credentials exactly once. */
+    fun printGeneratedCredentials() {
+        if (AppConfig.seedDemoCredentials) {
+            println("Demo credentials enabled: every seeded account uses the password '$DEMO_PASSWORD'.")
+        } else if (generatedPasswords.isNotEmpty()) {
+            println("Seeded ${generatedPasswords.size} development accounts with random passwords.")
+            println("Set SEED_ON_STARTUP=true to reseed, or create accounts through the app.")
+        }
+    }
+
+    private const val DEMO_PASSWORD = "password123"
+
     const val SEED_VERSION = 2
 
     fun seedIfEmpty() {
+        if (AppConfig.isProduction) {
+            // Seeding must never touch a production database: it writes accounts and demo data.
+            println("WARNING: Seeding requested with APP_PROFILE=prod. Skipped.")
+            return
+        }
         transaction {
             val categoriesCount = Categories.selectAll().count()
             if (categoriesCount == 0L) {
@@ -43,8 +72,8 @@ object DatabaseSeeder {
             }
             val pharmaciesCount = try { Pharmacies.selectAll().count() } catch (_: Exception) { 0 }
             if (pharmaciesCount < 30) {
+                // Only ever adds: seeding never deletes existing chats, orders or pharmacies.
                 println("INFO: Seeding additional pharmacies to reach 30 (current $pharmaciesCount)...")
-                try { Messages.deleteAll(); Chats.deleteAll(); Pharmacies.deleteAll() } catch (_: Exception) { println("WARN: delete failed, continuing") }
                 seedPharmacies()
                 seedChats()
                 println("INFO: Additional pharmacies seeded")
@@ -52,6 +81,7 @@ object DatabaseSeeder {
                 println("INFO: Database already has data, skipping seed")
             }
         }
+        printGeneratedCredentials()
     }
 
     private fun needsV2Reseed(): Boolean {
@@ -88,6 +118,10 @@ object DatabaseSeeder {
         try { Pharmacies.deleteAll() } catch (_: Exception) {}
     }
 
+    /**
+     * Demo accounts with a known password are opt-in (SEED_DEMO_CREDENTIALS=true).
+     * Without that flag the same accounts get a random password that is printed once.
+     */
     private fun seedUsers() {
         println("Seeding users...")
         val users = listOf(
@@ -97,11 +131,12 @@ object DatabaseSeeder {
             Triple(UUID.randomUUID().toString(), "admin@eilaji.com", "ADMIN")
         )
         users.forEach { (id, email, role) ->
+            val password = demoOrRandomPassword()
             Users.insert {
                 it[Users.id] = UUID.fromString(id)
                 it[Users.email] = email
-                it[Users.passwordHash] = BCrypt.hashpw("password123", BCrypt.gensalt())
-                it[Users.fullName] = "Test User $id"
+                it[Users.passwordHash] = BCrypt.hashpw(password, BCrypt.gensalt(AppConfig.bcryptCost))
+                it[Users.fullName] = "Eilaji $role"
                 it[Users.role] = role
                 it[Users.isVerified] = true
                 it[Users.isActive] = true
@@ -260,10 +295,11 @@ object DatabaseSeeder {
         val existing = Users.selectAll().where { Users.email eq email }.singleOrNull()
         if (existing != null) return existing[Users.id]
         val id = UUID.randomUUID()
+        val password = demoOrRandomPassword()
         Users.insert {
             it[Users.id] = id
             it[Users.email] = email
-            it[Users.passwordHash] = BCrypt.hashpw("password123", BCrypt.gensalt())
+            it[Users.passwordHash] = BCrypt.hashpw(password, BCrypt.gensalt(AppConfig.bcryptCost))
             it[Users.fullName] = displayName
             it[Users.role] = "PHARMACIST"
             it[Users.isVerified] = true

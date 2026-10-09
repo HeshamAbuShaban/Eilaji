@@ -2,6 +2,8 @@ package com.eilaji.backend.service
 
 import com.eilaji.backend.data.*
 import com.eilaji.backend.dto.*
+import com.eilaji.backend.security.ApiException
+import io.ktor.http.HttpStatusCode
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -12,6 +14,21 @@ class PrescriptionService(
     private val minioService: MinioService,
     private val eilajiDoctorService: EilajiPlusService? = null,
 ) {
+    companion object {
+        private val REVIEW_STATUSES = setOf(
+            "PENDING", "SENT_TO_PHARMACY", "RECEIVED_QUOTE",
+            "ACCEPTED", "REJECTED", "COMPLETED", "CANCELLED"
+        )
+        private val REVIEW_TRANSITIONS = mapOf(
+            "PENDING" to setOf("SENT_TO_PHARMACY", "REJECTED", "CANCELLED"),
+            "SENT_TO_PHARMACY" to setOf("RECEIVED_QUOTE", "REJECTED", "CANCELLED"),
+            "RECEIVED_QUOTE" to setOf("ACCEPTED", "REJECTED"),
+            "ACCEPTED" to setOf("COMPLETED", "CANCELLED"),
+            "REJECTED" to setOf<String>(),
+            "COMPLETED" to setOf<String>(),
+            "CANCELLED" to setOf<String>()
+        )
+    }
 
     fun createPrescription(userId: String, notes: String?, pharmacyId: UUID?, imageUrl: String): PrescriptionDto {
         val userUuid = UUID.fromString(userId)
@@ -66,21 +83,59 @@ class PrescriptionService(
         }
     }
 
-    fun updatePrescriptionStatus(prescriptionId: UUID, status: String, quotedPrice: Double? = null,
-                                 pharmacistNotes: String? = null): PrescriptionDto? {
+    /**
+     * Reviews a prescription: quote a price and accept or reject it.
+     *
+     * Only the pharmacy that the prescription was sent to (or an admin) may do this, and the
+     * status must move along the review path. ACCEPTED is the state an order can be built from.
+     */
+    fun updatePrescriptionStatus(
+        prescriptionId: UUID,
+        status: String,
+        quotedPrice: Double? = null,
+        pharmacistNotes: String? = null,
+        actorId: String,
+        actorRole: com.eilaji.backend.data.UserRole
+    ): PrescriptionDto {
+        val next = status.trim().uppercase()
+        if (next !in REVIEW_STATUSES) throw ApiException(HttpStatusCode.BadRequest, "Unknown prescription status")
+        if (quotedPrice != null && quotedPrice < 0) throw ApiException(HttpStatusCode.BadRequest, "Quoted price cannot be negative")
+        val notes = pharmacistNotes?.trim()?.take(1000)
+
         return transaction {
+            val prescription = Prescriptions.selectAll().where { Prescriptions.id eq prescriptionId }.singleOrNull()
+                ?: throw ApiException(HttpStatusCode.NotFound, "Prescription not found")
+
+            if (actorRole == com.eilaji.backend.data.UserRole.PHARMACIST) {
+                val actorUuid = try { UUID.fromString(actorId) } catch (_: Exception) {
+                    throw ApiException(HttpStatusCode.Unauthorized, "Invalid user")
+                }
+                val targetPharmacyId = prescription[Prescriptions.selectedPharmacyId]
+                if (targetPharmacyId == null) {
+                    throw ApiException(HttpStatusCode.Forbidden, "This prescription was not sent to a pharmacy")
+                }
+                val owned = Pharmacies.selectAll().where { Pharmacies.ownerUserId eq actorUuid }.map { it[Pharmacies.id] }
+                if (targetPharmacyId !in owned) {
+                    throw ApiException(HttpStatusCode.NotFound, "Prescription not found")
+                }
+            }
+
+            val current = prescription[Prescriptions.status].uppercase()
+            val allowed = REVIEW_TRANSITIONS[current] ?: setOf()
+            if (next !in allowed) throw ApiException(HttpStatusCode.Conflict, "Cannot move a prescription from $current to $next")
+            if (next in setOf("RECEIVED_QUOTE", "ACCEPTED") && quotedPrice == null) {
+                throw ApiException(HttpStatusCode.BadRequest, "A quoted price is required for $next")
+            }
+
             Prescriptions.update({ Prescriptions.id eq prescriptionId }) {
-                it[Prescriptions.status] = status
-                if (quotedPrice != null) {
-                    it[Prescriptions.quotedPrice] = quotedPrice.toBigDecimal()
-                }
-                if (pharmacistNotes != null) {
-                    it[Prescriptions.pharmacistNotes] = pharmacistNotes
-                }
+                it[Prescriptions.status] = next
+                if (quotedPrice != null) it[Prescriptions.quotedPrice] = quotedPrice.toBigDecimal()
+                if (notes != null) it[Prescriptions.pharmacistNotes] = notes
                 it[Prescriptions.updatedAt] = Instant.now()
             }
 
             getPrescriptionDtoById(prescriptionId)
+                ?: throw ApiException(HttpStatusCode.NotFound, "Prescription not found")
         }
     }
 

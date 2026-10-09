@@ -2,12 +2,31 @@ package com.eilaji.backend.service
 
 import com.eilaji.backend.data.*
 import com.eilaji.backend.dto.*
+import com.eilaji.backend.security.ApiException
+import io.ktor.http.HttpStatusCode
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 import java.util.UUID
 
 class ChatService {
+
+    /** A user may only act on a chat they take part in. */
+    fun isParticipant(chatId: UUID, userId: String): Boolean {
+        val userUuid = try { UUID.fromString(userId) } catch (_: Exception) { return false }
+        return transaction {
+            Chats.selectAll()
+                .where { (Chats.id eq chatId) and ((Chats.patientUserId eq userUuid) or (Chats.pharmacyUserId eq userUuid)) }
+                .any()
+        }
+    }
+
+    /** Throws 404 for a chat the caller does not take part in. */
+    fun ensureParticipant(chatId: UUID, userId: String) {
+        if (!isParticipant(chatId, userId)) {
+            throw ApiException(HttpStatusCode.NotFound, "Chat not found")
+        }
+    }
 
     fun getChatsForUser(userId: String, page: Int = 0, pageSize: Int = 20): PaginatedResult<ChatDto> {
         val userUuid = UUID.fromString(userId)
@@ -22,21 +41,7 @@ class ChatService {
             val chats = query
                 .orderBy(Chats.lastMessageAt, SortOrder.DESC_NULLS_LAST)
                 .limit(pageSize, (page * pageSize).toLong())
-                .map { row ->
-                    val isPatient = row[Chats.patientUserId] == userUuid
-                    ChatDto(
-                        id = row[Chats.id].toString(),
-                        prescriptionId = row[Chats.prescriptionId]?.toString(),
-                        pharmacyId = row[Chats.pharmacyUserId].toString(),
-                        pharmacyName = row.getOrNull(Pharmacies.name),
-                        userId = row[Chats.patientUserId].toString(),
-                        userName = row.getOrNull(Users.fullName),
-                        lastMessage = row[Chats.lastMessageText],
-                        lastMessageAt = row[Chats.lastMessageAt]?.toString(),
-                        unreadCount = if (isPatient) row[Chats.unreadCountPatient] else row[Chats.unreadCountPharmacy],
-                        createdAt = row[Chats.createdAt].toString()
-                    )
-                }
+                .map { row -> toDto(row, userUuid) }
 
             PaginatedResult(
                 items = chats,
@@ -55,43 +60,34 @@ class ChatService {
                 .join(Pharmacies, JoinType.LEFT, Chats.pharmacyUserId, Pharmacies.ownerUserId)
                 .selectAll()
                 .where { (Chats.id eq chatId) and ((Chats.patientUserId eq userUuid) or (Chats.pharmacyUserId eq userUuid)) }
-                .map { row ->
-                    val isPatient = row[Chats.patientUserId] == userUuid
-                    ChatDto(
-                        id = row[Chats.id].toString(),
-                        prescriptionId = row[Chats.prescriptionId]?.toString(),
-                        pharmacyId = row[Chats.pharmacyUserId].toString(),
-                        pharmacyName = row.getOrNull(Pharmacies.name),
-                        userId = row[Chats.patientUserId].toString(),
-                        userName = row.getOrNull(Users.fullName),
-                        lastMessage = row[Chats.lastMessageText],
-                        lastMessageAt = row[Chats.lastMessageAt]?.toString(),
-                        unreadCount = if (isPatient) row[Chats.unreadCountPatient] else row[Chats.unreadCountPharmacy],
-                        createdAt = row[Chats.createdAt].toString()
-                    )
-                }.firstOrNull()
+                .map { row -> toDto(row, userUuid) }
+                .firstOrNull()
         }
     }
 
-    fun createChat(userId: String, prescriptionId: UUID?, pharmacyUserId: UUID?): ChatDto {
+    /**
+     * Opens a thread with a pharmacy. The caller always becomes the patient side.
+     * Returns null when the pharmacy (or pharmacist account) does not exist.
+     */
+    fun createChat(userId: String, prescriptionId: UUID?, pharmacyUserId: UUID?): ChatDto? {
         val userUuid = UUID.fromString(userId)
         return transaction {
-            // Accept either a pharmacist user id or a pharmacy entity id (resolves to its owner)
             val resolvedPharmacyUserId = when {
-                pharmacyUserId == null -> UUID.fromString("00000000-0000-0000-0000-000000000000")
+                pharmacyUserId == null -> null // general/support thread without a pharmacy
                 Users.selectAll().where { Users.id eq pharmacyUserId }.singleOrNull() != null -> pharmacyUserId
                 else -> Pharmacies.selectAll().where { Pharmacies.id eq pharmacyUserId }.singleOrNull()
                     ?.let { it[Pharmacies.ownerUserId] }
-                    ?: return@transaction getOrCreateGhostChat(userUuid, prescriptionId)
+                    ?: return@transaction null
             }
-            // Reuse existing thread between the same participants instead of duplicating
+
+            // Reuse the existing thread between the same participants instead of duplicating.
             val existing = Chats.selectAll().where {
-                (Chats.patientUserId eq userUuid) and (Chats.pharmacyUserId eq resolvedPharmacyUserId) and
-                (if (prescriptionId != null) (Chats.prescriptionId eq prescriptionId) else Chats.prescriptionId.isNull())
+                (Chats.patientUserId eq userUuid) and
+                    (if (resolvedPharmacyUserId != null) Chats.pharmacyUserId eq resolvedPharmacyUserId else Chats.pharmacyUserId.isNull()) and
+                    (if (prescriptionId != null) (Chats.prescriptionId eq prescriptionId) else Chats.prescriptionId.isNull())
             }.singleOrNull()
-            if (existing != null) {
-                return@transaction getChatDto(existing[Chats.id])
-            }
+            if (existing != null) return@transaction getChatDto(existing[Chats.id])
+
             val chatId = Chats.insert {
                 it[Chats.prescriptionId] = prescriptionId
                 it[Chats.patientUserId] = userUuid
@@ -107,91 +103,51 @@ class ChatService {
                 it[Chats.updatedAt] = Instant.now()
             } get Chats.id
 
-            Chats.join(Users, JoinType.LEFT, Chats.pharmacyUserId, Users.id)
-                .join(Pharmacies, JoinType.LEFT, Chats.pharmacyUserId, Pharmacies.ownerUserId)
-                .selectAll()
-                .where { Chats.id eq chatId }
-                .map { row ->
-                    ChatDto(
-                        id = row[Chats.id].toString(),
-                        prescriptionId = row[Chats.prescriptionId]?.toString(),
-                        pharmacyId = row[Chats.pharmacyUserId].toString(),
-                        pharmacyName = row.getOrNull(Pharmacies.name),
-                        userId = row[Chats.patientUserId].toString(),
-                        userName = row.getOrNull(Users.fullName),
-                        lastMessage = row[Chats.lastMessageText],
-                        lastMessageAt = row[Chats.lastMessageAt]?.toString(),
-                        unreadCount = 0,
-                        createdAt = row[Chats.createdAt].toString()
-                    )
-                }.first()
+            getChatDto(chatId)
         }
     }
 
-    private fun getChatDto(chatId: UUID): ChatDto {
-        return Chats.join(Users, JoinType.LEFT, Chats.pharmacyUserId, Users.id)
+    private fun getChatDto(chatId: UUID): ChatDto? = transaction {
+        Chats.join(Users, JoinType.LEFT, Chats.pharmacyUserId, Users.id)
             .join(Pharmacies, JoinType.LEFT, Chats.pharmacyUserId, Pharmacies.ownerUserId)
             .selectAll()
             .where { Chats.id eq chatId }
-            .map { row ->
-                ChatDto(
-                    id = row[Chats.id].toString(),
-                    prescriptionId = row[Chats.prescriptionId]?.toString(),
-                    pharmacyId = row[Chats.pharmacyUserId].toString(),
-                    pharmacyName = row.getOrNull(Pharmacies.name),
-                    userId = row[Chats.patientUserId].toString(),
-                    userName = row.getOrNull(Users.fullName),
-                    lastMessage = row[Chats.lastMessageText],
-                    lastMessageAt = row[Chats.lastMessageAt]?.toString(),
-                    unreadCount = 0,
-                    createdAt = row[Chats.createdAt].toString()
-                )
-            }.first()
-    }
-
-    private fun getOrCreateGhostChat(patientUuid: UUID, prescriptionId: UUID?): ChatDto {
-        val ghostId = UUID.fromString("00000000-0000-0000-0000-000000000000")
-        val existing = Chats.selectAll().where {
-            (Chats.patientUserId eq patientUuid) and (Chats.pharmacyUserId eq ghostId) and
-            (if (prescriptionId != null) (Chats.prescriptionId eq prescriptionId) else Chats.prescriptionId.isNull())
-        }.singleOrNull()
-        if (existing != null) return getChatDto(existing[Chats.id])
-        val chatId = Chats.insert {
-            it[Chats.prescriptionId] = prescriptionId
-            it[Chats.patientUserId] = patientUuid
-            it[Chats.pharmacyUserId] = ghostId
-            it[Chats.lastMessageText] = null
-            it[Chats.lastMessageImageUrl] = null
-            it[Chats.lastMessageSenderId] = null
-            it[Chats.lastMessageAt] = Instant.now()
-            it[Chats.unreadCountPatient] = 0
-            it[Chats.unreadCountPharmacy] = 0
-            it[Chats.isArchived] = false
-            it[Chats.createdAt] = Instant.now()
-            it[Chats.updatedAt] = Instant.now()
-        } get Chats.id
-        return getChatDto(chatId)
+            .map { row -> toDto(row, row[Chats.patientUserId]) }
+            .firstOrNull()
     }
 
     fun updateLastMessage(chatId: UUID, message: String, senderId: String, messageType: String = "TEXT", imageUrl: String? = null) {
         val senderUuid = UUID.fromString(senderId)
         transaction {
-            val chat = Chats.selectAll().where { Chats.id eq chatId }.firstOrNull()
-            val isPatient = chat?.get(Chats.patientUserId) == senderUuid
-            val currentPharmacyUnread = chat?.get(Chats.unreadCountPharmacy) ?: 0
-            val currentPatientUnread = chat?.get(Chats.unreadCountPatient) ?: 0
+            val chat = Chats.selectAll().where { Chats.id eq chatId }.firstOrNull() ?: return@transaction
+            val isPatient = chat[Chats.patientUserId] == senderUuid
+            val currentPharmacyUnread = chat[Chats.unreadCountPharmacy]
+            val currentPatientUnread = chat[Chats.unreadCountPatient]
             Chats.update({ Chats.id eq chatId }) {
                 it[Chats.lastMessageText] = if (messageType == "TEXT") message else null
                 it[Chats.lastMessageImageUrl] = if (messageType == "IMAGE") imageUrl else null
                 it[Chats.lastMessageSenderId] = senderUuid
                 it[Chats.lastMessageAt] = Instant.now()
                 it[Chats.updatedAt] = Instant.now()
-                if (isPatient) {
-                    it[Chats.unreadCountPharmacy] = currentPharmacyUnread + 1
-                } else {
-                    it[Chats.unreadCountPatient] = currentPatientUnread + 1
-                }
+                if (isPatient) it[Chats.unreadCountPharmacy] = currentPharmacyUnread + 1
+                else it[Chats.unreadCountPatient] = currentPatientUnread + 1
             }
         }
+    }
+
+    private fun toDto(row: ResultRow, viewerUuid: UUID): ChatDto {
+        val isPatient = row[Chats.patientUserId] == viewerUuid
+        return ChatDto(
+            id = row[Chats.id].toString(),
+            prescriptionId = row[Chats.prescriptionId]?.toString(),
+            pharmacyId = row[Chats.pharmacyUserId]?.toString().orEmpty(),
+            pharmacyName = row.getOrNull(Pharmacies.name),
+            userId = row[Chats.patientUserId].toString(),
+            userName = row.getOrNull(Users.fullName),
+            lastMessage = row[Chats.lastMessageText],
+            lastMessageAt = row[Chats.lastMessageAt]?.toString(),
+            unreadCount = if (isPatient) row[Chats.unreadCountPatient] else row[Chats.unreadCountPharmacy],
+            createdAt = row[Chats.createdAt].toString()
+        )
     }
 }

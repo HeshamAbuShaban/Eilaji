@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(./gradlew :backend:compileKotlin)",
+      "Bash(./gradlew projects:*)",
+      "Bash(./gradlew compileKotlin)",
+      "Bash(tr [:upper:] [:lower:])",
+      "Bash(sudo -S docker logs eilaji-postgres --tail 20)",
+      "Bash(sudo -S docker-compose -f /home/oldbrain_exe/WorkingOn/Eilaji/eilaji-backend/docker-compose.yml down -v)",
+      "Bash(sudo -S docker-compose -f /home/oldbrain_exe/WorkingOn/Eilaji/eilaji-backend/docker-compose.yml up -d)",
+      "Bash(sudo -S docker ps --filter \"name=eilaji-postgres\" --format \"{{.Status}}\")",
+      "Bash(./gradlew :backend:run)",
+      "Bash(kill -9 393687)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:9000/minio/health/live)",
+      "Bash(curl -s http://localhost:8080/health)",
+      "Bash(pkill -f gradlew.*run)",
+      "Bash(xargs kill:*)",
+      "Bash(curl -s -m 5 http://localhost:8080/health)",
+      "Bash(curl -s \"http://localhost:8080/api/v1/medicines?page=0&pageSize=5\")",
+      "Bash(curl -s \"http://localhost:8080/api/v1/pharmacies?page=0&pageSize=5\")",
+      "Bash(curl:*)",
+      "Bash(git push:*)",
+      "Bash(./gradlew :app:compileDebugKotlin)"
+    ]
+  }
+}

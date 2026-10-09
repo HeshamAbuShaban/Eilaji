@@ -4,6 +4,7 @@ import com.eilaji.backend.data.*
 import com.eilaji.backend.dto.*
 import com.eilaji.backend.data.UserRole
 import com.eilaji.backend.security.SecurityUtils
+import com.eilaji.backend.security.callerOr401
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -21,10 +22,8 @@ fun Route.adminRoutes() {
     route("/admin") {
         authenticate("jwt-auth") {
             get("/users") {
-                val principal = call.principal<JWTPrincipal>()
-                val userRole = UserRole.valueOf(principal!!.payload.getClaim("role").asString())
-
-                if (userRole != UserRole.ADMIN) {
+                val caller = call.callerOr401() ?: return@get
+                if (caller.role != UserRole.ADMIN) {
                     call.respond(HttpStatusCode.Forbidden, ApiResponse<Unit>(success = false, error = "Admin access required"))
                     return@get
                 }
@@ -55,15 +54,13 @@ fun Route.adminRoutes() {
                     }
                     call.respond(ApiResponse(success = true, data = mapOf("users" to users)))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.serverError(e)
                 }
             }
 
             put("/users/{id}/verify") {
-                val principal = call.principal<JWTPrincipal>()
-                val userRole = UserRole.valueOf(principal!!.payload.getClaim("role").asString())
-
-                if (userRole != UserRole.ADMIN) {
+                val caller = call.callerOr401() ?: return@put
+                if (caller.role != UserRole.ADMIN) {
                     call.respond(HttpStatusCode.Forbidden, ApiResponse<Unit>(success = false, error = "Admin access required"))
                     return@put
                 }
@@ -103,14 +100,13 @@ fun Route.adminRoutes() {
                         call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "User not found"))
                     }
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.serverError(e)
                 }
             }
 
             post("/medicines") {
-                val principal = call.principal<JWTPrincipal>()
-                val userRole = UserRole.valueOf(principal!!.payload.getClaim("role").asString())
-                if (userRole != UserRole.ADMIN) {
+                val caller = call.callerOr401() ?: return@post
+                if (caller.role != UserRole.ADMIN) {
                     call.respond(HttpStatusCode.Forbidden, ApiResponse<Unit>(success = false, error = "Admin access required"))
                     return@post
                 }
@@ -161,14 +157,13 @@ fun Route.adminRoutes() {
                     }
                     call.respond(HttpStatusCode.Created, ApiResponse(success = true, data = dto))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.serverError(e)
                 }
             }
 
             put("/medicines/{id}") {
-                val principal = call.principal<JWTPrincipal>()
-                val userRole = UserRole.valueOf(principal!!.payload.getClaim("role").asString())
-                if (userRole != UserRole.ADMIN) {
+                val caller = call.callerOr401() ?: return@put
+                if (caller.role != UserRole.ADMIN) {
                     call.respond(HttpStatusCode.Forbidden, ApiResponse<Unit>(success = false, error = "Admin access required"))
                     return@put
                 }
@@ -221,14 +216,13 @@ fun Route.adminRoutes() {
                     if (dto != null) call.respond(ApiResponse(success = true, data = dto))
                     else call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Medicine not found"))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.serverError(e)
                 }
             }
 
             delete("/medicines/{id}") {
-                val principal = call.principal<JWTPrincipal>()
-                val userRole = UserRole.valueOf(principal!!.payload.getClaim("role").asString())
-                if (userRole != UserRole.ADMIN) {
+                val caller = call.callerOr401() ?: return@delete
+                if (caller.role != UserRole.ADMIN) {
                     call.respond(HttpStatusCode.Forbidden, ApiResponse<Unit>(success = false, error = "Admin access required"))
                     return@delete
                 }
@@ -248,14 +242,13 @@ fun Route.adminRoutes() {
                     if (deleted) call.respond(ApiResponse<Unit>(success = true, message = "Medicine deleted"))
                     else call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Medicine not found"))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.serverError(e)
                 }
             }
 
             post("/categories") {
-                val principal = call.principal<JWTPrincipal>()
-                val userRole = UserRole.valueOf(principal!!.payload.getClaim("role").asString())
-                if (userRole != UserRole.ADMIN) {
+                val caller = call.callerOr401() ?: return@post
+                if (caller.role != UserRole.ADMIN) {
                     call.respond(HttpStatusCode.Forbidden, ApiResponse<Unit>(success = false, error = "Admin access required"))
                     return@post
                 }
@@ -288,14 +281,13 @@ fun Route.adminRoutes() {
                     }
                     call.respond(HttpStatusCode.Created, ApiResponse(success = true, data = dto))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.serverError(e)
                 }
             }
 
             put("/categories/{id}") {
-                val principal = call.principal<JWTPrincipal>()
-                val userRole = UserRole.valueOf(principal!!.payload.getClaim("role").asString())
-                if (userRole != UserRole.ADMIN) {
+                val caller = call.callerOr401() ?: return@put
+                if (caller.role != UserRole.ADMIN) {
                     call.respond(HttpStatusCode.Forbidden, ApiResponse<Unit>(success = false, error = "Admin access required"))
                     return@put
                 }
@@ -330,14 +322,13 @@ fun Route.adminRoutes() {
                     if (dto != null) call.respond(ApiResponse(success = true, data = dto))
                     else call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Category not found"))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.serverError(e)
                 }
             }
 
             delete("/categories/{id}") {
-                val principal = call.principal<JWTPrincipal>()
-                val userRole = UserRole.valueOf(principal!!.payload.getClaim("role").asString())
-                if (userRole != UserRole.ADMIN) {
+                val caller = call.callerOr401() ?: return@delete
+                if (caller.role != UserRole.ADMIN) {
                     call.respond(HttpStatusCode.Forbidden, ApiResponse<Unit>(success = false, error = "Admin access required"))
                     return@delete
                 }
@@ -357,14 +348,13 @@ fun Route.adminRoutes() {
                     if (deleted) call.respond(ApiResponse<Unit>(success = true, message = "Category deleted"))
                     else call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Category not found"))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.serverError(e)
                 }
             }
 
             put("/pharmacies/{id}/verify") {
-                val principal = call.principal<JWTPrincipal>()
-                val userRole = UserRole.valueOf(principal!!.payload.getClaim("role").asString())
-                if (userRole != UserRole.ADMIN) {
+                val caller = call.callerOr401() ?: return@put
+                if (caller.role != UserRole.ADMIN) {
                     call.respond(HttpStatusCode.Forbidden, ApiResponse<Unit>(success = false, error = "Admin access required"))
                     return@put
                 }
@@ -405,15 +395,13 @@ fun Route.adminRoutes() {
                     if (result != null) call.respond(ApiResponse(success = true, data = result))
                     else call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Pharmacy not found"))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.serverError(e)
                 }
             }
 
             get("/prescriptions") {
-                val principal = call.principal<JWTPrincipal>()
-                val userRole = UserRole.valueOf(principal!!.payload.getClaim("role").asString())
-
-                if (userRole != UserRole.ADMIN) {
+                val caller = call.callerOr401() ?: return@get
+                if (caller.role != UserRole.ADMIN) {
                     call.respond(HttpStatusCode.Forbidden, ApiResponse<Unit>(success = false, error = "Admin access required"))
                     return@get
                 }
@@ -442,15 +430,13 @@ fun Route.adminRoutes() {
                     }
                     call.respond(ApiResponse(success = true, data = mapOf("prescriptions" to prescriptions)))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.serverError(e)
                 }
             }
 
             get("/analytics") {
-                val principal = call.principal<JWTPrincipal>()
-                val userRole = UserRole.valueOf(principal!!.payload.getClaim("role").asString())
-
-                if (userRole != UserRole.ADMIN) {
+                val caller = call.callerOr401() ?: return@get
+                if (caller.role != UserRole.ADMIN) {
                     call.respond(HttpStatusCode.Forbidden, ApiResponse<Unit>(success = false, error = "Admin access required"))
                     return@get
                 }
@@ -475,7 +461,7 @@ fun Route.adminRoutes() {
                     }
                     call.respond(ApiResponse(success = true, data = stats))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.serverError(e)
                 }
             }
         }

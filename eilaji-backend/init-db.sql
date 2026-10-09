@@ -1,5 +1,7 @@
--- Enable PostGIS extension for geospatial queries (pharmacy location search)
+-- Extensions. pg_trgm backs the medicine substring search; it must be created by a superuser,
+-- which is why it lives here (init script runs as the postgres user on a fresh volume).
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 -- Enum types for type safety
 CREATE TYPE user_role AS ENUM ('PATIENT', 'PHARMACIST', 'DOCTOR', 'ADMIN');
@@ -234,16 +236,9 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_user ON audit_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_entity ON audit_logs(entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created ON audit_logs(created_at DESC);
 
--- Insert default admin user (password: admin123 - CHANGE IN PRODUCTION!)
--- Password hash generated with BCrypt cost factor 10
-INSERT INTO users (email, password_hash, full_name, role, is_verified)
-VALUES (
-    'admin@eilaji.com',
-    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
-    'Eilaji Admin',
-    'ADMIN',
-    TRUE
-) ON CONFLICT (email) DO NOTHING;
+-- No default accounts are created here. Create the first administrator after deployment with the
+-- backend CLI/env flow documented in docs/UPGRADING.md (SEED_ON_STARTUP=true in a dev environment,
+-- or POST /api/v1/auth/register followed by a role promotion in the database).
 
 -- Insert sample categories (bilingual)
 INSERT INTO categories (name_ar, name_en, icon_url, display_order) VALUES

@@ -72,7 +72,9 @@ class MinioService {
                 return@withContext kotlin.Result.failure(IllegalArgumentException("Invalid bucket name format"))
             }
 
-            val sanitizedObjectName = SecurityUtils.sanitizeFilename(objectName)
+            // Only the final path segment is sanitized, so per-patient folders survive
+            // (prescriptions/<userId>/<timestamp>.jpg) while a crafted name cannot escape the bucket.
+            val sanitizedObjectName = sanitizeObjectName(objectName)
 
             val allowedContentTypes = setOf(
                 "image/jpeg", "image/png", "image/gif", "image/webp",
@@ -166,5 +168,26 @@ class MinioService {
 
     fun getPublicUrl(bucket: String, objectName: String): String {
         return "$endpoint/$bucket/$objectName"
+    }
+
+    /**
+     * Keeps the directory structure of an object name and sanitizes each segment:
+     * no "..", no leading "/", no control characters. Returns null when nothing safe is left.
+     */
+    private fun sanitizeObjectName(objectName: String): String {
+        val segments = objectName.split('/')
+        val safeSegments = segments.mapIndexedNotNull { index, segment ->
+            val isLast = index == segments.lastIndex
+            val cleaned = SecurityUtils.sanitizeFilename(segment)
+            when {
+                cleaned.isBlank() && isLast -> null
+                cleaned.isBlank() -> ""
+                else -> cleaned
+            }
+        }
+        val joined = safeSegments.joinToString("/")
+            .removePrefix("/")
+            .replace(Regex("[.][.]"), "_")
+        return joined.ifBlank { "unnamed" }
     }
 }

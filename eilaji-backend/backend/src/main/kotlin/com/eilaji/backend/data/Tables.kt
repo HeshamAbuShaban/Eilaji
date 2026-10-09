@@ -139,7 +139,8 @@ object Prescriptions : Table("prescriptions") {
 object Chats : Table("chats") {
     val id = uuid("id").autoGenerate()
     val patientUserId = reference("patient_user_id", Users.id)
-    val pharmacyUserId = reference("pharmacy_user_id", Users.id)
+    /** Null means a general/support thread with no pharmacy on the other side. */
+    val pharmacyUserId = reference("pharmacy_user_id", Users.id).nullable()
     val prescriptionId = reference("prescription_id", Prescriptions.id).nullable()
     val lastMessageText = text("last_message_text").nullable()
     val lastMessageImageUrl = varchar("last_message_image_url", 500).nullable()
@@ -264,6 +265,31 @@ object AuditLogs : Table("audit_logs") {
     val resourceId = varchar("resource_id", 36).nullable()
     val description = text("description").nullable()
     val metadata = text("metadata").default("")
+    val createdAt = jdaTimestamp("created_at").clientDefault { Instant.now() }
+
+    override val primaryKey = PrimaryKey(id)
+}
+
+object PasswordResetTokens : Table("password_reset_tokens") {
+    val id = uuid("id").autoGenerate()
+    val userId = reference("user_id", Users.id)
+    /** SHA-256 of the token, never the token itself. */
+    val tokenHash = varchar("token_hash", 64)
+    val expiresAt = jdaTimestamp("expires_at")
+    val usedAt = jdaTimestamp("used_at").nullable()
+    val createdAt = jdaTimestamp("created_at").clientDefault { Instant.now() }
+
+    override val primaryKey = PrimaryKey(id)
+}
+
+object OrderItems : Table("order_items") {
+    val id = uuid("id").autoGenerate()
+    val orderId = reference("order_id", Orders.id)
+    val medicineId = reference("medicine_id", Medicines.id).nullable()
+    val medicineName = varchar("medicine_name", 255)
+    val quantity = integer("quantity")
+    val unitPrice = decimal("unit_price", 12, 2)
+    val lineTotal = decimal("line_total", 12, 2)
     val createdAt = jdaTimestamp("created_at").clientDefault { Instant.now() }
 
     override val primaryKey = PrimaryKey(id)
