@@ -13,6 +13,11 @@ import org.junit.jupiter.api.Test
 import java.util.Date
 import java.util.UUID
 
+/**
+ * These tests pin the identity contract that the Ktor `authenticate("jwt-auth")` plugin relies on:
+ * a token from createJWT must contain `sub`, because the plugin's validate block rejects tokens
+ * without it. That claim was missing once and every private route answered 401.
+ */
 class JwtConfigTest {
 
     @Test
@@ -21,7 +26,7 @@ class JwtConfigTest {
         val token = JwtConfig.createJWT(userId, "Test User", "PATIENT", "test@example.com")
         assertNotNull(token)
         assertTrue(token.isNotBlank())
-        val decoded = JwtConfig.verify(token)
+        val decoded = JwtConfig.verifyAccess(token)
         assertEquals(userId, decoded.getClaim("user_id").asString())
         assertEquals("PATIENT", decoded.getClaim("role").asString())
         assertEquals("test@example.com", decoded.getClaim("email").asString())
@@ -31,11 +36,23 @@ class JwtConfigTest {
     }
 
     @Test
-    fun `verify succeeds with correct secret`() {
+    fun `access token carries a subject so the auth plugin can build a principal`() {
         val userId = UUID.randomUUID().toString()
         val token = JwtConfig.createJWT(userId, "Alice", "DOCTOR", "alice@example.com")
-        val decoded = JwtConfig.verify(token)
-        assertEquals(userId, decoded.getClaim("user_id").asString())
+        // The plugin verifies with exactly this verifier and requires a subject.
+        val decoded = JwtConfig.getAccessVerifier().verify(token)
+        assertEquals(userId, decoded.subject)
+        assertNotNull(decoded.subject)
+    }
+
+    @Test
+    fun `refresh token is rejected by the access verifier`() {
+        val userId = UUID.randomUUID().toString()
+        val refreshToken = JwtConfig.createRefreshToken(userId)
+        assertThrows(JWTVerificationException::class.java) {
+            JwtConfig.getAccessVerifier().verify(refreshToken)
+        }
+        assertNotNull(JwtConfig.getRefreshVerifier().verify(refreshToken))
     }
 
     @Test
@@ -45,6 +62,7 @@ class JwtConfigTest {
             .withIssuer(JwtConfig.getIssuer())
             .withAudience(JwtConfig.getAudience())
             .withJWTId(UUID.randomUUID().toString())
+            .withSubject(UUID.randomUUID().toString())
             .withClaim("user_id", UUID.randomUUID().toString())
             .withClaim("role", "PATIENT")
             .withClaim("email", "fake@example.com")
@@ -52,7 +70,7 @@ class JwtConfigTest {
             .withExpiresAt(Date(System.currentTimeMillis() + 3600000))
             .sign(wrongAlgorithm)
         assertThrows(JWTVerificationException::class.java) {
-            JwtConfig.verify(fakeToken)
+            JwtConfig.verifyAccess(fakeToken)
         }
         assertFalse(JwtConfig.validateToken(fakeToken))
         assertNull(JwtConfig.getUserIdFromToken(fakeToken))
@@ -64,12 +82,13 @@ class JwtConfigTest {
             .withIssuer(JwtConfig.getIssuer())
             .withAudience(JwtConfig.getAudience())
             .withJWTId(UUID.randomUUID().toString())
+            .withSubject(UUID.randomUUID().toString())
             .withClaim("role", "PATIENT")
             .withIssuedAt(Date())
             .withExpiresAt(Date(System.currentTimeMillis() + 3600000))
             .sign(JwtConfig.getAlgorithm())
         assertThrows(JWTVerificationException::class.java) {
-            JwtConfig.verify(tokenWithoutUserId)
+            JwtConfig.verifyAccess(tokenWithoutUserId)
         }
     }
 
@@ -79,12 +98,29 @@ class JwtConfigTest {
             .withIssuer(JwtConfig.getIssuer())
             .withAudience(JwtConfig.getAudience())
             .withJWTId(UUID.randomUUID().toString())
+            .withSubject(UUID.randomUUID().toString())
             .withClaim("user_id", UUID.randomUUID().toString())
             .withIssuedAt(Date())
             .withExpiresAt(Date(System.currentTimeMillis() + 3600000))
             .sign(JwtConfig.getAlgorithm())
         assertThrows(JWTVerificationException::class.java) {
-            JwtConfig.verify(tokenWithoutRole)
+            JwtConfig.verifyAccess(tokenWithoutRole)
+        }
+    }
+
+    @Test
+    fun `verify fails when missing subject claim`() {
+        val tokenWithoutSubject = JWT.create()
+            .withIssuer(JwtConfig.getIssuer())
+            .withAudience(JwtConfig.getAudience())
+            .withJWTId(UUID.randomUUID().toString())
+            .withClaim("user_id", UUID.randomUUID().toString())
+            .withClaim("role", "PATIENT")
+            .withIssuedAt(Date())
+            .withExpiresAt(Date(System.currentTimeMillis() + 3600000))
+            .sign(JwtConfig.getAlgorithm())
+        assertThrows(JWTVerificationException::class.java) {
+            JwtConfig.verifyAccess(tokenWithoutSubject)
         }
     }
 
@@ -109,13 +145,13 @@ class JwtConfigTest {
     }
 
     @Test
-    fun `blacklist revokes token`() {
+    fun `revoking a token invalidates it`() {
         val userId = UUID.randomUUID().toString()
         val token = JwtConfig.createJWT(userId, "Dave", "PATIENT", "dave@example.com")
         assertTrue(JwtConfig.validateToken(token))
-        JwtConfig.blacklistToken(token)
+        JwtConfig.revokeToken(token)
         assertThrows(JWTVerificationException::class.java) {
-            JwtConfig.verify(token)
+            JwtConfig.verifyAccess(token)
         }
         assertFalse(JwtConfig.validateToken(token))
         assertNull(JwtConfig.getUserIdFromToken(token))
@@ -141,9 +177,9 @@ class JwtConfigTest {
     }
 
     @Test
-    fun `getVerifier returns working verifier`() {
-        assertNotNull(JwtConfig.getVerifier())
+    fun `access verifier returns working verifier`() {
+        assertNotNull(JwtConfig.getAccessVerifier())
         val token = JwtConfig.createJWT(UUID.randomUUID().toString(), "Eve", "PATIENT", "eve@example.com")
-        assertNotNull(JwtConfig.getVerifier().verify(token))
+        assertNotNull(JwtConfig.getAccessVerifier().verify(token))
     }
 }

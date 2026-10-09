@@ -99,22 +99,39 @@ services:
       dockerfile: backend/Dockerfile
     container_name: eilaji-backend
     environment:
+      APP_PROFILE: ${APP_PROFILE:-prod}
       DATABASE_URL: jdbc:postgresql://postgres:5432/eilaji_db
       DATABASE_USER: eilaji
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-eilaji_secure_password_prod}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-eilaji_redis_secure}
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_ISSUER: eilaji
-      JWT_EXPIRATION: 86400
-      JWT_REFRESH_EXPIRATION: 604800
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?DATABASE_PASSWORD must be set}
+      DATABASE_POOL_SIZE: "10"
+      REDIS_URL: redis://:${REDIS_PASSWORD:-eilaji_redis_secure}@redis:6379
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set (>= 32 characters)}
+      JWT_ISSUER: eilaji-backend
+      JWT_AUDIENCE: eilaji-client
+      JWT_REALM: "Eilaji API"
+      JWT_EXPIRES_IN: "3600000"
+      JWT_REFRESH_EXPIRES_IN: "2592000000"
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-eilaji_minio_admin}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-eilaji_minio_secure_prod}
-      MINIO_BUCKET_PRESCRIPTIONS: prescriptions
-      SERVER_PORT: 8080
-      ENV: production
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY must be set}
+      MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT:-http://localhost:9000}
+      SERVER_PORT: "8080"
+      MAX_UPLOAD_BYTES: "8388608"
+      MAX_WS_FRAME_BYTES: "1048576"
+      SEARCH_MAX_RADIUS_KM: "50"
+      SEED_ON_STARTUP: "${SEED_ON_STARTUP:-false}"
+      BCRYPT_COST: "12"
+      PASSWORD_RESET_TTL_MINUTES: "30"
+      # Dashboard origin(s) allowed to call the API from a browser, comma separated.
+      CORS_ALLOWED_HOSTS: ${CORS_ALLOWED_HOSTS:-}
+      RATE_LIMIT_LOGIN: "5"
+      RATE_LIMIT_REGISTER: "3"
+      RATE_LIMIT_REFRESH: "10"
+      RATE_LIMIT_PER_MINUTE: "100"
+      RATE_LIMIT_FAIL_CLOSED: "${RATE_LIMIT_FAIL_CLOSED:-true}"
+      EILAJI_PLUS_BASE_URL: ${EILAJI_PLUS_BASE_URL:-}
+      EILAJI_PLUS_API_KEY: ${EILAJI_PLUS_API_KEY:-}
+      EILAJI_PLUS_WEBHOOK_SECRET: ${EILAJI_PLUS_WEBHOOK_SECRET:-}
     ports:
       - "8080:8080"
     depends_on:

@@ -31,6 +31,24 @@ data class RefreshTokenRequest(
 )
 
 @Serializable
+data class PrescriptionStatusRequest(
+    val status: String,
+    val quotedPrice: Double? = null,
+    val pharmacistNotes: String? = null
+)
+
+@Serializable
+data class ForgotPasswordRequest(
+    val email: String
+)
+
+@Serializable
+data class ResetPasswordRequest(
+    val token: String,
+    val newPassword: String
+)
+
+@Serializable
 data class UserDto(
     val id: String,
     val email: String,

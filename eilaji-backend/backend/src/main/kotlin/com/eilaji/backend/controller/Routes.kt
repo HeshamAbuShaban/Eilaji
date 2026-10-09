@@ -2,11 +2,19 @@ package com.eilaji.backend.routes
 
 import com.eilaji.backend.data.*
 import com.eilaji.backend.dto.*
+import com.eilaji.backend.security.ApiException
+import com.eilaji.backend.security.AppConfig
 import com.eilaji.backend.security.AuditService
 import com.eilaji.backend.security.JwtConfig
 import com.eilaji.backend.security.SecurityUtils
+import com.eilaji.backend.security.callerOr401
 import com.eilaji.backend.service.*
+import com.eilaji.backend.controller.apiError
+import com.eilaji.backend.controller.boundingBox
+import com.eilaji.backend.controller.escapeLike
+import com.eilaji.backend.controller.verifyWebhookSignature
 import com.eilaji.backend.controller.registerAuthRoutes
+import com.eilaji.backend.controller.serverError
 import com.eilaji.backend.websocket.WebSocketController
 import com.eilaji.backend.websocket.WebSocketSessionManager
 import io.ktor.http.*
@@ -24,10 +32,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.LowerCase
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.mindrot.jbcrypt.BCrypt
-import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
 
@@ -44,15 +52,6 @@ fun Route.apiRoutes(
     val chatService = ChatService()
     val messageService = MessageService()
     val orderService = OrderService()
-
-    fun getAuthenticatedUserId(call: ApplicationCall): String? {
-        return try {
-            val principal = call.principal<JWTPrincipal>()
-            principal?.payload?.subject
-        } catch (e: Exception) {
-            null
-        }
-    }
 
     fun validateUuid(uuid: String): Boolean {
         return SecurityUtils.isValidUuid(uuid)
@@ -71,9 +70,10 @@ fun Route.apiRoutes(
                 try {
                     val result = transaction {
                         val baseQuery = if (subcategoryId != null) {
-                            Medicines.selectAll().where { Medicines.subcategoryId eq subcategoryId }
-                        } else {
                             Medicines.selectAll()
+                                .where { (Medicines.subcategoryId eq subcategoryId) and (Medicines.isActive eq true) }
+                        } else {
+                            Medicines.selectAll().where { Medicines.isActive eq true }
                         }
 
                         val total = baseQuery.count()
@@ -111,7 +111,7 @@ fun Route.apiRoutes(
                     }
                     call.respond(ApiResponse(success = true, data = result))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.serverError(e)
                 }
             }
 
@@ -127,13 +127,17 @@ fun Route.apiRoutes(
 
                 try {
                     val result = transaction {
-                        val searchPattern = "%$query%"
+                        // lower() on both sides keeps the search case-insensitive;
+                        // escapeLike stops user input from becoming a LIKE wildcard.
+                        val searchPattern = escapeLike(query.lowercase())
                         val baseQuery = Medicines.selectAll().where {
-                            Medicines.titleEn.like(searchPattern) or
-                            Medicines.titleAr.like(searchPattern) or
-                            (Medicines.descriptionEn like searchPattern) or
-                            (Medicines.descriptionAr like searchPattern) or
-                            (Medicines.manufacturer like searchPattern)
+                            (Medicines.isActive eq true) and (
+                                LowerCase(Medicines.titleEn).like(searchPattern) or
+                                    LowerCase(Medicines.titleAr).like(searchPattern) or
+                                    Medicines.descriptionEn.like(searchPattern) or
+                                    Medicines.descriptionAr.like(searchPattern) or
+                                    Medicines.manufacturer.like(searchPattern)
+                                )
                         }
 
                         val total = baseQuery.count()
@@ -171,7 +175,7 @@ fun Route.apiRoutes(
                     }
                     call.respond(ApiResponse(success = true, data = result))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.serverError(e)
                 }
             }
 
@@ -185,7 +189,7 @@ fun Route.apiRoutes(
 
                 try {
                     val medicine = transaction {
-                        Medicines.selectAll().where { Medicines.id eq id }
+                        Medicines.selectAll().where { (Medicines.id eq id) and (Medicines.isActive eq true) }
                             .map { row ->
                                 MedicineDto(
                                     id = row[Medicines.id].toString(),
@@ -214,7 +218,7 @@ fun Route.apiRoutes(
                         call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Medicine not found"))
                     }
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.serverError(e)
                 }
             }
         }
@@ -249,7 +253,7 @@ fun Route.apiRoutes(
                     }
                     call.respond(ApiResponse(success = true, data = categories))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.serverError(e)
                 }
             }
         }
@@ -258,7 +262,8 @@ fun Route.apiRoutes(
             get("/nearby") {
                 val lat = call.request.queryParameters["lat"]?.toDoubleOrNull()
                 val lng = call.request.queryParameters["lng"]?.toDoubleOrNull()
-                val radius = call.request.queryParameters["radius"]?.toDoubleOrNull() ?: 10.0
+                val radius = (call.request.queryParameters["radius"]?.toDoubleOrNull() ?: 10.0)
+                    .coerceIn(0.5, AppConfig.searchMaxRadiusKm)
 
                 if (lat == null || lng == null) {
                     call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Latitude and longitude required"))
@@ -266,8 +271,16 @@ fun Route.apiRoutes(
                 }
 
                 try {
+                    val box = boundingBox(lat, lng, radius)
                     val pharmacies = transaction {
-                        Pharmacies.selectAll().map { row ->
+                        Pharmacies.selectAll()
+                            .where {
+                                (Pharmacies.latitude greaterEq box.minLat) and
+                                    (Pharmacies.latitude lessEq box.maxLat) and
+                                    (Pharmacies.longitude greaterEq box.minLng) and
+                                    (Pharmacies.longitude lessEq box.maxLng)
+                            }
+                            .map { row ->
                             val plat = row[Pharmacies.latitude]
                             val plng = row[Pharmacies.longitude]
                             val d = haversineKm(lat, lng, plat, plng)
@@ -290,12 +303,14 @@ fun Route.apiRoutes(
                                 isVerified = row[Pharmacies.isVerified],
                                 distanceKm = d
                             )
-                        }.filter { (it.distanceKm ?: Double.MAX_VALUE) <= radius }
+                        }
+                            .filter { (it.distanceKm ?: Double.MAX_VALUE) <= radius }
                             .sortedBy { it.distanceKm }
+                            .take(100)
                     }
                     call.respond(ApiResponse(success = true, data = pharmacies))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.serverError(e)
                 }
             }
 
@@ -347,7 +362,7 @@ fun Route.apiRoutes(
                     }
                     call.respond(ApiResponse(success = true, data = result))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.serverError(e)
                 }
             }
             get("/pharmacies/{id}/stock") {
@@ -374,7 +389,7 @@ fun Route.apiRoutes(
                     }
                     call.respond(ApiResponse(success = true, data = items))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.serverError(e)
                 }
             }
             get("/pharmacies/{id}/ratings") {
@@ -390,6 +405,7 @@ fun Route.apiRoutes(
                         if (!pharmacyExists) return@transaction null
                         (Ratings innerJoin Users).selectAll().where { Ratings.pharmacyId eq pharmacyId }
                             .orderBy(Ratings.createdAt, SortOrder.DESC)
+                            .limit(50)
                             .map { row ->
                                 RatingDto(
                                     id = row[Ratings.id].toString(),
@@ -407,7 +423,7 @@ fun Route.apiRoutes(
                         call.respond(ApiResponse(success = true, data = ratings))
                     }
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.serverError(e)
                 }
             }
         }
@@ -418,8 +434,8 @@ fun Route.apiRoutes(
         route("/api/v1") {
             route("/user") {
                 get {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
+                    val caller = call.callerOr401() ?: return@get
+                    val userId = caller.userId
 
                     if (!validateUuid(userId)) {
                         call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
@@ -449,12 +465,12 @@ fun Route.apiRoutes(
                             call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "User not found"))
                          }
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.serverError(e)
                     }
                 }
                 put {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
+                    val caller = call.callerOr401() ?: return@put
+                    val userId = caller.userId
                     if (!validateUuid(userId)) {
                         call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
                         return@put
@@ -486,12 +502,12 @@ fun Route.apiRoutes(
                         if (updated != null) call.respond(ApiResponse(success = true, data = updated))
                         else call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "User not found"))
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.serverError(e)
                     }
                 }
                 put("/password") {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
+                    val caller = call.callerOr401() ?: return@put
+                    val userId = caller.userId
                     if (!validateUuid(userId)) {
                         call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
                         return@put
@@ -522,14 +538,14 @@ fun Route.apiRoutes(
                             else -> call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = "Unknown error"))
                         }
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.serverError(e)
                     }
                 }
             }
             route("/users") {
                 put("/change-password") {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
+                    val caller = call.callerOr401() ?: return@put
+                    val userId = caller.userId
                     if (!validateUuid(userId)) {
                         call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
                         return@put
@@ -560,15 +576,15 @@ fun Route.apiRoutes(
                             else -> call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = "Unknown error"))
                         }
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.serverError(e)
                     }
                 }
             }
 
             route("/prescriptions") {
                 post {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
+                    val caller = call.callerOr401() ?: return@post
+                    val userId = caller.userId
 
                     if (!validateUuid(userId)) {
                         call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
@@ -592,9 +608,26 @@ fun Route.apiRoutes(
                                 }
                                 is PartData.FileItem -> {
                                     if (part.name == "image") {
+                                        val declared = part.headers["Content-Length"]?.toLongOrNull()
+                                        if (declared != null && declared > AppConfig.maxUploadBytes) {
+                                            throw ApiException(
+                                                HttpStatusCode.PayloadTooLarge,
+                                                "Image is larger than ${AppConfig.maxUploadBytes / 1024 / 1024} MB"
+                                            )
+                                        }
                                         val bytes = part.streamProvider().readBytes()
+                                        if (bytes.size > AppConfig.maxUploadBytes) {
+                                            throw ApiException(
+                                                HttpStatusCode.PayloadTooLarge,
+                                                "Image is larger than ${AppConfig.maxUploadBytes / 1024 / 1024} MB"
+                                            )
+                                        }
                                         imageData = bytes
-                                        imageContentType = part.contentType?.toString() ?: "image/jpeg"
+                                        val contentType = part.contentType?.toString().orEmpty()
+                                        if (contentType.isNotBlank() && !contentType.startsWith("image/")) {
+                                            throw ApiException(HttpStatusCode.BadRequest, "Only image files are accepted")
+                                        }
+                                        imageContentType = contentType.ifBlank { "image/jpeg" }
                                     }
                                 }
                                 else -> {}
@@ -602,7 +635,8 @@ fun Route.apiRoutes(
                             part.dispose()
                         }
 
-                        if (imageData == null) {
+                        val image = imageData
+                        if (image == null) {
                             call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Image required"))
                             return@post
                         }
@@ -613,7 +647,7 @@ fun Route.apiRoutes(
                         val uploadResult = minioService.uploadFile(
                             bucket = "prescriptions",
                             objectName = objectName,
-                            inputStream = java.io.ByteArrayInputStream(imageData!!),
+                            inputStream = java.io.ByteArrayInputStream(image),
                             contentType = imageContentType
                         )
 
@@ -632,13 +666,13 @@ fun Route.apiRoutes(
 
                         call.respond(HttpStatusCode.Created, ApiResponse(success = true, data = prescriptionResult))
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.apiError(e)
                     }
                 }
 
                 get {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
+                    val caller = call.callerOr401() ?: return@get
+                    val userId = caller.userId
 
                     val status = call.request.queryParameters["status"]
                     val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
@@ -648,13 +682,13 @@ fun Route.apiRoutes(
                         val result = prescriptionService.getPrescriptionsForUser(userId, status, page, pageSize)
                         call.respond(ApiResponse(success = true, data = result))
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.serverError(e)
                     }
                 }
 
                 get("/{id}") {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
+                    val caller = call.callerOr401() ?: return@get
+                    val userId = caller.userId
                     val idStr = call.parameters["id"]
                     val id = idStr?.let { UUID.fromString(it) }
 
@@ -665,22 +699,68 @@ fun Route.apiRoutes(
 
                     try {
                         val prescription = prescriptionService.getPrescriptionById(id)
+                        val isOwnerOrAdmin = prescription != null &&
+                            (prescription.userId == userId || caller.role == com.eilaji.backend.data.UserRole.ADMIN)
 
-                        if (prescription != null && prescription.userId == userId) {
+                        if (isOwnerOrAdmin) {
                             call.respond(ApiResponse(success = true, data = prescription))
                         } else {
                             call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Prescription not found"))
                         }
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.serverError(e)
+                    }
+                }
+
+                /**
+                 * Pharmacist/admin triage for a prescription: quote a price and accept or reject it.
+                 * This is the endpoint the order flow depends on, because an order can only be
+                 * created from an ACCEPTED prescription.
+                 */
+                put("/{id}/status") {
+                    val caller = call.callerOr401() ?: return@put
+                    if (caller.role != com.eilaji.backend.data.UserRole.PHARMACIST &&
+                        caller.role != com.eilaji.backend.data.UserRole.ADMIN
+                    ) {
+                        call.respond(
+                            HttpStatusCode.Forbidden,
+                            ApiResponse<Unit>(success = false, error = "Only pharmacists and admins can review prescriptions")
+                        )
+                        return@put
+                    }
+                    val idStr = call.parameters["id"]
+                    val id = idStr?.let { try { UUID.fromString(it) } catch (_: Exception) { null } }
+                    if (id == null) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid ID"))
+                        return@put
+                    }
+                    try {
+                        val request = Json { ignoreUnknownKeys = true }.decodeFromString<PrescriptionStatusRequest>(call.receiveText())
+                        val updated = prescriptionService.updatePrescriptionStatus(
+                            prescriptionId = id,
+                            status = request.status,
+                            quotedPrice = request.quotedPrice,
+                            pharmacistNotes = request.pharmacistNotes,
+                            actorId = caller.userId,
+                            actorRole = caller.role
+                        )
+                        AuditService.logEvent(
+                            eventType = AuditService.EventType.PRESCRIPTION_UPLOADED,
+                            userId = caller.userId,
+                            resourceId = id.toString(),
+                            description = "Prescription status set to ${request.status}"
+                        )
+                        call.respond(ApiResponse(success = true, data = updated))
+                    } catch (e: Exception) {
+                        call.apiError(e)
                     }
                 }
             }
 
             route("/chats") {
                 get {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
+                    val caller = call.callerOr401() ?: return@get
+                    val userId = caller.userId
                     val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 0
                     val pageSize = (call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20).coerceIn(1, 50)
 
@@ -688,28 +768,47 @@ fun Route.apiRoutes(
                         val result = chatService.getChatsForUser(userId, page, pageSize)
                         call.respond(ApiResponse(success = true, data = result))
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.serverError(e)
                     }
                 }
 
                 post {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
+                    val caller = call.callerOr401() ?: return@post
+                    val userId = caller.userId
 
                     try {
-                        val request = Json.decodeFromString<CreateChatRequest>(call.receiveText())
-                        val prescriptionId = request.prescriptionId?.let { UUID.fromString(it) }
-                        val pharmacyId = request.pharmacyId?.let { UUID.fromString(it) }
+                        val request = try {
+                            Json.decodeFromString<CreateChatRequest>(call.receiveText())
+                        } catch (e: Exception) {
+                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid request body"))
+                            return@post
+                        }
+                        val prescriptionId = request.prescriptionId?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                            try { UUID.fromString(it) } catch (_: Exception) {
+                                call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid prescriptionId"))
+                                return@post
+                            }
+                        }
+                        val pharmacyId = request.pharmacyId?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                            try { UUID.fromString(it) } catch (_: Exception) {
+                                call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid pharmacyId"))
+                                return@post
+                            }
+                        }
                         val chat = chatService.createChat(userId, prescriptionId, pharmacyId)
-                        call.respond(HttpStatusCode.Created, ApiResponse(success = true, data = chat))
+                        if (chat == null) {
+                            call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Pharmacy not found"))
+                        } else {
+                            call.respond(HttpStatusCode.Created, ApiResponse(success = true, data = chat))
+                        }
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.apiError(e)
                     }
                 }
 
                 get("/{chatId}/messages") {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
+                    val caller = call.callerOr401() ?: return@get
+                    val userId = caller.userId
                     val chatIdStr = call.parameters["chatId"]
                     val chatId = chatIdStr?.let { UUID.fromString(it) }
 
@@ -725,13 +824,13 @@ fun Route.apiRoutes(
                         val result = messageService.getMessagesForChat(chatId, userId, page, pageSize)
                         call.respond(ApiResponse(success = true, data = result))
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.apiError(e)
                     }
                 }
 
                 post("/{chatId}/read") {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
+                    val caller = call.callerOr401() ?: return@post
+                    val userId = caller.userId
                     val chatIdStr = call.parameters["chatId"]
                     val chatId = chatIdStr?.let { UUID.fromString(it) }
 
@@ -744,7 +843,7 @@ fun Route.apiRoutes(
                         val count = messageService.markChatAsRead(chatId, userId)
                         call.respond(ApiResponse(success = true, data = mapOf("markedCount" to count)))
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.apiError(e)
                     }
                 }
             }
@@ -755,7 +854,7 @@ fun Route.apiRoutes(
                         val onlineUsers = redisService.getOnlineUsers()
                         call.respond(ApiResponse(success = true, data = mapOf("onlineUsers" to onlineUsers.toList())))
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.serverError(e)
                     }
                 }
 
@@ -771,7 +870,7 @@ fun Route.apiRoutes(
                         val isOnline = redisService.isUserOnline(targetUserId)
                         call.respond(ApiResponse(success = true, data = mapOf("userId" to targetUserId, "isOnline" to isOnline)))
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.serverError(e)
                     }
                 }
             }
@@ -783,7 +882,33 @@ fun Route.apiRoutes(
                             call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Eilaji-Plus not configured"))
                             return@post
                         }
-                        val webhookRequest = Json.decodeFromString<EilajiPlusWebhookRequest>(call.receiveText())
+                        val rawBody = call.receiveText()
+                        val secret = AppConfig.eilajiPlusWebhookSecret
+                        when {
+                            secret.isNotBlank() -> {
+                                val signature = call.request.header("X-Eilaji-Signature")
+                                if (!verifyWebhookSignature(secret, rawBody, signature)) {
+                                    AuditService.logSuspiciousActivity(
+                                        userId = null,
+                                        description = "Rejected Eilaji-Plus webhook with a bad signature",
+                                        ipAddress = call.request.local.remoteHost
+                                    )
+                                    call.respond(
+                                        HttpStatusCode.Unauthorized,
+                                        ApiResponse<Unit>(success = false, error = "Invalid webhook signature")
+                                    )
+                                    return@post
+                                }
+                            }
+                            AppConfig.isProduction -> {
+                                call.respond(
+                                    HttpStatusCode.ServiceUnavailable,
+                                    ApiResponse<Unit>(success = false, error = "Webhook signing is not configured")
+                                )
+                                return@post
+                            }
+                        }
+                        val webhookRequest = Json.decodeFromString<EilajiPlusWebhookRequest>(rawBody)
                         val success = eilajiPlusService.processWebhook(webhookRequest)
 
                         if (success) {
@@ -792,7 +917,7 @@ fun Route.apiRoutes(
                             call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Failed to process webhook"))
                         }
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.serverError(e)
                     }
                 }
             }
@@ -806,12 +931,12 @@ fun Route.apiRoutes(
                 }
 
                 try {
-                    val decodedJWT = JwtConfig.verify(token)
+                    val decodedJWT = JwtConfig.verifyAccess(token)
                     val userId = decodedJWT.getClaim("user_id").asString()
 
                     if (userId.isNotBlank()) {
                         val sessionManager = WebSocketSessionManager(messageService, chatService, redisService)
-                        val webSocketController = WebSocketController(sessionManager, redisService, messageService)
+                        val webSocketController = WebSocketController(sessionManager, redisService, messageService, chatService)
                         webSocketController.handleWebSocketSession(this, userId)
                     } else {
                         close(CloseReason(1008, "Invalid token"))
@@ -823,40 +948,43 @@ fun Route.apiRoutes(
 
             route("/orders") {
                 post {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
+                    val caller = call.callerOr401() ?: return@post
+                    val userId = caller.userId
 
                     try {
                         val request = Json { ignoreUnknownKeys = true }.decodeFromString<OrderService.OrderCreateRequest>(call.receiveText())
                         val order = orderService.createOrder(request, userId)
-
-                        if (order != null) {
-                            call.respond(HttpStatusCode.Created, ApiResponse<OrderService.OrderResult>(success = true, data = order))
-                        } else {
-                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Failed to create order. Ensure prescription is accepted."))
-                        }
+                        AuditService.logEvent(
+                            eventType = AuditService.EventType.ORDER_CREATED,
+                            userId = userId,
+                            resourceId = order.id,
+                            description = "Order created"
+                        )
+                        call.respond(HttpStatusCode.Created, ApiResponse<OrderService.OrderResult>(success = true, data = order))
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.apiError(e)
                     }
                 }
 
                 get {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
-                    val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
+                    val caller = call.callerOr401() ?: return@get
+                    val userId = caller.userId
+                    val userRole = caller.role
+                    val page = (call.request.queryParameters["page"]?.toIntOrNull() ?: 0).coerceAtLeast(0)
+                    val pageSize = (call.request.queryParameters["pageSize"]?.toIntOrNull() ?: 20).coerceIn(1, 50)
 
                     try {
-                        val orders = orderService.getUserOrders(userId, userRole)
+                        val orders = orderService.getUserOrders(userId, userRole, page, pageSize)
                         call.respond(ApiResponse(success = true, data = orders))
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.serverError(e)
                     }
                 }
 
                 get("/{id}") {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
-                    val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
+                    val caller = call.callerOr401() ?: return@get
+                    val userId = caller.userId
+                    val userRole = caller.role
                     val orderId = call.parameters["id"]
 
                     if (orderId == null) {
@@ -872,14 +1000,14 @@ fun Route.apiRoutes(
                             call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Order not found or access denied"))
                         }
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.serverError(e)
                     }
                 }
 
                 put("/{id}/status") {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
-                    val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
+                    val caller = call.callerOr401() ?: return@put
+                    val userId = caller.userId
+                    val userRole = caller.role
                     val orderId = call.parameters["id"]
 
                     if (orderId == null) {
@@ -895,21 +1023,44 @@ fun Route.apiRoutes(
                     try {
                         val request = Json.decodeFromString<OrderService.OrderUpdateStatusRequest>(call.receiveText())
                         val order = orderService.updateOrderStatus(orderId, request.status, request.paymentStatus, userId, userRole)
-
-                        if (order != null) {
-                            call.respond(ApiResponse(success = true, data = order))
-                        } else {
-                            call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Order not found or access denied"))
-                        }
+                        AuditService.logEvent(
+                            eventType = AuditService.EventType.ORDER_UPDATED,
+                            userId = userId,
+                            resourceId = order.id,
+                            description = "Order status set to ${order.status}"
+                        )
+                        call.respond(ApiResponse(success = true, data = order))
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.apiError(e)
+                    }
+                }
+
+                /** Cancels an order. The patient cancels their own order; the pharmacy cancels its own. */
+                put("/{id}/cancel") {
+                    val caller = call.callerOr401() ?: return@put
+                    val orderId = call.parameters["id"]
+                    if (orderId == null) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid order ID"))
+                        return@put
+                    }
+                    try {
+                        val order = orderService.cancelOrder(orderId, caller.userId, caller.role)
+                        AuditService.logEvent(
+                            eventType = AuditService.EventType.ORDER_UPDATED,
+                            userId = caller.userId,
+                            resourceId = order.id,
+                            description = "Order cancelled"
+                        )
+                        call.respond(ApiResponse(success = true, data = order))
+                    } catch (e: Exception) {
+                        call.apiError(e)
                     }
                 }
 
                 put("/{id}/courier") {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
-                    val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
+                    val caller = call.callerOr401() ?: return@put
+                    val userId = caller.userId
+                    val userRole = caller.role
                     val orderId = call.parameters["id"]
 
                     if (orderId == null) {
@@ -925,22 +1076,21 @@ fun Route.apiRoutes(
                     try {
                         val request = Json { ignoreUnknownKeys = true }.decodeFromString<UpdateCourierRequest>(call.receiveText())
                         val order = orderService.updateCourier(orderId, request.lat, request.lng, request.etaMinutes, request.clear, userId, userRole)
-
                         if (order != null) {
                             call.respond(ApiResponse(success = true, data = order))
                         } else {
-                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid position or access denied"))
+                            call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Order not found or access denied"))
                         }
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.apiError(e)
                     }
                 }
             }
 
             put("/pharmacies/{id}/stock") {
-                val principal = call.principal<JWTPrincipal>()
-                val userId = principal!!.payload.subject
-                val userRole = UserRole.valueOf(principal.payload.getClaim("role").asString())
+                val caller = call.callerOr401() ?: return@put
+                val userId = caller.userId
+                val userRole = caller.role
                 val pharmacyIdStr = call.parameters["id"]
                 if (pharmacyIdStr == null || !SecurityUtils.isValidUuid(pharmacyIdStr)) {
                     call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid pharmacy ID"))
@@ -952,6 +1102,10 @@ fun Route.apiRoutes(
                 }
                 try {
                     val request = Json { ignoreUnknownKeys = true }.decodeFromString<UpsertStockRequest>(call.receiveText())
+                    if (request.stockQuantity != null && request.stockQuantity !in -1000..1_000_000) {
+                        call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Stock quantity is out of range"))
+                        return@put
+                    }
                     if (!SecurityUtils.isValidUuid(request.medicineId)) {
                         call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid medicine ID"))
                         return@put
@@ -1000,16 +1154,16 @@ fun Route.apiRoutes(
                             }.singleOrNull()
                     }
                     if (result != null) call.respond(ApiResponse(success = true, data = result))
-                    else call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Unknown medicine or access denied"))
+                    else call.respond(HttpStatusCode.NotFound, ApiResponse<Unit>(success = false, error = "Unknown medicine or access denied"))
                 } catch (e: Exception) {
-                    call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                    call.apiError(e)
                 }
             }
 
             route("/favorites") {
                 get {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
+                    val caller = call.callerOr401() ?: return@get
+                    val userId = caller.userId
                     if (!validateUuid(userId)) {
                         call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
                         return@get
@@ -1043,13 +1197,13 @@ fun Route.apiRoutes(
                         }
                         call.respond(ApiResponse(success = true, data = favorites))
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.serverError(e)
                     }
                 }
 
                 post {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
+                    val caller = call.callerOr401() ?: return@post
+                    val userId = caller.userId
                     if (!validateUuid(userId)) {
                         call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
                         return@post
@@ -1080,8 +1234,11 @@ fun Route.apiRoutes(
                                 val exists = Pharmacies.selectAll().where { Pharmacies.id eq pharmUuid }.singleOrNull() != null
                                 if (!exists) return@transaction null to "Pharmacy not found"
                             }
-                            val duplicate = Favorites.selectAll().where { Favorites.userId eq userUuid }.toList()
-                                .any { it[Favorites.medicineId] == medUuid && it[Favorites.pharmacyId] == pharmUuid }
+                            val duplicate = Favorites.selectAll().where {
+                                (Favorites.userId eq userUuid) and
+                                    (if (medUuid != null) Favorites.medicineId eq medUuid else Favorites.medicineId.isNull()) and
+                                    (if (pharmUuid != null) Favorites.pharmacyId eq pharmUuid else Favorites.pharmacyId.isNull())
+                            }.singleOrNull() != null
                             if (duplicate) return@transaction null to "Already favorited"
                             val id = UUID.randomUUID()
                             Favorites.insert {
@@ -1122,13 +1279,13 @@ fun Route.apiRoutes(
                             call.respond(HttpStatusCode.Created, ApiResponse(success = true, data = result.first))
                         }
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.apiError(e)
                     }
                 }
 
                 delete("/{id}") {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
+                    val caller = call.callerOr401() ?: return@delete
+                    val userId = caller.userId
                     if (!validateUuid(userId)) {
                         call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
                         return@delete
@@ -1153,22 +1310,27 @@ fun Route.apiRoutes(
                             else -> call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = "Unknown"))
                         }
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.apiError(e)
                     }
                 }
             }
 
             route("/ratings") {
                 post {
-                    val principal = call.principal<JWTPrincipal>()
-                    val userId = principal!!.payload.subject
+                    val caller = call.callerOr401() ?: return@post
+                    val userId = caller.userId
                     if (!validateUuid(userId)) {
                         call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid user ID"))
                         return@post
                     }
                     val userUuid = UUID.fromString(userId)
                     try {
-                        val req = Json { ignoreUnknownKeys = true }.decodeFromString<CreateRatingRequest>(call.receiveText())
+                        val req = try {
+                            Json { ignoreUnknownKeys = true }.decodeFromString<CreateRatingRequest>(call.receiveText())
+                        } catch (e: Exception) {
+                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid request body"))
+                            return@post
+                        }
                         if (!SecurityUtils.isValidUuid(req.pharmacyId)) {
                             call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid pharmacyId"))
                             return@post
@@ -1222,7 +1384,7 @@ fun Route.apiRoutes(
                             call.respond(HttpStatusCode.Created, ApiResponse(success = true, data = result))
                         }
                     } catch (e: Exception) {
-                        call.respond(HttpStatusCode.InternalServerError, ApiResponse<Unit>(success = false, error = e.message))
+                        call.serverError(e)
                     }
                 }
             }

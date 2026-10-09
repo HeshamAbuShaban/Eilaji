@@ -14,7 +14,8 @@ import org.slf4j.LoggerFactory
 class WebSocketController(
     private val sessionManager: WebSocketSessionManager,
     private val redisService: RedisService,
-    private val messageService: MessageService
+    private val messageService: MessageService,
+    private val chatService: ChatService
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(WebSocketController::class.java)
@@ -84,6 +85,7 @@ class WebSocketController(
             "JOIN" -> {
                 val chatIdStr = message.chatId ?: return sendError(session, "chatId required for JOIN")
                 val chatId = try { java.util.UUID.fromString(chatIdStr) } catch (e: Exception) { return sendError(session, "Invalid chatId") }
+                if (!chatService.isParticipant(chatId, userId)) return sendError(session, "Access denied for this chat")
                 sessionManager.joinChat(userId, chatId)
                 session.send(Frame.Text(Json.encodeToString(WebSocketMessage.serializer(),
                     WebSocketMessage(type = "JOINED", chatId = chatIdStr, userId = userId))))
@@ -92,6 +94,7 @@ class WebSocketController(
             "LEAVE" -> {
                 val chatIdStr = message.chatId ?: return sendError(session, "chatId required for LEAVE")
                 val chatId = try { java.util.UUID.fromString(chatIdStr) } catch (e: Exception) { return sendError(session, "Invalid chatId") }
+                if (!chatService.isParticipant(chatId, userId)) return sendError(session, "Access denied for this chat")
                 sessionManager.leaveChat(userId, chatId)
                 session.send(Frame.Text(Json.encodeToString(WebSocketMessage.serializer(),
                     WebSocketMessage(type = "LEFT", chatId = chatIdStr, userId = userId))))
@@ -101,6 +104,7 @@ class WebSocketController(
                 val chatIdStr = message.chatId ?: return sendError(session, "chatId required for MESSAGE")
                 val chatId = try { java.util.UUID.fromString(chatIdStr) } catch (e: Exception) { return sendError(session, "Invalid chatId") }
                 val content = message.content ?: return sendError(session, "content required for MESSAGE")
+                if (!chatService.isParticipant(chatId, userId)) return sendError(session, "Access denied for this chat")
                 
                 val sentMessage = sessionManager.sendMessage(
                     userId = userId,
@@ -121,6 +125,7 @@ class WebSocketController(
             "READ" -> {
                 val chatIdStr = message.chatId ?: return sendError(session, "chatId required for READ")
                 val chatId = try { java.util.UUID.fromString(chatIdStr) } catch (e: Exception) { return sendError(session, "Invalid chatId") }
+                if (!chatService.isParticipant(chatId, userId)) return sendError(session, "Access denied for this chat")
                 sessionManager.markAsRead(userId, chatId)
             }
             

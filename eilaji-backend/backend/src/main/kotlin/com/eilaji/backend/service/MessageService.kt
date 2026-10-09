@@ -7,7 +7,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 import java.util.UUID
 
-class MessageService {
+class MessageService(private val chatService: ChatService = ChatService()) {
 
     fun getMessages(chatId: UUID, page: Int = 0, pageSize: Int = 50): PaginatedResult<MessageDto> {
         return transaction {
@@ -45,7 +45,12 @@ class MessageService {
         }
     }
 
+    /**
+     * Message history for a chat the caller takes part in.
+     * Throws 404 for any other chat, so ids cannot be enumerated for their contents.
+     */
     fun getMessagesForChat(chatId: UUID, userId: String, page: Int = 0, pageSize: Int = 50): PaginatedResult<MessageDto> {
+        chatService.ensureParticipant(chatId, userId)
         return getMessages(chatId, page, pageSize)
     }
 
@@ -114,6 +119,7 @@ class MessageService {
     }
 
     fun markChatAsRead(chatId: UUID, userId: String): Int {
+        chatService.ensureParticipant(chatId, userId)
         val userUuid = UUID.fromString(userId)
         return transaction {
             val result = Messages.update({ (Messages.chatId eq chatId) and (Messages.senderUserId neq userUuid) and (Messages.isRead eq false) }) {
