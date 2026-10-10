@@ -47,10 +47,34 @@ android {
     }
 
 
+    // Release signing: read from keystore.properties (CI writes it, local dev may too).
+    // The file is never committed; without it the release build stays unsigned.
+    def keystorePropertiesFile = rootProject.file("keystore.properties")
+    def keystoreProperties = new Properties()
+    def hasKeystore = keystorePropertiesFile.exists()
+    if (hasKeystore) {
+        keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+    }
+
+    signingConfigs {
+        if (hasKeystore) {
+            release {
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
+
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (hasKeystore) {
+                signingConfig signingConfigs.release
+            }
         }
     }
     compileOptions {
@@ -155,3 +179,5 @@ dependencies {
     implementation 'androidx.compose.runtime:runtime-livedata'
     debugImplementation 'androidx.compose.ui:ui-tooling'
 }
+// Note: release signing is optional. Without keystore.properties the release build is
+// unsigned and cannot be installed; CI writes the file from the RELEASE_KEYSTORE_BASE64 secret.
