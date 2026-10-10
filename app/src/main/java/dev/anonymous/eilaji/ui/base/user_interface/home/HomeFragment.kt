@@ -55,7 +55,7 @@ class HomeFragment : Fragment() {
         setupListeners()
         setupSwipeRefresh()
         setupQuickActions()
-        setupRemindersTeaser()
+        setupHeroCollapse()
         hideShimmerIfDataPresent()
         displayAds()
         displayCategories()
@@ -201,46 +201,50 @@ class HomeFragment : Fragment() {
         }
     }
 
+    /**
+     * The hero shrinks as soon as the user scrolls into content, so the greeting does not eat a
+     * whole screen on a small phone. Fades out instead of jumping.
+     */
+    private fun setupHeroCollapse() {
+        val scroll = _binding?.homeScroll ?: return
+        val hero = _binding?.homeHero ?: return
+        try {
+            scroll.setOnScrollChangeListener { _, _, scrollY, _, _ ->
+                val height = hero.height
+                if (height <= 0) return@setOnScrollChangeListener
+                val fraction = (scrollY.toFloat() / (height * 0.7f)).coerceIn(0f, 1f)
+                hero.alpha = 1f - fraction * 0.85f
+                hero.translationY = -scrollY.toFloat() * 0.25f
+            }
+        } catch (_: Exception) {
+        }
+    }
+
+    /**
+     * Three actions instead of four cards and a floating button.
+     * Prescription lives here now, so the bottom bar has no permanent notch.
+     */
     private fun setupQuickActions() {
         binding.cardUploadPrescription.setOnClickListener {
-            try { requireActivity().findViewById<View>(R.id.navigation_send_prescription)?.performClick() } catch (_: Exception) {
-                startActivity(Intent(requireContext(), AlternativesActivity::class.java).apply { putExtra("fragmentType", "send_prescription") })
-            }
-        }
-        binding.cardFindPharmacy.setOnClickListener {
+            try { dev.anonymous.eilaji.utils.SpringFx.pressable(it) } catch (_: Exception) {}
             try {
                 val intent = Intent(requireContext(), AlternativesActivity::class.java)
-                intent.putExtra("fragmentType", "map")
+                intent.putExtra("fragmentType", "send_prescription")
                 startActivity(intent)
             } catch (_: Exception) {}
         }
         binding.cardChat.setOnClickListener {
+            try { dev.anonymous.eilaji.utils.SpringFx.pressable(it) } catch (_: Exception) {}
             try { requireActivity().findViewById<View>(R.id.navigation_chatting)?.performClick() } catch (_: Exception) {}
         }
         binding.cardReminders.setOnClickListener {
-            startActivity(Intent(requireContext(), AlternativesActivity::class.java).apply { putExtra("fragmentType", "reminders_list") })
+            try { dev.anonymous.eilaji.utils.SpringFx.pressable(it) } catch (_: Exception) {}
+            // One destination only. The old code started two activities, so back left the app.
             try {
                 val intent = Intent(requireContext(), AlternativesActivity::class.java)
-                intent.putExtra("fragmentType", FragmentsKeys.reminder.name)
+                intent.putExtra("fragmentType", "reminders_list")
                 startActivity(intent)
             } catch (_: Exception) {}
-        }
-        binding.buShowAllReminders.setOnClickListener { binding.cardReminders.performClick() }
-        binding.cardRemindersTeaser.setOnClickListener { binding.cardReminders.performClick() }
-    }
-
-    private fun setupRemindersTeaser() {
-        try {
-            val vm = ViewModelProvider(requireActivity())[ReminderDatabaseViewModel::class.java]
-            vm.allReminders.observe(viewLifecycleOwner) { list ->
-                val count = list?.size ?: 0
-                binding.tvReminderCount.text = when (count) {
-                    0 -> getString(R.string.no_reminders_yet)
-                    else -> resources.getQuantityString(R.plurals.reminders_today, count, count)
-                }
-            }
-        } catch (_: Exception) {
-            binding.tvReminderCount.text = getString(R.string.no_reminders_yet)
         }
     }
 
@@ -272,7 +276,13 @@ class HomeFragment : Fragment() {
         binding.buShowAllCategoriesPharmaceuticals.setOnClickListener {
             try { requireActivity().findViewById<View>(R.id.navigation_categories)?.performClick() } catch (_: Exception) {}
         }
-        binding.buShowAllNearby.setOnClickListener { binding.cardFindPharmacy.performClick() }
+        binding.buShowAllNearby.setOnClickListener {
+            try {
+                val intent = Intent(requireContext(), AlternativesActivity::class.java)
+                intent.putExtra("fragmentType", "map")
+                startActivity(intent)
+            } catch (_: Exception) {}
+        }
     }
 
     private fun displayAds() {

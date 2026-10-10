@@ -52,7 +52,31 @@ class AlternativesActivity : AppCompatActivity() {
                         try { nonNullNavController.navigate(dest, args) } catch (_: Exception) { finish() }
                     }
                 }
-                when (type) {
+                // Orders, favourites, reminders, chat and checkout need an account. A guest is
+                // told to sign in instead of landing on a screen that can only 401.
+                val privateTypes = setOf(
+                    FragmentsKeys.favorites.name, FragmentsKeys.reminder.name, "orders",
+                    FragmentsKeys.messaging.name, FragmentsKeys.checkout.name,
+                    FragmentsKeys.sendToPharmacy.name
+                )
+                val signedIn = !dev.anonymous.eilaji.storage.AppSharedPreferences.getInstance(this@AlternativesActivity).getToken().isNullOrBlank()
+                when {
+                    type in privateTypes && !signedIn -> {
+                        try {
+                            android.widget.Toast.makeText(
+                                this@AlternativesActivity,
+                                getString(R.string.sign_in_to_continue),
+                                android.widget.Toast.LENGTH_SHORT
+                            ).show()
+                            val intent = android.content.Intent(this@AlternativesActivity, dev.anonymous.eilaji.ui.main.MainActivity::class.java)
+                            intent.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                            intent.putExtra("logoutTrigger", dev.anonymous.eilaji.storage.enums.FragmentsKeys.logout.name)
+                            startActivity(intent)
+                        } catch (_: Exception) {
+                        }
+                        finish()
+                    }
+                    else -> when (type) {
                     FragmentsKeys.add_address.name -> navWithPop(R.id.navigation_add_address, null)
                     FragmentsKeys.favorites.name -> navWithPop(R.id.navigation_favorites, null)
                     FragmentsKeys.medicine.name -> {
@@ -80,6 +104,7 @@ class AlternativesActivity : AppCompatActivity() {
                         navWithPop(R.id.navigation_checkout, b)
                     }
                     else -> finish()
+                    }
                 }
             }
         }

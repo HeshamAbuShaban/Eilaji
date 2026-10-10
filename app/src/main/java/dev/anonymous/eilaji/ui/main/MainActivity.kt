@@ -141,8 +141,13 @@ class MainActivity : AppCompatActivity() {
 
         // Check if onBoarding is done
         if (isDone) {
-            // onBoarding is done, so navigate to the login screen
-            navigateToLoginScreen()
+            // Onboarding is done. Guests go straight to the app: browsing the catalogue must
+            // never cost an account. Private screens ask for a sign-in when they are opened.
+            if (AppSharedPreferences.getInstance(this).getToken() != null) {
+                navigateToHomeScreen()
+            } else {
+                navigateToHomeScreen()
+            }
         } else {
             // onBoarding is not done, so navigate to the onBoarding screen
             navigateToOnBoardingScreen()
