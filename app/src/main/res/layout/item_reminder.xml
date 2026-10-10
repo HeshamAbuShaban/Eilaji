@@ -36,7 +36,11 @@
         android:layout_marginEnd="@dimen/_16sdp"
         app:cardCornerRadius="16dp"
         app:cardElevation="2dp"
-        app:strokeWidth="0dp">
+        app:strokeWidth="0dp"
+        app:layout_constraintStart_toEndOf="@+id/timelineDot"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -150,6 +154,7 @@
                     android:layout_height="32dp"
                     android:layout_marginTop="10dp"
                     android:background="@drawable/bg_icon_circle"
+                    android:contentDescription="@string/reminder_type_icon"
                     android:padding="7dp"
                     app:tint="@color/primary_color"
                     tools:src="@drawable/ic_medication" />
@@ -161,10 +166,11 @@
 
                 <ImageButton
                     android:id="@+id/delete_reminder"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/delete"
+                    android:padding="12dp"
                     android:src="@drawable/ic_delete_reminder"
                     app:tint="@color/gray_dark" />
 
@@ -179,6 +185,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@+id/cardReminder"
+        app:layout_constraintStart_toStartOf="parent"
         tools:text="08:30:00" />
 
     <TextView
@@ -186,12 +194,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@+id/reminder_delayTime"
+        app:layout_constraintStart_toStartOf="parent"
         tools:text="2026-09-09" />
 
     <LinearLayout
         android:id="@+id/reminderTimesContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="gone" />
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@+id/reminder_creationTimestamp"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

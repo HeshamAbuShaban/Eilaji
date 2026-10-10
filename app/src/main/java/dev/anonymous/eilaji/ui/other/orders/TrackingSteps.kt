@@ -21,15 +21,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.anonymous.eilaji.R
+import dev.anonymous.eilaji.utils.Money
 
 private val STEPS = listOf("PENDING", "CONFIRMED", "PREPARING", "SHIPPED", "DELIVERED")
 private val Brand = Color(0xFFBA324F)
 
 @Composable
 fun TrackingSteps(status: String, progress: Float) {
+    val context = LocalContext.current
     val idx = STEPS.indexOf(status.uppercase()).coerceAtLeast(0)
     val animProgress by animateFloatAsState(targetValue = progress.coerceIn(0f, 1f), label = "track")
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -75,16 +80,18 @@ fun TrackingSteps(status: String, progress: Float) {
 
 @Composable
 fun CheckoutTotals(subtotal: Double, fee: Double, prepMin: Int?) {
+    val context = LocalContext.current
     val total = subtotal + fee
+    val deliveryLabel = if (prepMin != null) stringResource(R.string.delivery_eta, prepMin) else stringResource(R.string.delivery)
     Column(modifier = Modifier.fillMaxWidth()) {
-        TotalRow("Subtotal", subtotal, false)
-        TotalRow(if (prepMin != null) "Delivery · ~${prepMin} min" else "Delivery", fee, false)
-        TotalRow("Total", total, true)
+        TotalRow(stringResource(R.string.subtotal), subtotal, false, context)
+        TotalRow(deliveryLabel, fee, false, context)
+        TotalRow(stringResource(R.string.total), total, true, context)
     }
 }
 
 @Composable
-private fun TotalRow(label: String, amount: Double, bold: Boolean) {
+private fun TotalRow(label: String, amount: Double, bold: Boolean, context: android.content.Context = LocalContext.current) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -98,7 +105,7 @@ private fun TotalRow(label: String, amount: Double, bold: Boolean) {
             color = if (bold) MaterialTheme.colorScheme.onSurface else Color.Gray
         )
         Text(
-            text = String.format("%.2f $", amount),
+            text = Money.format(amount, context),
             fontSize = if (bold) 16.sp else 13.sp,
             fontWeight = FontWeight.Bold,
             color = if (bold) Brand else MaterialTheme.colorScheme.onSurface

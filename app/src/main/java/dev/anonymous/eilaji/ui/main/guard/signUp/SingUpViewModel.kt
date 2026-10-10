@@ -54,6 +54,7 @@ class SignUpViewModel : ViewModel() {
                     if (loginResponse != null) {
                         // Save tokens and user data
                         sharedPreferences.putToken(loginResponse.accessToken)
+                        sharedPreferences.putRefreshToken(loginResponse.refreshToken)
                         sharedPreferences.putFullName(loginResponse.user.fullName)
                         sharedPreferences.putUserId(loginResponse.user.id)
                         sharedPreferences.putRole(loginResponse.user.role)

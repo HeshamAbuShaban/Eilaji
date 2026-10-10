@@ -24,8 +24,18 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Unit tests
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Android Lint
+        run: ./gradlew :app:lintDebug --stacktrace
+
+      # MAPS_API_KEY lives in repository secrets; without it the debug APK still builds
+      # (the map screen shows an empty map instead of crashing).
       - name: Build Debug APK
         run: ./gradlew assembleDebug --stacktrace
+        env:
+          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -34,6 +44,14 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: warn
 
+      - name: Upload lint report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: app-lint-report
+          path: app/build/reports/lint-results-debug.html
+          if-no-files-found: ignore
+
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
@@ -41,40 +59,89 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
-          name: app-debug-apk
-          path: ./apk
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Derive version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          NAME="${TAG#v}"
+          CODE="${NAME#v}"
+          CODE="${CODE%%.*}"
+          echo "versionName=${NAME}" >> "$GITHUB_OUTPUT"
+          echo "versionCode=${CODE}" >> "$GITHUB_OUTPUT"
+          echo "Release ${NAME} (versionCode ${CODE})"
+
+      # The release is signed only when the keystore secrets are configured.
+      # Without them the build falls back to the debug artifact so CI never breaks.
+      - name: Decode release keystore
+        id: keystore
+        if: ${{ secrets.RELEASE_KEYSTORE_BASE64 != '' }}
+        run: |
+          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.jks"
+          cat > keystore.properties <<EOF
+          storeFile=$RUNNER_TEMP/release.jks
+          storePassword=${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.RELEASE_KEY_ALIAS }}
+          keyPassword=${{ secrets.RELEASE_KEY_PASSWORD }}
+          EOF
+          echo "signed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Build Signed Release APK
+        env:
+          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
+        run: |
+          ARGS="-PversionName=${{ steps.version.outputs.versionName }} -PversionCode=${{ steps.version.outputs.versionCode }}"
+          if [ "${{ steps.keystore.outputs.signed }}" == "true" ]; then
+            ./gradlew :app:assembleRelease $ARGS --stacktrace
+            cp app/build/outputs/apk/release/app-release.apk "apk/Eilaji-${{ steps.version.outputs.versionName }}.apk"
+          else
+            echo "No release keystore configured; publishing the debug artifact instead."
+            ./gradlew :app:assembleDebug $ARGS --stacktrace
+            cp app/build/outputs/apk/debug/app-debug.apk "apk/Eilaji-${{ steps.version.outputs.versionName }}.apk"
+          fi
+          mkdir -p apk
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: apk/*.apk
+          if-no-files-found: error
 
       - name: Create Release with APK
         uses: softprops/action-gh-release@v2
         with:
-          files: ./apk/app-debug.apk
+          files: apk/*.apk
           generate_release_notes: true
           body: |
             ## Eilaji ${{ github.ref_name }}
 
-            ### Quick start — Backend (self-hosted, replaces Firebase)
+            ### Backend (self-hosted, replaces Firebase)
             ```bash
             cd eilaji-backend
-            docker-compose up -d          # postgres:5432  redis:6379  minio:9000/9001
-            ./gradlew :backend:build
-            ./gradlew :backend:run        # http://localhost:8080
-            curl http://localhost:8080/health          # {"status":"UP"}
+            docker compose up -d            # postgres:5432  redis:6379  minio:9000/9001
+            APP_PROFILE=dev SEED_ON_STARTUP=true ./gradlew :backend:run    # http://localhost:8080
+            curl http://localhost:8080/health
             curl http://localhost:8080/api/v1/medicines | head
             ```
-            Default seeded users: `patient@eilaji.com` / `pharmacist1@eilaji.com` / `admin@eilaji.com`  password `password123`
-            Categories: 6 / 12 subcategories / 36 medicines / 10 pharmacies (Damascus/Aleppo/Homs/Latakia/Hama)
+            Production needs `JWT_SECRET` (>= 32 chars) in the environment; see `docs/UPGRADING.md`.
+            Seeding is off by default, and demo accounts only exist when `SEED_DEMO_CREDENTIALS=true`.
 
             ### Android
-            - Download `app-debug.apk` below (Assets)
-            - `adb install -r app-debug.apk`  or drag into emulator
-            - Emulator backend: `10.0.2.2:8080`  —  Physical device: `adb reverse tcp:8080 tcp:8080` → app uses `http://localhost:8080`
-            - Guest can browse categories/medicines/pharmacies/nearby without signup. Prescriptions/orders/chat require login.
+            - Download the APK below (Assets). `adb install -r <apk>`
+            - Emulator backend `10.0.2.2:8080` — physical device: `adb reverse tcp:8080 tcp:8080`, the app then talks to `http://localhost:8080`
+            - Maps need a `MAPS_API_KEY`; without it the map screen is empty but nothing crashes
+            - Guests browse categories/medicines/pharmacies/nearby; prescriptions, orders and chat need an account
 
-            ### Verify
-            ```bash
-            adb reverse tcp:8080 tcp:8080
-            adb install -r app-debug.apk
-            ```
-            CI built from `${{ github.sha }}`.
+            Built from `${{ github.sha }}`.

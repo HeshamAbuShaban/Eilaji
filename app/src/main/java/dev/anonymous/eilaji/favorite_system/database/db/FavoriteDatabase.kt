@@ -17,8 +17,9 @@ abstract class FavoriteDatabase : RoomDatabase() {
         fun getDatabase(context: Context): FavoriteDatabase {
             return instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(context.applicationContext, FavoriteDatabase::class.java, "favorites.db")
-                    .fallbackToDestructiveMigration()
-                    .allowMainThreadQueries()
+                    // No fallbackToDestructiveMigration: a schema bump must never silently delete
+                    // the user's favourites. Add a Migration instead.
+                    // No allowMainThreadQueries: every read happens off the main thread.
                     .build().also { instance = it }
             }
         }

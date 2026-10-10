@@ -80,7 +80,7 @@ class BaseActivity : AppCompatActivity() {
             try {
                 nav.navigate(R.id.navigation_send_prescription)
             } catch (_: Exception) {
-                Toast.makeText(this, "Send Prescription", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.send_prescription), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -152,7 +152,7 @@ class BaseActivity : AppCompatActivity() {
         R.id.cart_menu_item -> {
             val count = try { CartRepository.getInstance(this).getCount() } catch (_: Exception) { 0 }
             if (count == 0) {
-                Toast.makeText(this, "Cart is empty — add medicines first", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.cart_is_empty), Toast.LENGTH_SHORT).show()
             }
             Intent(this@BaseActivity, AlternativesActivity::class.java).apply {
                 putExtra("fragmentType", FragmentsKeys.checkout.name)
@@ -163,13 +163,13 @@ class BaseActivity : AppCompatActivity() {
         R.id.share_menu_item -> {
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"
-                putExtra(Intent.EXTRA_SUBJECT, "Check out this app!")
-                putExtra(Intent.EXTRA_TEXT, "I found this amazing app that I wanted to share with you. Download it from [app store link].")
+                putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_app_subject))
+                putExtra(Intent.EXTRA_TEXT, getString(R.string.share_app_text))
             }
             if (shareIntent.resolveActivity(packageManager) != null) {
-                startActivity(Intent.createChooser(shareIntent, "Share the app"))
+                startActivity(Intent.createChooser(shareIntent, getString(R.string.share_app_chooser)))
             } else {
-                Toast.makeText(this@BaseActivity, "No app found to share", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@BaseActivity, getString(R.string.no_app_found_to_share), Toast.LENGTH_SHORT).show()
             }
             true
         }

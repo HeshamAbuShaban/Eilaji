@@ -90,7 +90,12 @@ class AlarmReceiver : BroadcastReceiver() {
         val pi = PendingIntent.getActivity(c, nid, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val builder = NotificationCompat.Builder(c, ch).setSmallIcon(R.drawable.ic_notifications).setContentTitle(c.getString(R.string.title_reminder_notification)).setContentText(text).setAutoCancel(true).setPriority(NotificationCompat.PRIORITY_MAX).setCategory(NotificationCompat.CATEGORY_ALARM).setVisibility(NotificationCompat.VISIBILITY_PUBLIC).setContentIntent(pi)
         if (fullScreen != null) builder.setFullScreenIntent(fullScreen, true)
-        nm.notify(nid, builder.build())
+        if (androidx.core.app.NotificationManagerCompat.from(c).areNotificationsEnabled()) {
+            nm.notify(nid, builder.build())
+        } else {
+            // Without POST_NOTIFICATIONS the lock-screen alarm would be silent.
+            android.util.Log.w("AlarmReceiver", "Notifications disabled; alarm $nid cannot be shown")
+        }
         // No custom music: system default tone via channel + vibration pattern + full-screen UI.
     }
 }

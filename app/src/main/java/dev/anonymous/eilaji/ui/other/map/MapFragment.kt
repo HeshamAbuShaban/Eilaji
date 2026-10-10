@@ -231,7 +231,9 @@ class MapFragment : Fragment(), OnMapReadyCallback, RequestPermissionsListener {
                     if (!dto.latitude.isFinite() || !dto.longitude.isFinite()) return@forEach
                     if (dto.latitude < -90 || dto.latitude > 90 || dto.longitude < -180 || dto.longitude > 180) return@forEach
                     val contact = dto.phone?.takeIf { it.isNotBlank() } ?: dto.address
-                    val snippet = "${if (dto.isOpen) "Open" else "Closed"} • ${String.format("%.1f", dto.ratingAvg)}★ • $contact"
+                    val openLabel = getString(if (dto.isOpen) R.string.open_badge else R.string.closed_badge)
+                    val rating = String.format(java.util.Locale.getDefault(), "%.1f", dto.ratingAvg)
+                    val snippet = "$openLabel • $rating★ • $contact"
                     val opts = MarkerOptions().position(LatLng(dto.latitude, dto.longitude)).title(dto.name).snippet(snippet).icon(icon)
                     val m = gm.addMarker(opts)
                     m?.tag = dto

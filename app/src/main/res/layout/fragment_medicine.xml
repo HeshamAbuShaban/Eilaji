@@ -85,12 +85,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/_15sdp"
-                android:text="20$"
                 android:textSize="@dimen/_18ssp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textView2"
-                tools:ignore="HardcodedText" />
+                tools:text="20.00 $" />
 
             <TextView
                 android:id="@+id/tvMedicineManufacturer"
@@ -117,7 +116,7 @@
                 android:paddingHorizontal="@dimen/_10sdp"
                 android:paddingVertical="@dimen/_4sdp"
                 android:text="@string/requires_prescription"
-                android:textColor="@color/white_fixed"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="@dimen/_11ssp"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="@+id/tvMedicineManufacturer"
@@ -407,7 +406,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:contentDescription="@null"
+                android:contentDescription="@string/add_to_cart"
                 android:src="@drawable/ic_shopping_cart" />
 
         </com.google.android.material.card.MaterialCardView>
@@ -415,7 +414,7 @@
         <LinearLayout
             android:id="@+id/cardCheckout"
             android:layout_width="0dp"
-            android:layout_height="@dimen/_48sdp"
+            android:layout_height="@dimen/_64sdp"
             android:layout_marginEnd="@dimen/_10sdp"
             android:layout_weight="1"
             android:background="@drawable/shape_radius_pink"
@@ -439,7 +438,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/total_price"
-                    android:textColor="#BFFFFFFF"
+                    android:alpha="0.75"
+                    android:textColor="@color/white_fixed"
                     android:textSize="@dimen/_11ssp" />
 
                 <TextView
@@ -453,7 +453,7 @@
 
             </LinearLayout>
 
-            <androidx.legacy.widget.Space
+            <Space
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -462,17 +462,30 @@
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/buIncrement"
                 style="@style/RippleRectangleEffectCardStyle"
-                android:layout_width="@dimen/_30sdp"
-                android:layout_height="@dimen/_30sdp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="@dimen/_12sdp">
+                android:layout_width="@dimen/_48sdp"
+                android:layout_height="@dimen/_48sdp"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="@dimen/_24sdp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp">
 
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="@dimen/_30sdp"
+                    android:layout_height="@dimen/_30sdp"
                     android:layout_gravity="center"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_add" />
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="@dimen/_12sdp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:contentDescription="@string/add"
+                        android:src="@drawable/ic_add" />
+
+                </com.google.android.material.card.MaterialCardView>
 
             </com.google.android.material.card.MaterialCardView>
 
@@ -490,18 +503,31 @@
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/buDecrease"
                 style="@style/RippleRectangleEffectCardStyle"
-                android:layout_width="@dimen/_30sdp"
-                android:layout_height="@dimen/_30sdp"
+                android:layout_width="@dimen/_48sdp"
+                android:layout_height="@dimen/_48sdp"
                 android:layout_marginEnd="@dimen/_7sdp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="@dimen/_12sdp">
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="@dimen/_24sdp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp">
 
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="@dimen/_30sdp"
+                    android:layout_height="@dimen/_30sdp"
                     android:layout_gravity="center"
-                    android:contentDescription="@null"
-                    android:src="@drawable/ic_remove" />
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="@dimen/_12sdp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:contentDescription="@string/decrease"
+                        android:src="@drawable/ic_remove" />
+
+                </com.google.android.material.card.MaterialCardView>
 
             </com.google.android.material.card.MaterialCardView>
 
@@ -513,11 +539,11 @@
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddToFavorite"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="@dimen/_56sdp"
+        android:layout_height="@dimen/_56sdp"
         android:layout_marginEnd="@dimen/_15sdp"
         android:backgroundTint="@color/white_fixed"
-        android:contentDescription="@null"
+        android:contentDescription="@string/add_to_favorites"
         android:src="@drawable/ic_favorite_border"
         app:layout_anchor="@id/app_bar"
         app:layout_anchorGravity="bottom|end"

@@ -50,8 +50,8 @@ class PharmaciesLocationsAdapter(
 
                 tvPharmacyNameLocation.text = model.pharmacy_name
                 tvPharmacyAddress.text = model.address
-                tvPharmacyRating.text = if (model.totalRatings > 0) String.format("%.1f (%d)", model.ratingAvg, model.totalRatings) else "New"
-                tvPharmacyDistanceLocation.text = model.distanceKm?.let { String.format("%.1f km", it) } ?: ""
+                tvPharmacyRating.text = if (model.totalRatings > 0) root.context.getString(R.string.rating_only_format, model.ratingAvg, model.totalRatings) else root.context.getString(R.string.new_pharmacy)
+                tvPharmacyDistanceLocation.text = model.distanceKm?.let { root.context.getString(R.string.distance_km_format, it) } ?: ""
                 tvPharmacyOpenBadge.text = root.context.getString(if (model.isOpen) R.string.open_now else R.string.closed_now)
                 tvPharmacyOpenBadge.setTextColor(
                     androidx.core.content.ContextCompat.getColor(root.context, if (model.isOpen) R.color.primary_color else R.color.gray_dark)

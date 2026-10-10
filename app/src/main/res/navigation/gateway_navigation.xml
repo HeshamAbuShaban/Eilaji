@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/navigation_onBoarding"
         android:name="dev.anonymous.eilaji.ui.other.on_boarding.OnBoardingFragment"
-        android:label="fragment_on_boarding"
+        android:label="@string/nav_on_boarding"
         tools:layout="@layout/fragment_on_boarding">
 
         <action
@@ -22,7 +22,7 @@
     <fragment
         android:id="@+id/navigation_Login"
         android:name="dev.anonymous.eilaji.ui.main.guard.login.LoginFragment"
-        android:label="fragment_login"
+        android:label="@string/login"
         tools:layout="@layout/fragment_login">
         <action
             android:id="@+id/action_navigation_Login_to_navigation_forgotPassword"
@@ -37,13 +37,13 @@
     <fragment
         android:id="@+id/navigation_SignUp"
         android:name="dev.anonymous.eilaji.ui.main.guard.signUp.SignUpFragment"
-        android:label="fragment_sign_up"
+        android:label="@string/create_an_account"
         tools:layout="@layout/fragment_sign_up" />
 
     <fragment
         android:id="@+id/navigation_forgotPassword"
         android:name="dev.anonymous.eilaji.ui.main.guard.password.ForgotPasswordFragment"
-        android:label="fragment_forgot_password"
+        android:label="@string/forgot_your_password"
         tools:layout="@layout/fragment_forgot_password" />
 
 </navigation>

@@ -9,11 +9,11 @@ import androidx.lifecycle.ViewModelProvider
 import dev.anonymous.eilaji.databinding.FragmentFavoritesBinding
 
 class FavoritesFragment : Fragment() {
-    private lateinit var _binding: FragmentFavoritesBinding
-    private val binding get() = _binding
+    private var _binding: FragmentFavoritesBinding? = null
+    private val binding get() = _binding!!
     private lateinit var favoriteViewModel: FavoriteViewModel
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?, ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentFavoritesBinding.inflate(inflater, container, false)
         setupVMComponent()
         return binding.root
@@ -21,7 +21,7 @@ class FavoritesFragment : Fragment() {
 
     private fun setupVMComponent() {
         favoriteViewModel = ViewModelProvider(this)[FavoriteViewModel::class.java]
-        favoriteViewModel.setBindingObj(binding)
+        favoriteViewModel.setBinding(_binding)
         favoriteViewModel.setToolBarTitle(requireContext())
         favoriteViewModel.initRepo(requireContext())
     }
@@ -29,6 +29,7 @@ class FavoritesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         favoriteViewModel.setupFavoritesRecycler(requireActivity())
+        favoriteViewModel.reloadFavorites(requireContext().applicationContext)
         favoriteViewModel.favoritesLive(requireContext()).observe(viewLifecycleOwner) { list ->
             favoriteViewModel.updateList(list)
         }
@@ -38,5 +39,12 @@ class FavoritesFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         favoriteViewModel.refreshFromNetwork()
+    }
+
+    override fun onDestroyView() {
+        // The view model outlives the view; drop the reference so it cannot point at a dead tree.
+        favoriteViewModel.setBinding(null)
+        _binding = null
+        super.onDestroyView()
     }
 }

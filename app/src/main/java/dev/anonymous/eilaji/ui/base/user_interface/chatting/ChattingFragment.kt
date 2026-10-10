@@ -45,7 +45,7 @@ class ChattingFragment : Fragment(), ChatListCallback, AccountAccessListener {
 
     private fun observeUserData() {
         if (!chattingViewModel.isLoggedIn()) {
-            AccountAccessDialogFragment.newInstance("Please create an account to use this feature!").show(childFragmentManager, "CantAccess!")
+            AccountAccessDialogFragment.newInstance(getString(R.string.create_account_to_use)).show(childFragmentManager, "CantAccess!")
             binding.shimmerChatContainer.stopShimmer()
         } else {
             userUid = chattingViewModel.getUserUid()
@@ -135,7 +135,7 @@ class ChattingFragment : Fragment(), ChatListCallback, AccountAccessListener {
         removeChatShimmer()
         binding.recyclerChats.visibility = View.VISIBLE
         try {
-            com.google.android.material.snackbar.Snackbar.make(binding.root, "Guest mode — browse medicines & pharmacies", com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
+            com.google.android.material.snackbar.Snackbar.make(binding.root, getString(R.string.guest_mode_browse), com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
                 .setAction("Browse") {
                     try { findNavController().navigate(R.id.navigation_categories) } catch (_: Exception) {}
                 }.show()

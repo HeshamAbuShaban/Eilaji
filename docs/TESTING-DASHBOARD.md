@@ -36,10 +36,14 @@ until that lands: pharmacist operations plus a small customer harness.
 1. `cd eilaji-backend && docker-compose up -d` (postgres `5432`, redis
    `6379`, minio `9000/9001`), `./gradlew :backend:run` →
    `curl localhost:8080/health` returns `UP`.
-2. First start seeds v2 (wipe the postgres volume once if you ran older
-   versions): 36 medicines, 30 pharmacies, 2 ghost chats.
-3. Accounts (`password123`): `pharmacist1@eilaji.com` (pharmacy tab),
-   `patient@eilaji.com` (customer tab + app login), `admin@eilaji.com`.
+2. First start with `SEED_ON_STARTUP=true` seeds v2 (wipe the postgres volume once if you ran
+   older versions): 36 medicines, 30 pharmacies, 2 sample chats.
+3. Start with `SEED_ON_STARTUP=true` to seed the catalog. With
+   `SEED_DEMO_CREDENTIALS=true` the seeded accounts use the password `password123`
+   (`pharmacist1@eilaji.com` for the pharmacy tab, `patient@eilaji.com` for the
+   customer tab and the app, `admin@eilaji.com` for user verification). Without
+   the flag the accounts get a random password that is printed once during seeding.
+   Create your own accounts through the app in that case.
 4. Phone: `adb reverse tcp:8080 tcp:8080` + install latest release APK, log in
    as patient.
 

@@ -22,6 +22,9 @@ interface FavoriteDao {
     fun findByMedicineAndPharmacy(medId: String?, pharmId: String?): FavoriteEntity?
 
     @Query("SELECT * FROM favorites WHERE medicineId = :medId LIMIT 1")
+    suspend fun findFavoriteMedicine(medId: String): FavoriteEntity?
+
+    @Query("SELECT * FROM favorites WHERE medicineId = :medId LIMIT 1")
     fun findByMedicineId(medId: String): FavoriteEntity?
 
     @Query("SELECT * FROM favorites WHERE pharmacyId = :pharmId LIMIT 1")

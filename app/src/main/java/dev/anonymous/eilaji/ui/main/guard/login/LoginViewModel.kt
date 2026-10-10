@@ -37,6 +37,7 @@ class LoginViewModel : ViewModel() {
                     val loginResponse = response.body()?.data
                     if (loginResponse != null) {
                         sharedPreferences.putToken(loginResponse.accessToken)
+                        sharedPreferences.putRefreshToken(loginResponse.refreshToken)
                         sharedPreferences.putFullName(loginResponse.user.fullName)
                         sharedPreferences.putUserId(loginResponse.user.id)
                         sharedPreferences.putRole(loginResponse.user.role)

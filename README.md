@@ -25,10 +25,12 @@
 - [Configuration](#configuration)
 - [API](#api)
 - [Demo data](#demo-data)
+- [Security](#security)
+- [Maintenance and upgrades](#maintenance-and-upgrades)
 - [Project layout](#project-layout)
 - [CI & releases](#ci--releases)
 - [Roadmap](#roadmap)
-- [Testing the dashboard](docs/TESTING-DASHBOARD.md)
+- [Docs](#docs)
 - [License](#license)
 
 ## Features
@@ -85,7 +87,15 @@ adb install -r app-debug.apk
 # Emulator debug builds already target http://10.0.2.2:8080
 ```
 
-**Demo accounts (password `password123`):** `patient@eilaji.com` · `pharmacist1@eilaji.com` · `pharmacist2@eilaji.com` · `admin@eilaji.com`
+**Demo accounts (opt-in).** Seeding writes random passwords unless you ask for the known ones:
+
+```bash
+SEED_ON_STARTUP=true SEED_DEMO_CREDENTIALS=true ./gradlew :backend:run
+# every seeded account now uses the password "password123"
+```
+
+Without `SEED_DEMO_CREDENTIALS`, the same accounts get a random password that is printed once
+during seeding. Seeding never runs in production (`APP_PROFILE=prod` refuses it).
 
 ## Connecting a phone & offline behavior
 
@@ -95,16 +105,30 @@ adb install -r app-debug.apk
 
 ## Configuration
 
-HOCON file: `eilaji-backend/backend/src/main/resources/application.conf`. Override with environment variables:
+Defaults live in `eilaji-backend/backend/src/main/resources/application.conf`.
+Every value has an environment override. Production settings live in `docker-compose.prod.yml`.
 
-| Key | Default | Purpose |
+| Variable | Default | Purpose |
 |---|---|---|
-| `database.url` / `database.user` / `database.password` | `jdbc:postgresql://localhost:5432/eilaji_db` | Postgres connection |
-| `redis.url` | `redis://localhost:6379` | Cache / pub-sub |
-| `minio.endpoint` / `minio.accessKey` / `minio.secretKey` | `http://localhost:9000` | Object storage |
-| `jwt.secret` / `jwt.issuer` / `jwt.audience` | — | Token signing (use a 32+ char secret in production) |
+| `APP_PROFILE` | `dev` | `dev`/`test` create tables at boot; `prod` only applies migrations |
+| `DATABASE_URL` · `DATABASE_USER` · `DATABASE_PASSWORD` | local dev values | Postgres connection |
+| `REDIS_URL` | `redis://localhost:6379` | Cache, pub/sub, rate limiting (supports `redis://:password@host:port`) |
+| `MINIO_ENDPOINT` · `MINIO_ACCESS_KEY` · `MINIO_SECRET_KEY` | dev values | Object storage |
+| `JWT_SECRET` | *(none)* | Token signing. **Required in production, 32+ characters.** |
+| `CORS_ALLOWED_HOSTS` | *(empty)* | Comma-separated browser origins allowed with credentials |
+| `SEED_ON_STARTUP` · `SEED_DEMO_CREDENTIALS` | `false` | Seeding controls. Both must stay `false` in production |
+| `EILAJI_PLUS_WEBHOOK_SECRET` | *(empty)* | HMAC secret that signs inbound webhooks |
+| `MAX_UPLOAD_BYTES` · `MAX_WS_FRAME_BYTES` | 8 MB / 1 MB | Request limits |
+| `RATE_LIMIT_LOGIN` · `RATE_LIMIT_REGISTER` | 5/min · 3/hour | Brute-force limits |
+| `BCRYPT_COST` | `12` | Password hashing cost |
 
-See `eilaji-backend/README.md` for the full variable list.
+Full list and behaviour: [docs/SECURITY.md](docs/SECURITY.md) and [docs/UPGRADING.md](docs/UPGRADING.md).
+
+### Android keys
+
+`MAPS_API_KEY` is read from `local.properties` (never committed) or CI secrets.
+The release network config forbids cleartext HTTP; debug builds allow it only for
+`localhost` and the emulator addresses.
 
 ## API
 
@@ -118,7 +142,10 @@ See `eilaji-backend/README.md` for the full variable list.
 | `GET /api/v1/pharmacies/nearby?lat=&lng=&radius=` | Radius search |
 | `POST /api/v1/auth/register` · `/auth/login` · `/auth/refresh` | Auth |
 | `POST /api/v1/prescriptions` (multipart) · `GET /api/v1/prescriptions` | Prescription upload & list |
-| `POST /api/v1/orders` · `GET /api/v1/orders` | Orders (direct OTC supported) |
+| `POST /api/v1/orders` · `GET /api/v1/orders` | Orders (direct OTC supported; the server recomputes totals and reserves stock) |
+| `PUT /api/v1/orders/{id}/cancel` | Cancel an order (patient: own; pharmacy/admin: their store) |
+| `PUT /api/v1/prescriptions/{id}/status` | Pharmacist triage: quote, accept or reject |
+| `POST /api/v1/auth/forgot-password` · `/auth/reset-password` | Password reset (code is returned until a delivery provider is configured) |
 | `PUT /api/v1/orders/{id}/courier` | Live courier position (pharmacist) |
 | `GET/PUT /api/v1/pharmacies/{id}/stock` | Stock list / upsert (write: own stores) |
 | `GET /api/v1/chats` · `POST /api/v1/chats` · `GET /api/v1/chats/{id}/messages` | Chat REST |
@@ -128,7 +155,9 @@ See `eilaji-backend/README.md` for the full variable list.
 
 ## Demo data
 
-Seeded automatically on first start (`DatabaseSeeder.kt`): 6 categories, 12 subcategories, 36 medicines, 30 pharmacies across 4 regions with ratings and open/closed status, plus 2 sample chat threads so messaging is testable without a second client.
+Seeding only runs when `SEED_ON_STARTUP=true` and never in production.
+It writes 6 categories, 12 subcategories, 36 medicines and 30 pharmacies across 4 regions,
+plus one owner account per pharmacy and 2 sample chat threads.
 
 ## Project layout
 
@@ -146,10 +175,33 @@ eilaji-backend/backend/src/main/kotlin/com/eilaji/backend/
 docs/assets/  docs/screenshots/
 ```
 
+## Security
+
+Short version; the full rules live in [docs/SECURITY.md](docs/SECURITY.md).
+
+- JWT access tokens carry a `sub` claim; refresh tokens use a separate audience and rotate on use.
+- Logout revokes the token id in Redis, so it stops working immediately.
+- Chat threads, orders and prescription reviews are checked against the caller's identity.
+- A 401 triggers one automatic token refresh, then the session ends.
+- Error responses never contain stack traces; the cause stays in the server log.
+- Rate limiting fails closed on the auth routes when Redis is unreachable.
+- Tokens, the keystore and the Google Maps key never live in the repository.
+
+**Report a vulnerability privately.** Do not open a public issue. Use GitHub's private
+vulnerability reporting, or contact the maintainer directly.
+
+## Maintenance and upgrades
+
+Step-by-step procedures for a backend upgrade, a schema change and a release live in
+[docs/UPGRADING.md](docs/UPGRADING.md). Agent and contributor conventions live in
+[AGENTS.md](AGENTS.md). The changelog is [CHANGELOG.md](CHANGELOG.md).
+
 ## CI & releases
 
-- **Android CI** (JDK 17): `./gradlew assembleDebug` → `app-debug.apk` artifact on every push; `v*` tags publish a GitHub Release with the APK and setup notes.
-- **Backend CI** (JDK 21, Postgres 15 + Redis 7 services): `:backend:build` + `:backend:test`.
+- **Android CI** (JDK 17): unit tests, Android Lint, then `assembleDebug` → APK artifact on every push.
+  A `v*` tag builds a release APK from the tag version and attaches it to a GitHub Release.
+  Release signing uses the `RELEASE_KEYSTORE_BASE64` secret; without it CI publishes the debug artifact instead.
+- **Backend CI** (JDK 21, Postgres 16 + Redis 7): `:backend:build` + `:backend:test`.
 - Latest stable: [Releases](https://github.com/HeshamAbuShaban/Eilaji/releases/latest).
 
 ## Roadmap
@@ -159,6 +211,17 @@ docs/assets/  docs/screenshots/
 - Real courier feed (app prefers backend position when present; simulator drives it today)
 - Ranked search with filters
 - Phone OTP onboarding, refill prediction, referrals
+
+## Docs
+
+| Document | Contents |
+|---|---|
+| [AGENTS.md](AGENTS.md) | How to work in this repository: commands, conventions, review rules |
+| [docs/SECURITY.md](docs/SECURITY.md) | Secret handling, threat model, rotated credentials, reporting |
+| [docs/UPGRADING.md](docs/UPGRADING.md) | Backend upgrade, migrations, release runbook |
+| [CHANGELOG.md](CHANGELOG.md) | Release history |
+| [docs/TESTING-DASHBOARD.md](docs/TESTING-DASHBOARD.md) | Ops dashboard walkthrough |
+| [eilaji-backend/README.md](eilaji-backend/README.md) | Backend architecture and API reference |
 
 ## License
 

@@ -39,7 +39,7 @@
                 android:layout_marginTop="16dp"
                 android:text="@string/time_to_take_meds"
                 android:textColor="@color/primary_color"
-                android:textSize="14sp"
+                android:textSize="@dimen/_14ssp"
                 android:textStyle="bold" />
 
             <TextView
@@ -48,7 +48,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:gravity="center"
-                android:textSize="22sp"
+                android:textSize="@dimen/_22ssp"
                 android:textStyle="bold" />
 
             <TextView
@@ -58,14 +58,14 @@
                 android:layout_marginTop="4dp"
                 android:gravity="center"
                 android:textColor="@color/gray_dark"
-                android:textSize="14sp" />
+                android:textSize="@dimen/_14ssp" />
 
             <TextView
                 android:id="@+id/tvAlarmTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:textSize="40sp"
+                android:textSize="@dimen/_40ssp"
                 android:textStyle="bold" />
 
             <com.google.android.material.button.MaterialButton

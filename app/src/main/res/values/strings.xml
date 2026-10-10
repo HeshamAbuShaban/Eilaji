@@ -185,4 +185,138 @@
     <string name="phone">Phone</string>
     <string name="edit_profile">Edit profile</string>
     <string name="theme_dynamic">Dynamic</string>
+
+    <!-- Accessibility / content descriptions -->
+    <string name="add_to_cart">Add to cart</string>
+    <string name="add_to_favorites">Add to favourites</string>
+    <string name="remove_from_favorites">Remove from favourites</string>
+    <string name="reminder_type_icon">Reminder type</string>
+    <string name="receiver_photo">Receiver photo</string>
+    <string name="user_photo">User photo</string>
+    <string name="pharmacy_image">Pharmacy photo</string>
+    <string name="on_boarding_illustration">Onboarding illustration</string>
+    <string name="next">Next</string>
+    <string name="ads_page_indicator">Advertisement page indicator</string>
+    <string name="reminders_count_placeholder">2 reminders today</string>
+
+    <!-- Screen titles / navigation labels -->
+    <string name="nav_search">Search</string>
+    <string name="nav_medicine_details">Medicine details</string>
+    <string name="nav_favorites">Favorites</string>
+    <string name="nav_add_address">Add address</string>
+    <string name="nav_add_reminder">Add reminder</string>
+    <string name="nav_reminders">Reminders</string>
+    <string name="nav_chatting">Chat</string>
+    <string name="nav_sub_categories">Categories</string>
+    <string name="nav_send_to_pharmacy">Send to pharmacy</string>
+    <string name="nav_orders">My orders</string>
+    <string name="nav_order_tracking">Order tracking</string>
+    <string name="nav_checkout">Checkout</string>
+    <string name="nav_on_boarding">Welcome</string>
+
+    <!-- Money -->
+    <string name="currency_symbol" translatable="false">$</string>
+    <string name="price_format" translatable="false">%1$s %2$s</string>
+
+    <!-- Labels used by the medicine details facts card -->
+    <string name="label_dosage">Dosage:</string>
+    <string name="label_warnings">Warnings:</string>
+    <string name="label_side_effects">Side effects:</string>
+    <string name="label_storage">Storage:</string>
+
+    <!-- Greetings -->
+    <string name="greeting_morning">Good morning</string>
+    <string name="greeting_afternoon">Good afternoon</string>
+    <string name="greeting_evening">Good evening</string>
+
+    <!-- Home / quick actions -->
+    <string name="quick_actions">Quick Actions</string>
+    <string name="upload_prescription">Upload Prescription</string>
+    <string name="find_pharmacy">Find Pharmacy</string>
+    <string name="chat">Chat</string>
+    <string name="reminders">Reminders</string>
+    <string name="nearby_pharmacies">Nearby Pharmacies</string>
+    <string name="no_nearby_pharmacies">No nearby pharmacies</string>
+
+    <!-- Orders / tracking -->
+    <string name="order_id_prefix" translatable="false">#%1$s</string>
+    <string name="new_pharmacy">New</string>
+    <string name="open_badge">Open</string>
+    <string name="closed_badge">Closed</string>
+    <string name="subtotal">Subtotal</string>
+    <string name="delivery">Delivery</string>
+    <string name="total">Total</string>
+    <string name="delivery_eta">Delivery · ~%1$d min</string>
+    <string name="quantity_short" translatable="false">x%1$d</string>
+
+    <!-- Reminders -->
+    <string name="next_in_hours_minutes">Next in %1$dh %2$dm</string>
+    <string name="next_dose_summary">Next: %1$s at %2$s</string>
+    <string name="n_nearby">%1$d nearby</string>
+    <string name="rating_count_format" translatable="false">%1$.1f ★ (%2$d)</string>
+    <string name="distance_km_format" translatable="false">%1$.1f km</string>
+    <string name="rating_only_format" translatable="false">%1$.1f (%2$d)</string>
+    <string name="share_medicine_text">%1$s — %2$s</string>
+    <string name="via_eilaji">via Eilaji</string>
+    <string name="minimum_order_amount">Minimum order is %1$s</string>
+    <string name="order_number">Order #%1$s</string>
+    <string name="no_pharmacy_nearby">No pharmacy nearby to rate</string>
+    <string name="rating_failed_login">Rating failed — login required</string>
+    <string name="medicines_title">Medicines</string>
+    <string name="removed_from_favorites">Removed from favorites</string>
+    <string name="added_to_favorites">Added to favorites</string>
+    <string name="prescription_required_message">Prescription required — upload it and the pharmacy will confirm</string>
+    <string name="offline_showing_saved_data">Offline — showing saved data</string>
+    <string name="failed_to_load">Failed to load</string>
+    <string name="network_error">Network error</string>
+    <string name="error_orders_hint">We could not reach the server. Check your connection and try again.</string>
+    <string name="something_went_wrong">Something went wrong</string>
+    <string name="reconnecting_send_again">Reconnecting… send again in a moment</string>
+
+    <plurals name="reminders_today">
+        <item quantity="zero">No reminders today</item>
+        <item quantity="one">1 reminder today</item>
+        <item quantity="other">%1$d reminders today</item>
+    </plurals>
+    <plurals name="doses_today">
+        <item quantity="zero">No doses today</item>
+        <item quantity="one">1 dose today</item>
+        <item quantity="other">%1$d doses today</item>
+    </plurals>
+
+    <string name="medicine_word">Medicine</string>
+    <string name="eta_minutes">~%1$d min</string>
+    <string name="status_pending">Confirming with pharmacy</string>
+    <string name="status_confirmed">Preparing your order</string>
+    <string name="status_preparing">Packing your medicines</string>
+    <string name="status_shipped">Courier on the way</string>
+    <string name="status_delivered">Delivered</string>
+    <string name="status_cancelled">Cancelled</string>
+    <string name="status_on_the_way">On the way</string>
+    <string name="pharmacy_fallback">Pharmacy</string>
+    <string name="your_address">Your address</string>
+    <string name="handoff_code_format">Handoff code: %1$s</string>
+    <string name="handoff_code_placeholder">Handoff code appears here</string>
+    <string name="arriving">Arriving</string>
+    <string name="cart_is_empty">Cart is empty — add medicines first</string>
+    <string name="create_account_to_use">Please create an account to use this feature!</string>
+    <string name="guest_mode_browse">Guest mode — browse medicines &amp; pharmacies</string>
+    <string name="privacy_policy_coming_soon">Privacy Policy coming soon</string>
+    <string name="sign_in_to_edit_profile">Sign in to edit your profile</string>
+    <string name="name_cant_be_empty">Name can\'t be empty</string>
+    <string name="profile_updated">Profile updated</string>
+    <string name="update_failed">Update failed</string>
+    <string name="please_enter_prescription_detail">Please Enter a Prescription Detail</string>
+    <string name="something_went_wrong_short">Something Went Wrong !</string>
+    <string name="share_app_title">Share App</string>
+    <string name="share_app_chooser">Share the app</string>
+    <string name="share_app_subject">Check out this app!</string>
+    <string name="share_app_text">I found this amazing app that I wanted to share with you. Download it from the app store.</string>
+    <string name="no_app_found_to_share">No app found to share</string>
+
+    <string name="enter_email">Enter your email address</string>
+    <string name="invalid_email">Enter a valid email address</string>
+    <string name="reset_code_sent_hint">If that email has an account, a reset code was sent.</string>
+    <string name="reset_code_display">Your reset code: %1$s. Use it within the time shown by support.</string>
+    <string name="reset_request_failed">Could not start a password reset. Please try again.</string>
 </resources>

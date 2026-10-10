@@ -13,7 +13,7 @@ jobs:
     
     services:
       postgres:
-        image: postgres:15
+        image: postgres:16-alpine
         env:
           POSTGRES_DB: eilaji_test
           POSTGRES_USER: test
@@ -53,12 +53,13 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew :backend:build
       working-directory: eilaji-backend
-      env:
+        env:
+        APP_PROFILE: test
+        CREATE_MISSING_TABLES: "true"
         DATABASE_URL: jdbc:postgresql://localhost:5432/eilaji_test
         DATABASE_USER: test
         DATABASE_PASSWORD: testpass
-        REDIS_HOST: localhost
-        REDIS_PORT: 6379
+        REDIS_URL: redis://localhost:6379
         JWT_SECRET: test-secret-key-for-ci-pipeline-only
         MINIO_ENDPOINT: localhost:9000
         MINIO_ACCESS_KEY: test
@@ -67,12 +68,13 @@ jobs:
     - name: Run tests
       run: ./gradlew :backend:test
       working-directory: eilaji-backend
-      env:
+        env:
+        APP_PROFILE: test
+        CREATE_MISSING_TABLES: "true"
         DATABASE_URL: jdbc:postgresql://localhost:5432/eilaji_test
         DATABASE_USER: test
         DATABASE_PASSWORD: testpass
-        REDIS_HOST: localhost
-        REDIS_PORT: 6379
+        REDIS_URL: redis://localhost:6379
         JWT_SECRET: test-secret-key-for-ci-pipeline-only
         MINIO_ENDPOINT: localhost:9000
         MINIO_ACCESS_KEY: test

@@ -10,7 +10,6 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.common.primitives.Floats
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.adapters.server.SendToPharmacyAdapter
 import dev.anonymous.eilaji.databinding.FragmentSendToPharmacyBinding
@@ -106,7 +105,7 @@ class SendToPharmacyFragment : Fragment() {
             }
             val distanceOne = myLocation.distanceTo(locationA)
             val distanceTwo = myLocation.distanceTo(locationB)
-            return@Comparator Floats.compare(distanceOne, distanceTwo)
+            return@Comparator distanceOne.compareTo(distanceTwo)
         })
         setupPharmaciesLocationRecycler(sorted, myLocation, stringUri, description)
     }

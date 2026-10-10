@@ -43,22 +43,8 @@ class AboutMedicationAdapter(
                 val adapter = MedicinesAdapter(ArrayList())
                 binding.recyclerAlternativeMedicines.adapter = adapter
 
-                Thread {
-                    SystemClock.sleep(1500)
-                    activity.runOnUiThread {
-                        val list: ArrayList<MedicineModel> = ArrayList()
-                        for (id in medicineModel.alternativeMedicinesId) {
-                            for (model in DummyData.listMedicineModels) {
-                                if (model.id == id) {
-                                    list.add(model)
-                                    break
-                                }
-                            }
-                        }
-                        binding.progressAlternativeMedicines.visibility = View.GONE
-//                        adapter.setListMedicines(list)
-                    }
-                }.start()
+                // The alternatives rail is filled by MedicineFragment from the real API data.
+                binding.progressAlternativeMedicines.visibility = View.GONE
 
                 container.addView(binding.root)
                 binding.root

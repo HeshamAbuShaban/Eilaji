@@ -32,8 +32,8 @@ import retrofit2.Response
 
 class SearchFragment : Fragment() {
 
-    private lateinit var _binding: FragmentSearchBinding
-    private val binding get() = _binding
+    private var _binding: FragmentSearchBinding? = null
+    private val binding get() = _binding!!
 
     private lateinit var searchViewModel: SearchViewModel
 
@@ -105,6 +105,9 @@ class SearchFragment : Fragment() {
                     } catch (_: Exception) { startActivity(intent) }
                 } catch (_: Exception) {}
             })
+            try {
+                (adapter as? MedicinesAdapter)?.loadFavorites(requireContext().applicationContext)
+            } catch (_: Exception) {}
         }
     }
 
@@ -133,12 +136,12 @@ class SearchFragment : Fragment() {
                 } else {
                     val msg = response.body()?.error ?: "Failed to load medicines"
                     Log.e("SearchFragment", "fetchMedicines: $msg")
-                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+                    toast(msg)
                 }
             }
             override fun onFailure(call: Call<ApiResponse<PaginatedResult<MedicineDto>>>, t: Throwable) {
                 Log.e("SearchFragment", "fetchMedicines: network error", t)
-                Toast.makeText(requireContext(), "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
+                toast(getString(dev.anonymous.eilaji.R.string.network_error))
             }
         })
     }
@@ -153,12 +156,12 @@ class SearchFragment : Fragment() {
                 } else {
                     val msg = response.body()?.error ?: "Search failed"
                     Log.e("SearchFragment", "searchMedicines: $msg")
-                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+                    toast(msg)
                 }
             }
             override fun onFailure(call: Call<ApiResponse<PaginatedResult<MedicineDto>>>, t: Throwable) {
                 Log.e("SearchFragment", "searchMedicines: network error", t)
-                Toast.makeText(requireContext(), "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
+                toast(getString(dev.anonymous.eilaji.R.string.network_error))
             }
         })
     }
@@ -238,12 +241,12 @@ class SearchFragment : Fragment() {
                 } else {
                     val msg = response.body()?.error ?: "Failed to load pharmacies"
                     Log.e("SearchFragment", "fetchPharmacies: $msg")
-                    Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+                    toast(msg)
                 }
             }
             override fun onFailure(call: Call<ApiResponse<PaginatedResult<PharmacyDto>>>, t: Throwable) {
                 Log.e("SearchFragment", "fetchPharmacies: network error", t)
-                Toast.makeText(requireContext(), "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
+                toast(getString(dev.anonymous.eilaji.R.string.network_error))
             }
         })
     }
@@ -340,5 +343,15 @@ class SearchFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         searchRunnable?.let { searchHandler.removeCallbacks(it) }
+        _binding = null
+    }
+
+    /** Context only while the view exists. */
+    private fun safeContext(): android.content.Context? = _binding?.root?.context
+
+    /** Shows an error without assuming the view is still attached. */
+    private fun toast(message: String) {
+        val context = safeContext() ?: return
+        try { Toast.makeText(context, message, Toast.LENGTH_SHORT).show() } catch (_: Exception) {}
     }
 }

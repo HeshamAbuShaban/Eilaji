@@ -10,9 +10,11 @@
             <lib domain="sharedpref" />
         </include>
 
-        <!-- Exclude sensitive encrypted preferences -->
+        <!-- Tokens must never leave the device: exclude both the encrypted store and the
+             plaintext fallback that is only used if the keystore fails. -->
         <exclude domain="sharedpref">
             <map path="secure_app_prefs.xml" />
+            <map path="app_prefs.xml" />
         </exclude>
 
         <!-- Exclude caches and databases that may contain PII -->
@@ -27,6 +29,7 @@
         <!-- Disable device transfer of sensitive data -->
         <exclude domain="sharedpref">
             <map path="secure_app_prefs.xml" />
+            <map path="app_prefs.xml" />
         </exclude>
 
         <exclude domain="file">

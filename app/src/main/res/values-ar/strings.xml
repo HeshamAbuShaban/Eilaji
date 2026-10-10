@@ -141,4 +141,175 @@
     <string name="phone">الهاتف</string>
     <string name="edit_profile">تعديل الملف</string>
     <string name="theme_dynamic">ديناميكي</string>
+
+    <!-- أوصاف إمكانية الوصول -->
+    <string name="add_to_cart">إضافة إلى السلة</string>
+    <string name="add_to_favorites">إضافة إلى المفضلة</string>
+    <string name="remove_from_favorites">إزالة من المفضلة</string>
+    <string name="reminder_type_icon">نوع التذكير</string>
+    <string name="receiver_photo">صورة المستقبل</string>
+    <string name="user_photo">صورة المستخدم</string>
+    <string name="pharmacy_image">صورة الصيدلية</string>
+    <string name="on_boarding_illustration">رسم توضيحي للشاشة التعريفية</string>
+    <string name="next">التالي</string>
+    <string name="ads_page_indicator">مؤشر صفحات الإعلانات</string>
+    <string name="reminders_count_placeholder">تذكيران اليوم</string>
+
+    <!-- عناوين الشاشات و التنقل -->
+    <string name="nav_search">البحث</string>
+    <string name="nav_medicine_details">تفاصيل الدواء</string>
+    <string name="nav_favorites">المفضلة</string>
+    <string name="nav_add_address">إضافة عنوان</string>
+    <string name="nav_add_reminder">إضافة تذكير</string>
+    <string name="nav_reminders">التذكيرات</string>
+    <string name="nav_chatting">المحادثة</string>
+    <string name="nav_sub_categories">الأقسام</string>
+    <string name="nav_send_to_pharmacy">الإرسال إلى الصيدلية</string>
+    <string name="nav_orders">طلباتي</string>
+    <string name="nav_order_tracking">تتبع الطلب</string>
+    <string name="nav_checkout">إتمام الشراء</string>
+    <string name="nav_on_boarding">مرحباً بك</string>
+
+    <!-- المال -->
+    <string name="currency_symbol" translatable="false">$</string>
+    <string name="price_format" translatable="false">%1$s %2$s</string>
+
+    <!-- تسميات بطاقة بيانات الدواء -->
+    <string name="label_dosage">الجرعة:</string>
+    <string name="label_warnings">تحذيرات:</string>
+    <string name="label_side_effects">آثار جانبية:</string>
+    <string name="label_storage">التخزين:</string>
+
+    <!-- التحيات -->
+    <string name="greeting_morning">صباح الخير</string>
+    <string name="greeting_afternoon">طاب يومك</string>
+    <string name="greeting_evening">مساء الخير</string>
+
+    <!-- الرئيسية / الإجراءات السريعة -->
+    <string name="quick_actions">إجراءات سريعة</string>
+    <string name="upload_prescription">إرسال روشتة</string>
+    <string name="find_pharmacy">ابحث عن صيدلية</string>
+    <string name="chat">المحادثة</string>
+    <string name="reminders">التذكيرات</string>
+    <string name="nearby_pharmacies">صيدليات قريبة</string>
+    <string name="no_nearby_pharmacies">لا توجد صيدليات قريبة</string>
+
+    <!-- الطلبات والتتبع -->
+    <string name="order_id_prefix" translatable="false">#%1$s</string>
+    <string name="new_pharmacy">جديد</string>
+    <string name="open_badge">مفتوح</string>
+    <string name="closed_badge">مغلق</string>
+    <string name="subtotal">المجموع الفرعي</string>
+    <string name="delivery">التوصيل</string>
+    <string name="total">الإجمالي</string>
+    <string name="delivery_eta">التوصيل · ~%1$d دقيقة</string>
+    <string name="quantity_short" translatable="false">x%1$d</string>
+
+    <!-- التذكيرات -->
+    <string name="next_in_hours_minutes">التالي بعد %1$d س %2$d د</string>
+    <string name="next_dose_summary">التالي: %1$s الساعة %2$s</string>
+    <string name="n_nearby">%1$d قريبة</string>
+    <string name="rating_count_format" translatable="false">%1$.1f ★ (%2$d)</string>
+    <string name="distance_km_format" translatable="false">%1$.1f كم</string>
+    <string name="rating_only_format" translatable="false">%1$.1f (%2$d)</string>
+    <string name="share_medicine_text">%1$s — %2$s</string>
+    <string name="via_eilaji">عبر علاجي</string>
+    <string name="minimum_order_amount">الحد الأدنى للطلب هو %1$s</string>
+    <string name="order_number">الطلب #%1$s</string>
+    <string name="no_pharmacy_nearby">لا توجد صيدلية قريبة لتقييمها</string>
+    <string name="rating_failed_login">فشل التقييم — يجب تسجيل الدخول</string>
+    <string name="medicines_title">الأدوية</string>
+    <string name="removed_from_favorites">تمت الإزالة من المفضلة</string>
+    <string name="added_to_favorites">تمت الإضافة إلى المفضلة</string>
+    <string name="prescription_required_message">روشتة مطلوبة — أرسلها وستؤكدها الصيدلية</string>
+    <string name="offline_showing_saved_data">غير متصل — يتم عرض البيانات المحفوظة</string>
+    <string name="failed_to_load">فشل التحميل</string>
+    <string name="network_error">خطأ في الشبكة</string>
+    <string name="error_orders_hint">لم نتمكن من الوصول إلى الخادم. تحقق من اتصالك وحاول مرة أخرى.</string>
+    <string name="something_went_wrong">حدث خطأ ما</string>
+    <string name="reconnecting_send_again">جارٍ إعادة الاتصال… أرسل مرة أخرى بعد لحظات</string>
+
+    <plurals name="reminders_today">
+        <item quantity="zero">لا تذكيرات اليوم</item>
+        <item quantity="one">تذكير واحد اليوم</item>
+        <item quantity="two">تذكيران اليوم</item>
+        <item quantity="few">%1$d تذكيرات اليوم</item>
+        <item quantity="many">%1$d تذكيراً اليوم</item>
+        <item quantity="other">%1$d تذكير اليوم</item>
+    </plurals>
+    <plurals name="doses_today">
+        <item quantity="zero">لا جرعات اليوم</item>
+        <item quantity="one">جرعة واحدة اليوم</item>
+        <item quantity="two">جرعتان اليوم</item>
+        <item quantity="few">%1$d جرعات اليوم</item>
+        <item quantity="many">%1$d جرعة اليوم</item>
+        <item quantity="other">%1$d جرعة اليوم</item>
+    </plurals>
+
+    <string name="medicine_word">دواء</string>
+    <string name="eta_minutes">~%1$d دقيقة</string>
+    <string name="status_pending">تأكيد مع الصيدلية</string>
+    <string name="status_confirmed">تحضير طلبك</string>
+    <string name="status_preparing">تغليف أدويتك</string>
+    <string name="status_shipped">المندوب في الطريق</string>
+    <string name="status_delivered">تم التوصيل</string>
+    <string name="status_cancelled">ملغي</string>
+    <string name="status_on_the_way">في الطريق</string>
+    <string name="pharmacy_fallback">صيدلية</string>
+    <string name="your_address">عنوانك</string>
+    <string name="handoff_code_format">رمز التسليم: %1$s</string>
+    <string name="handoff_code_placeholder">سيظهر رمز التسليم هنا</string>
+    <string name="arriving">وصل</string>
+    <string name="cart_is_empty">السلة فارغة — أضف أدوية أولاً</string>
+    <string name="create_account_to_use">يرجى إنشاء حساب لاستخدام هذه الميزة!</string>
+    <string name="guest_mode_browse">وضع الزائر — تصفح الأدوية والصيدليات</string>
+    <string name="privacy_policy_coming_soon">سياسة الخصوصية قريباً</string>
+    <string name="sign_in_to_edit_profile">سجل الدخول لتعديل ملفك الشخصي</string>
+    <string name="name_cant_be_empty">لا يمكن أن يكون الاسم فارغاً</string>
+    <string name="profile_updated">تم تحديث الملف الشخصي</string>
+    <string name="update_failed">فشل التحديث</string>
+    <string name="please_enter_prescription_detail">يرجى إدخال تفاصيل الروشتة</string>
+    <string name="something_went_wrong_short">حدث خطأ ما !</string>
+    <string name="share_app_title">شارك التطبيق</string>
+    <string name="share_app_chooser">شارك التطبيق</string>
+    <string name="share_app_subject">جرّب هذا التطبيق!</string>
+    <string name="share_app_text">وجدت تطبيقاً رائعاً أردت مشاركته معك. حمّله من متجر التطبيقات.</string>
+    <string name="no_app_found_to_share">لم يتم العثور على تطبيق للمشاركة</string>
+
+
+    <string name="_00_00_00" translatable="false">00:00:00</string>
+    <string name="added_to_cart">تمت الإضافة إلى السلة</string>
+    <string name="alternatives_title">قد تحتاج أيضاً</string>
+    <string name="call_pharmacy">اتصال بالصيدلية</string>
+    <string name="card_biometric_hint">يتم تأكيد البطاقة ببصمة الإصبع أو رمز الجهاز عند الدفع.</string>
+    <string name="checkout">إتمام الشراء</string>
+    <string name="closed_now">مغلق</string>
+    <string name="confirm_card_payment">تأكيد الدفع بالبطاقة</string>
+    <string name="decrease">تقليل الكمية</string>
+    <string name="like_button">إضافة إلى المفضلة</string>
+    <string name="n_reminders_today">%1$d تذكيرات اليوم</string>
+    <string name="no_chats_hint">اختر صيدلية وابدأ الحديث — الردود تصل هنا</string>
+    <string name="no_chats_yet">لا توجد محادثات بعد</string>
+    <string name="one_reminder_today">تذكير واحد اليوم</string>
+    <string name="open_now">مفتوح</string>
+    <string name="order_placed">تم إنشاء الطلب</string>
+    <string name="pay_with_fingerprint">تحقق للدفع بالبطاقة</string>
+    <string name="requires_prescription">يتطلب روشتة</string>
+    <string name="save_address">حفظ العنوان</string>
+    <string name="simulated_courier">مندوب محاكى</string>
+    <string name="snooze_10_min">تأجيل 10 دقائق</string>
+    <string name="take_now">أخذ الآن</string>
+    <string name="tap_map_to_move_pin">اضغط على الخريطة لتحريك المؤشر</string>
+    <string name="thanks_for_rating">شكراً على تقييمك!</string>
+    <string name="time_to_take_meds">حان وقت أخذ دوائك</string>
+    <string name="use_my_location">استخدم موقعي</string>
+    <string name="theme">المظهر</string>
+    <string name="theme_light">فاتح</string>
+    <string name="theme_dark">داكن</string>
+    <string name="theme_system">افتراضي النظام</string>
+    <string name="enter_email">أدخل بريدك الإلكتروني</string>
+    <string name="invalid_email">أدخل بريدًا إلكترونيًا صحيحًا</string>
+    <string name="reset_code_sent_hint">إذا كان لهذا البريد حساب، فقد تم إرسال رمز إعادة التعيين.</string>
+    <string name="reset_code_display">رمز إعادة التعيين: %1$s. استخدمه خلال المدة التي يحددها الدعم.</string>
+    <string name="reset_request_failed">لم نتمكن من بدء إعادة تعيين كلمة المرور. حاول مرة أخرى.</string>
 </resources>

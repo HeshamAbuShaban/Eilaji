@@ -21,6 +21,7 @@
             android:id="@+id/ivPharmacyLocation"
             android:layout_width="@dimen/_56sdp"
             android:layout_height="@dimen/_56sdp"
+            android:contentDescription="@string/pharmacy_image"
             android:scaleType="centerCrop"
             android:src="@drawable/temp_ads_image"
             app:riv_corner_radius="@dimen/_12sdp" />
@@ -113,19 +114,19 @@
             <ImageView
                 android:id="@+id/buPharmacyCallLocation"
                 style="@style/RippleCircleEffectStyle"
-                android:layout_width="@dimen/_40sdp"
-                android:layout_height="@dimen/_40sdp"
+                android:layout_width="@dimen/_48sdp"
+                android:layout_height="@dimen/_48sdp"
                 android:contentDescription="@string/call_pharmacy"
-                android:padding="@dimen/_10sdp"
+                android:padding="@dimen/_13sdp"
                 android:src="@drawable/ic_headset_mic" />
 
             <ImageView
                 android:id="@+id/buPharmacyChatLocation"
                 style="@style/RippleCircleEffectStyle"
-                android:layout_width="@dimen/_40sdp"
-                android:layout_height="@dimen/_40sdp"
+                android:layout_width="@dimen/_48sdp"
+                android:layout_height="@dimen/_48sdp"
                 android:contentDescription="@string/chats"
-                android:padding="@dimen/_10sdp"
+                android:padding="@dimen/_13sdp"
                 android:src="@drawable/ic_message" />
 
         </LinearLayout>

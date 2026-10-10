@@ -52,7 +52,7 @@
                 android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
-                android:contentDescription="@null"
+                android:contentDescription="@string/add_to_favorites"
                 android:focusable="true"
                 android:paddingHorizontal="@dimen/_10sdp"
                 android:paddingVertical="@dimen/_8sdp"

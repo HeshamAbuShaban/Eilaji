@@ -3,6 +3,7 @@ package dev.anonymous.eilaji.network.websocket
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import dev.anonymous.eilaji.BuildConfig
+import java.util.concurrent.TimeUnit
 import dev.anonymous.eilaji.network.MessageDto
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -23,7 +24,12 @@ data class WebSocketMessage(
 
 class WebSocketManager @JvmOverloads constructor(
     private val token: String,
-    private val client: OkHttpClient = OkHttpClient()
+    private val client: OkHttpClient = OkHttpClient.Builder()
+        // A ping keeps NAT/proxy sockets alive so a dead link is found in seconds, not on send.
+        .pingInterval(15, TimeUnit.SECONDS)
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(0, TimeUnit.MILLISECONDS)
+        .build()
 ) {
     private var webSocket: WebSocket? = null
     private val gson = Gson()
@@ -43,15 +49,48 @@ class WebSocketManager @JvmOverloads constructor(
         return wsBase + "ws/chat?token=" + token
     }
 
+    private var reconnectAttempts = 0
+    private var reconnectScheduled = false
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
+
     fun connect() {
+        if (isConnected) return
         val request = Request.Builder().url(buildUrl()).build()
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
-            override fun onOpen(ws: WebSocket, response: Response) { isConnected = true; onConnected?.run() }
+            override fun onOpen(ws: WebSocket, response: Response) {
+                isConnected = true
+                reconnectAttempts = 0
+                onConnected?.run()
+            }
+
             override fun onMessage(ws: WebSocket, text: String) { handleMessage(text) }
             override fun onMessage(ws: WebSocket, bytes: ByteString) { handleMessage(bytes.utf8()) }
-            override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) { isConnected = false; onError?.accept(t.message ?: "ws failure") }
-            override fun onClosed(ws: WebSocket, code: Int, reason: String) { isConnected = false }
+            override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
+                isConnected = false
+                scheduleReconnect()
+                onError?.accept(t.message ?: "Chat connection lost")
+            }
+
+            override fun onClosed(ws: WebSocket, code: Int, reason: String) {
+                isConnected = false
+                scheduleReconnect()
+            }
         })
+    }
+
+    /**
+     * Keeps trying with backoff (1s, 2s, 4s ... up to 30s) and never gives up on its own.
+     * The screen decides how many attempts it shows to the user.
+     */
+    private fun scheduleReconnect() {
+        if (reconnectScheduled) return
+        reconnectScheduled = true
+        val delayMs = minOf(30_000L, 1_000L shl minOf(reconnectAttempts, 5))
+        reconnectAttempts++
+        handler.postDelayed({
+            reconnectScheduled = false
+            if (!isConnected) connect()
+        }, delayMs)
     }
 
     private fun handleMessage(text: String) {

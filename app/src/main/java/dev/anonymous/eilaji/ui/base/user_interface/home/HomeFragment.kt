@@ -79,9 +79,9 @@ class HomeFragment : Fragment() {
         try {
             val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
             val greet = when (hour) {
-                in 5..11 -> "Good morning"
-                in 12..17 -> "Good afternoon"
-                else -> "Good evening"
+                in 5..11 -> getString(R.string.greeting_morning)
+                in 12..17 -> getString(R.string.greeting_afternoon)
+                else -> getString(R.string.greeting_evening)
             }
             binding.tvHomeGreeting.text = greet
             try { dev.anonymous.eilaji.utils.SpringFx.gradientText(binding.tvHomeGreeting) } catch (_: Exception) {}
@@ -236,8 +236,7 @@ class HomeFragment : Fragment() {
                 val count = list?.size ?: 0
                 binding.tvReminderCount.text = when (count) {
                     0 -> getString(R.string.no_reminders_yet)
-                    1 -> getString(R.string.one_reminder_today)
-                    else -> getString(R.string.n_reminders_today, count)
+                    else -> resources.getQuantityString(R.plurals.reminders_today, count, count)
                 }
             }
         } catch (_: Exception) {
@@ -416,10 +415,11 @@ class HomeFragment : Fragment() {
         if (size <= 1) return
         adsAutoScroll = object : Runnable {
             override fun run() {
+                val current = _binding ?: return
                 try {
-                    val next = ((binding.pagerAds.currentItem + 1) % size)
-                    binding.pagerAds.setCurrentItem(next, true)
-                    binding.pagerAds.postDelayed(this, 4000)
+                    val next = ((current.pagerAds.currentItem + 1) % size)
+                    current.pagerAds.setCurrentItem(next, true)
+                    current.pagerAds.postDelayed(this, 4000)
                 } catch (_: Exception) {}
             }
         }
@@ -442,7 +442,7 @@ class HomeFragment : Fragment() {
                 if (best.isNotEmpty()) homeViewModel.setBestSellers(best)
                 if (cats.isNotEmpty()) homeViewModel.setCategories(cats)
                 try {
-                    com.google.android.material.snackbar.Snackbar.make(binding.root, "Offline — showing saved data", com.google.android.material.snackbar.Snackbar.LENGTH_LONG).show()
+                    com.google.android.material.snackbar.Snackbar.make(binding.root, getString(R.string.offline_showing_saved_data), com.google.android.material.snackbar.Snackbar.LENGTH_LONG).show()
                 } catch (_: Exception) {}
             } else {
                 homeViewModel.setAdsList(ArrayList())
@@ -549,6 +549,14 @@ class HomeFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         stopAdsAutoplay()
+    }
+
+    override fun onDestroyView() {
+        // The ads runnable re-posts itself every 4 seconds; stop it with the view.
+        stopAdsAutoplay()
+        cancelTimeout()
+        adsAutoScroll = null
+        super.onDestroyView()
     }
 
     override fun onStop() {

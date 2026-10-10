@@ -57,8 +57,13 @@ class MainViewModel : ViewModel() {
                         sharedPreferences.putIsVerified(user.isVerified)
                     }
                 } else {
-                    // Token might be invalid, clear it
-                    sharedPreferences.clearAll()
+                    // A 401 is handled centrally by the OkHttp authenticator (token refresh),
+                    // which clears the session only when renewal is impossible. Any other
+                    // error here is transient: keep the cached profile instead of logging out.
+                    if (response.code() == 403) {
+                        sharedPreferences.clearAll()
+                        _userData.value = null
+                    }
                 }
             }
 
