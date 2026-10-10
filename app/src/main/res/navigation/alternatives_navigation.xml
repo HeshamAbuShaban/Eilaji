@@ -55,13 +55,19 @@
         tools:layout="@layout/fragment_reminder" />
 
     <fragment
+        android:id="@+id/navigation_reminder_wizard"
+        android:name="dev.anonymous.eilaji.ui.other.reminder.ReminderWizardFragment"
+        android:label="@string/title_new_reminder"
+        tools:layout="@layout/fragment_reminder_wizard" />
+
+    <fragment
         android:id="@+id/navigation_reminders_list"
         android:name="dev.anonymous.eilaji.ui.other.reminder.list.RemindersListFragment"
         android:label="@string/nav_reminders"
         tools:layout="@layout/fragment_reminders_list">
         <action
             android:id="@+id/action_navigation_reminders_list_to_navigation_add_reminder"
-            app:destination="@id/navigation_add_reminder"
+            app:destination="@id/navigation_reminder_wizard"
             app:enterAnim="@anim/slide_in_left"
             app:exitAnim="@anim/slide_out_right"
             app:popEnterAnim="@anim/slide_in_right"

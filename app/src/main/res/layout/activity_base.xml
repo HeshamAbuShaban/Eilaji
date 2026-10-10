@@ -7,6 +7,8 @@
     android:layout_height="match_parent"
     tools:context=".ui.base.BaseActivity">
 
+
+
     <!-- Reminder reliability: reminders must be allowed to ring. Hidden when everything is on. -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardReminderReliability"
@@ -55,7 +57,6 @@
                 android:text="@string/reminder_reliability_fix" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
-
     <fragment
         android:id="@+id/nav_host_fragment_activity_base"
         android:name="androidx.navigation.fragment.NavHostFragment"
@@ -85,7 +86,9 @@
         app:fabCradleRoundedCornerRadius="16dp"
         app:fabCradleVerticalOffset="8dp"
         app:hideOnScroll="true"
-        app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior">
+        app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
+        app:layout_anchor="@id/bottomAppBar"
+        app:layout_anchorGravity="top">
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/navView"
@@ -99,20 +102,8 @@
             app:labelVisibilityMode="labeled"
             app:menu="@menu/bottom_nav_menu" />
 
-    </com.google.android.material.bottomappbar.BottomAppBar>
+    
+</com.google.android.material.bottomappbar.BottomAppBar>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabPrescription"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:contentDescription="@string/send_prescription"
-        android:src="@drawable/ic_add_photo"
-        app:backgroundTint="@color/primary_color"
-        app:borderWidth="0dp"
-        app:elevation="6dp"
-        app:layout_anchor="@id/bottomAppBar"
-        app:layout_anchorGravity="top|center"
-        app:maxImageSize="24dp"
-        app:tint="@color/white_fixed" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

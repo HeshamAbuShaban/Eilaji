@@ -199,4 +199,11 @@
     <style name="ShapeAppearance.App.Medium" parent="ShapeAppearance.Material3.Corner.Medium">
         <item name="cornerSize">16dp</item>
     </style>
+
+    <style name="Widget.Eilaji.ActionTile" parent="Widget.Material3.CardView.Outlined">
+        <item name="cardCornerRadius">18dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="contentPadding">0dp</item>
+    </style>
 </resources>

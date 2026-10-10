@@ -73,6 +73,15 @@ Each one is a checklist. Do the steps in order.
 | Redis memory check | `docker compose exec redis redis-cli info memory` | Weekly |
 | Disk for MinIO | Check the volume on the host | Weekly |
 
+## 5b. Push and reminders, verified on a device
+
+1. Start the backend. `docker compose up -d` then `./gradlew :backend:run`
+2. Install the app. `adb install -r app/build/outputs/apk/debug/app-debug.apk`
+3. Open the app. Allow notifications when asked. The reminder banner must disappear.
+4. Create a reminder one minute ahead. Lock the phone. It must ring with the alarm sound.
+5. Log in, send an order status change from the dashboard, and background the app.
+   A notification must arrive within seconds.
+
 ## 6. When something breaks
 
 | Symptom | First check |

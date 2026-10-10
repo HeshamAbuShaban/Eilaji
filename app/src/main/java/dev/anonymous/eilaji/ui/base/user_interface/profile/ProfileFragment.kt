@@ -50,10 +50,6 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
             if (binding.toggleThemeGroup.checkedButtonId != checkedId) {
                 binding.toggleThemeGroup.check(checkedId)
             }
-            binding.checkLight.visibility = if (theme == AppSharedPreferences.Theme.light.name) View.VISIBLE else View.GONE
-            binding.checkDark.visibility = if (theme == AppSharedPreferences.Theme.dark.name) View.VISIBLE else View.GONE
-            binding.checkSystem.visibility = if (theme == AppSharedPreferences.Theme.system.name) View.VISIBLE else View.GONE
-            binding.checkDynamic.visibility = if (theme == AppSharedPreferences.Theme.dynamic.name) View.VISIBLE else View.GONE
         }
         updateChecks(prefs.getTheme())
         fun selectTheme(theme: String) {

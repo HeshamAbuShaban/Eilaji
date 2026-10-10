@@ -13,6 +13,9 @@ credential leaks. Read it before you deploy anything.
 | `MINIO_SECRET_KEY` | Environment variable | Read/write to prescription images |
 | `EILAJI_PLUS_WEBHOOK_SECRET` | Environment variable | Forged pharmacist quotes |
 
+Push notification traffic uses the app's own WebSocket to your backend. There is no Firebase key
+and no third-party push credential anywhere in the project.
+
 Rules:
 
 1. Never commit a key, a token, or a `.jks` file.
@@ -54,6 +57,8 @@ account the password `password123`. Production must never set it.
   only orders for pharmacies they own.
 - Prescription review: only the owning pharmacy or an admin.
 - Stock: a pharmacist writes only their own pharmacy.
+- A guest can read the catalogue, search, pharmacies and nearby results; every other route
+  answers 401 and the app asks for a sign-in.
 - The Eilaji-Plus webhook requires an HMAC signature (`X-Eilaji-Signature`, `sha256=<hex>`) whenever
   `EILAJI_PLUS_WEBHOOK_SECRET` is configured. Production refuses unsigned webhooks.
 

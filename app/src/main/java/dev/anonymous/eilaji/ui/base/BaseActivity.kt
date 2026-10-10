@@ -39,7 +39,6 @@ class BaseActivity : AppCompatActivity() {
         setupVMWNavController()
         setupActionBarWithNavController()
         setupBottomNavigationView()
-        setupFab()
         setupReminderReliability()
     }
 
@@ -65,6 +64,16 @@ class BaseActivity : AppCompatActivity() {
         val card = binding.cardReminderReliability ?: return
         val status = ReminderReliability.check(this)
         card.visibility = if (status.isReady) android.view.View.GONE else android.view.View.VISIBLE
+        // The banner floats over the coordinator, so push the content down instead of covering it.
+        val host = binding.container.findViewById<android.view.View>(R.id.nav_host_fragment_activity_base)
+        host?.post {
+            val margin = if (card.visibility == android.view.View.VISIBLE && card.height > 0) card.height else 0
+            val params = host.layoutParams
+            if (params is android.view.ViewGroup.MarginLayoutParams && params.topMargin != margin) {
+                params.topMargin = margin
+                host.layoutParams = params
+            }
+        } ?: Unit
     }
 
     private fun openReliabilityFix() {
@@ -102,18 +111,36 @@ class BaseActivity : AppCompatActivity() {
     private fun setupBottomNavigationView() {
         val navController = findNavController(R.id.nav_host_fragment_activity_base)
         binding.navView.setupWithNavController(navController)
-        navController.addOnDestinationChangedListener { _, _, _ -> refreshCartBadge() }
-    }
-
-    private fun setupFab() {
-        binding.fabPrescription?.setOnClickListener {
-            val nav = baseViewModel.navController.value ?: findNavController(R.id.nav_host_fragment_activity_base)
-            try {
-                nav.navigate(R.id.navigation_send_prescription)
-            } catch (_: Exception) {
-                Toast.makeText(this, getString(R.string.send_prescription), Toast.LENGTH_SHORT).show()
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            refreshCartBadge()
+            // Orders, favourites, reminders and chat need an account. Ask instead of 401ing.
+            val private = setOf(R.id.navigation_chatting, R.id.navigation_send_prescription)
+            if (destination.id in private && !requireSession(destination.id)) {
+                try {
+                    binding.navView.selectedItemId = R.id.navigation_home
+                    navController.navigate(R.id.navigation_home)
+                } catch (_: Exception) {
+                }
             }
         }
+    }
+
+    /**
+     * Private destinations ask for a sign-in instead of failing silently with a 401.
+     * Returns true when the caller may continue.
+     */
+    fun requireSession(destinationId: Int): Boolean {
+        val prefs = dev.anonymous.eilaji.storage.AppSharedPreferences.getInstance(this)
+        if (!prefs.getToken().isNullOrBlank()) return true
+        try {
+            Toast.makeText(this, getString(R.string.sign_in_to_continue), Toast.LENGTH_SHORT).show()
+            val intent = android.content.Intent(this, dev.anonymous.eilaji.ui.main.MainActivity::class.java)
+            intent.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            intent.putExtra("logoutTrigger", dev.anonymous.eilaji.storage.enums.FragmentsKeys.logout.name)
+            startActivity(intent)
+        } catch (_: Exception) {
+        }
+        return false
     }
 
     fun refreshCartBadge() {

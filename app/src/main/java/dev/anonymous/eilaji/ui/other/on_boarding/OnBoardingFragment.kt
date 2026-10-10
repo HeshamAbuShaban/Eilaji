@@ -51,11 +51,20 @@ class OnBoardingFragment : Fragment() {
             AppSharedPreferences.getInstance(requireContext()).doneWithOnBoarding()
             AppSharedPreferences.getInstance(requireContext()).setHeIsFirstTimeDone()
         } catch (_: Exception) {}
+        // Guests continue into the app: browsing must not require an account.
         try {
-            val navController = findNavController()
-            navController.popBackStack()
-            navController.navigate(OnBoardingFragmentDirections.actionNavigationOnBoardingToNavigationLogin())
-        } catch (_: Exception) {}
+            startActivity(
+                android.content.Intent(requireContext(), dev.anonymous.eilaji.ui.base.BaseActivity::class.java)
+                    .addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        } catch (_: Exception) {
+            try {
+                val navController = findNavController()
+                navController.popBackStack()
+                navController.navigate(OnBoardingFragmentDirections.actionNavigationOnBoardingToNavigationLogin())
+            } catch (_: Exception) {}
+        }
+        try { activity?.finish() } catch (_: Exception) {}
     }
 
     private fun navToLoginController() {

@@ -2,6 +2,56 @@
 
 All notable changes are recorded here. Dates are `YYYY-MM-DD`.
 
+## [v1.16.0] — 2026-10-10
+
+### Fixed what the previous release broke
+
+- The map is back. `MAPS_API_KEY` was moved out of the repo but never added to the local
+  properties, so the map rendered blank. It now lives only in your untracked `local.properties`.
+- `local.properties` is no longer tracked by git. It holds machine-specific paths and the Maps key.
+- Demo logins work again in development: seeding uses the known password outside production.
+  Production still refuses it and seeds random passwords instead.
+- Reminders are reliable again: one alarm channel with the alarm ringtone, the notification
+  permission asked at first launch instead of only on the reminder screen, and the notification is
+  no longer skipped when permission is missing. A banner explains what to fix and links straight
+  to the setting.
+
+### Push without Firebase
+
+- A foreground service holds the app's own WebSocket open and turns order, prescription and chat
+  updates into local notifications.
+- The backend parks a notification in Redis when the device is offline; a 15-minute worker drains
+  the backlog. No third party is involved.
+- Guests and signed-in users share the same transport; nothing is sent to the device until it
+  registers.
+
+### Product behaviour
+
+- Guests can browse the catalogue, categories and nearby pharmacies without an account. Before,
+  the app forced a login right after onboarding.
+- Private destinations (orders, favourites, reminders, chat, checkout, prescription) ask for a
+  sign-in instead of failing with a 401.
+
+### Screens
+
+- Home: the floating button is gone. Prescription, chat and reminders are three action tiles in
+  one row under a hero that fades while scrolling. The duplicate reminders teaser is removed.
+- New reminders are a three-step wizard: medicine and amount, time with a custom `DoseWheel`,
+  then a confirmation card that counts down to the next dose. The old long form is replaced.
+- Orders and tracking are one screen: each order card expands into the state rail, the ETA and
+  the pickup code, with the live map one tap away.
+- Profile is grouped into Account, Health, Preferences and Support; dead zero-size views removed.
+
+### New custom views
+
+- `DoseWheel` — hour and minute wheels with a haptic tick per detent, one-handed.
+- `StepStepper` — the order state rail, RTL aware, with a check or a cross at the end.
+
+### Custom views for the rest
+
+- `StepStepper.progressOf` feeds the existing Compose island on the tracking screen, so both
+  renderers agree on the same state.
+
 ## [v1.15.0] — 2026-10-10
 
 ### Security and data integrity (backend)

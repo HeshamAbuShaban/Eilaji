@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
@@ -78,6 +79,55 @@
             android:textSize="14sp"
             android:textStyle="bold" />
 
+    </LinearLayout>
+
+    <!-- Expanded detail: rail, ETA, pickup code and the map entry point. -->
+    <LinearLayout
+        android:id="@+id/orderDetail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/_14sdp"
+        android:paddingBottom="@dimen/_14sdp"
+        android:visibility="gone">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="@dimen/_12sdp"
+            android:background="?attr/colorOutlineVariant" />
+
+        <dev.anonymous.eilaji.ui.components.StepStepper
+            android:id="@+id/orderStepper"
+            android:layout_width="match_parent"
+            android:layout_height="40dp" />
+
+        <TextView
+            android:id="@+id/tvOrderEta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/_13ssp"
+            tools:text="Arriving in about 18 minutes" />
+
+        <TextView
+            android:id="@+id/tvOrderHandoff"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_4sdp"
+            android:textColor="@color/primary_color"
+            android:textSize="@dimen/_13ssp"
+            android:visibility="gone"
+            tools:text="Pickup code 4213" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buTrackOnMap"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:text="@string/track_on_map" />
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

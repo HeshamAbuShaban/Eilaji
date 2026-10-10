@@ -7,13 +7,28 @@
     android:layout_height="match_parent">
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/homeScroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/_90sdp"
         tools:context=".ui.base.user_interface.home.HomeFragment">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
+
+            <!-- Hero: greeting + search. Collapses away when the user scrolls into content. -->
+            <LinearLayout
+                android:id="@+id/homeHero"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_home_hero"
+                android:orientation="vertical"
+                android:paddingBottom="@dimen/_12sdp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/searchViewListener"
@@ -85,6 +100,8 @@
 
             </LinearLayout>
 
+            </LinearLayout>
+
             <LinearLayout
                 android:id="@+id/adsContainer"
                 android:layout_width="match_parent"
@@ -92,7 +109,7 @@
                 android:orientation="vertical"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/greetingRow">
+                app:layout_constraintTop_toBottomOf="@id/homeHero">
 
                 <com.facebook.shimmer.ShimmerFrameLayout
                     android:id="@+id/shimmer_ad_container"
@@ -288,255 +305,128 @@
                 android:layoutAnimation="@anim/layout_animation_fall_down"/>
             </LinearLayout>
 
-            <!-- Quick Actions -->
+            <!-- Actions: prescription, chat, reminders. Replaces the floating button. -->
             <LinearLayout
-                android:id="@+id/quickActionsHeader"
+                android:id="@+id/quickActionsRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/_20sdp"
+                android:layout_marginHorizontal="@dimen/_15sdp"
                 android:layout_marginTop="@dimen/_12sdp"
-                android:layout_marginEnd="@dimen/_15sdp"
+                android:baselineAligned="false"
                 android:orientation="horizontal"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/medContainer">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/quick_actions"
-                    android:textSize="@dimen/_13sdp" />
-
-                <Space
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
-            </LinearLayout>
-
-            <GridLayout
-                android:id="@+id/quickActionsGrid"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/_15sdp"
-                android:layout_marginTop="@dimen/_8sdp"
-                android:columnCount="2"
-                android:rowCount="2"
-                android:useDefaultMargins="true"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/quickActionsHeader">
-
+                <!-- Prescription: replaces the old floating action button -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardUploadPrescription"
+                    style="@style/Widget.Eilaji.ActionTile"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/_8sdp"
+                    android:layout_weight="1"
                     android:clickable="true"
                     android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground"
-                    android:layout_rowWeight="1"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="@dimen/_6sdp"
-                    app:cardCornerRadius="@dimen/_10sdp"
-                    app:cardElevation="@dimen/_2sdp"
-                    app:strokeColor="@color/gray"
-                    app:strokeWidth="0dp">
+                    android:foreground="?attr/selectableItemBackground">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="@dimen/_12sdp">
+                        android:paddingVertical="14dp">
 
                         <ImageView
-                            android:layout_width="@dimen/_32sdp"
-                            android:layout_height="@dimen/_32sdp"
-                            android:src="@drawable/ic_add_photo" />
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_add_photo"
+                            app:tint="@color/primary_color" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/_6sdp"
-                            android:text="@string/upload_prescription"
-                            android:textSize="@dimen/_11ssp"
-                            android:textStyle="bold" />
+                            android:layout_marginTop="8dp"
+                            android:text="@string/quick_action_prescription"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="@dimen/_12ssp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardFindPharmacy"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground"
-                    android:layout_rowWeight="1"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="@dimen/_6sdp"
-                    app:cardCornerRadius="@dimen/_10sdp"
-                    app:cardElevation="@dimen/_2sdp"
-                    app:strokeColor="@color/gray"
-                    app:strokeWidth="0dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="@dimen/_12sdp">
-
-                        <ImageView
-                            android:layout_width="@dimen/_32sdp"
-                            android:layout_height="@dimen/_32sdp"
-                            android:src="@drawable/ic_map" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/_6sdp"
-                            android:text="@string/find_pharmacy"
-                            android:textSize="@dimen/_11ssp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
+                <!-- Chat -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardChat"
+                    style="@style/Widget.Eilaji.ActionTile"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/_4sdp"
+                    android:layout_weight="1"
                     android:clickable="true"
                     android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground"
-                    android:layout_rowWeight="1"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="@dimen/_6sdp"
-                    app:cardCornerRadius="@dimen/_10sdp"
-                    app:cardElevation="@dimen/_2sdp"
-                    app:strokeColor="@color/gray"
-                    app:strokeWidth="0dp">
+                    android:foreground="?attr/selectableItemBackground">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="@dimen/_12sdp">
+                        android:paddingVertical="14dp">
 
                         <ImageView
-                            android:layout_width="@dimen/_32sdp"
-                            android:layout_height="@dimen/_32sdp"
-                            android:src="@drawable/ic_message" />
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_message"
+                            app:tint="@color/primary_color" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/_6sdp"
-                            android:text="@string/chat"
-                            android:textSize="@dimen/_11ssp"
-                            android:textStyle="bold" />
+                            android:layout_marginTop="8dp"
+                            android:text="@string/chats"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="@dimen/_12ssp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- Medication reminders -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardReminders"
+                    style="@style/Widget.Eilaji.ActionTile"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_8sdp"
+                    android:layout_weight="1"
                     android:clickable="true"
                     android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground"
-                    android:layout_rowWeight="1"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="@dimen/_6sdp"
-                    app:cardCornerRadius="@dimen/_10sdp"
-                    app:cardElevation="@dimen/_2sdp"
-                    app:strokeColor="@color/gray"
-                    app:strokeWidth="0dp">
+                    android:foreground="?attr/selectableItemBackground">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="@dimen/_12sdp">
+                        android:paddingVertical="14dp">
 
                         <ImageView
-                            android:layout_width="@dimen/_32sdp"
-                            android:layout_height="@dimen/_32sdp"
-                            android:src="@drawable/ic_notifications" />
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_notifications"
+                            app:tint="@color/primary_color" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/_6sdp"
+                            android:layout_marginTop="8dp"
                             android:text="@string/reminders"
-                            android:textSize="@dimen/_11ssp"
-                            android:textStyle="bold" />
+                            android:textColor="?attr/colorOnSurface"
+                            android:textSize="@dimen/_12ssp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
-            </GridLayout>
+            </LinearLayout>
 
-            <!-- Reminders teaser -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardRemindersTeaser"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                android:layout_marginHorizontal="@dimen/_15sdp"
-                android:layout_marginTop="@dimen/_12sdp"
-                app:cardCornerRadius="@dimen/_10sdp"
-                app:cardElevation="@dimen/_2sdp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/quickActionsGrid">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="@dimen/_12sdp">
-
-                    <ImageView
-                        android:layout_width="@dimen/_28sdp"
-                        android:layout_height="@dimen/_28sdp"
-                        android:src="@drawable/ic_notifications" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/_12sdp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/reminders"
-                            android:textSize="@dimen/_12ssp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/tvReminderCount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/_2sdp"
-                            tools:text="@string/reminders_count_placeholder"
-                            android:textColor="@color/gray_dark"
-                            android:textSize="@dimen/_11ssp" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:id="@+id/buShowAllReminders"
-                        style="@style/TextButtonStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/show_all"
-                        android:textSize="@dimen/_11ssp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
 
             <!-- Nearby Pharmacies Header -->
             <LinearLayout
@@ -549,7 +439,7 @@
                 android:orientation="horizontal"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/cardRemindersTeaser">
+                app:layout_constraintTop_toBottomOf="@id/quickActionsRow">
 
                 <TextView
                     android:layout_width="wrap_content"
