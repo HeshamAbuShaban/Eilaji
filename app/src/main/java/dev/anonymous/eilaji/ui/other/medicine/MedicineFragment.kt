@@ -382,8 +382,23 @@ class MedicineFragment : Fragment() {
 
     private fun setupQuantity() {
         updateTotalLabel()
-        try { bindingOrNull?.buIncrement?.setOnClickListener { qty++; bindingOrNull?.tvNumMedicines?.text = qty.toString(); updateTotalLabel() } } catch (_: Exception) {}
-        try { bindingOrNull?.buDecrease?.setOnClickListener { if (qty > 1) qty--; bindingOrNull?.tvNumMedicines?.text = qty.toString(); updateTotalLabel() } } catch (_: Exception) {}
+        // A short haptic tick on every step: quantity changes are felt, not only seen.
+        try {
+            bindingOrNull?.buIncrement?.setOnClickListener {
+                qty++
+                bindingOrNull?.tvNumMedicines?.text = qty.toString()
+                updateTotalLabel()
+                it.performHapticFeedback(android.view.HapticFeedbackConstants.CONTEXT_CLICK)
+            }
+        } catch (_: Exception) {}
+        try {
+            bindingOrNull?.buDecrease?.setOnClickListener {
+                if (qty > 1) qty--
+                bindingOrNull?.tvNumMedicines?.text = qty.toString()
+                updateTotalLabel()
+                it.performHapticFeedback(android.view.HapticFeedbackConstants.CONTEXT_CLICK)
+            }
+        } catch (_: Exception) {}
     }
 
     private fun updateTotalLabel() {

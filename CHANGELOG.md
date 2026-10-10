@@ -69,6 +69,9 @@ All notable changes are recorded here. Dates are `YYYY-MM-DD`.
 - Error states now offer retry: medicine detail, orders and chat history show a Snackbar with an
   action instead of a Toast next to an unrelated empty state.
 - The alarm screen text follows the user's font scale.
+- Quantity steppers, add-to-cart and favourites confirm with a short haptic tick, so a change is
+  felt as well as seen on a one-handed phone.
+- The favourites button reads the in-memory set instead of the database on every click.
 
 ### Build and CI
 
