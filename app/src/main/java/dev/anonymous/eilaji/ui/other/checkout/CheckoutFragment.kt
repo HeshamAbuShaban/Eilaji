@@ -204,19 +204,24 @@ class CheckoutFragment : Fragment() {
             updateTotal(currentSubtotal)
             return
         }
-        NetworkModule.provideApiService(requireContext()).getPharmacy(pharmacyId).enqueue(object : Callback<ApiResponse<PharmacyDto>> {
-            override fun onResponse(call: Call<ApiResponse<PharmacyDto>>, response: Response<ApiResponse<PharmacyDto>>) {
-                val dto = response.body()?.data
-                currentFee = dto?.deliveryFee ?: dummyFee(dto?.distanceKm)
-                currentMinOrder = dto?.minOrderAmount
-                currentPrepMin = dto?.prepTimeMin
-                updateTotal(currentSubtotal)
-            }
-            override fun onFailure(call: Call<ApiResponse<PharmacyDto>>, t: Throwable) {
-                currentFee = dummyFee(null)
-                updateTotal(currentSubtotal)
-            }
-        })
+        // Every callback re-checks the binding: a rotation during the fetch must not touch a dead view.
+        NetworkModule.provideApiService(requireContext().applicationContext).getPharmacy(pharmacyId)
+            .enqueue(object : Callback<ApiResponse<PharmacyDto>> {
+                override fun onResponse(call: Call<ApiResponse<PharmacyDto>>, response: Response<ApiResponse<PharmacyDto>>) {
+                    if (_binding == null) return
+                    val dto = response.body()?.data
+                    currentFee = dto?.deliveryFee ?: dummyFee(dto?.distanceKm)
+                    currentMinOrder = dto?.minOrderAmount
+                    currentPrepMin = dto?.prepTimeMin
+                    updateTotal(currentSubtotal)
+                }
+
+                override fun onFailure(call: Call<ApiResponse<PharmacyDto>>, t: Throwable) {
+                    if (_binding == null) return
+                    currentFee = dummyFee(null)
+                    updateTotal(currentSubtotal)
+                }
+            })
     }
 
     /** Logical dummy fee: base 1.5 + 0.30/km, capped at 6.0. */
