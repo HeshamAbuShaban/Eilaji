@@ -111,6 +111,7 @@ jobs:
         env:
           MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
         run: |
+          mkdir -p apk
           ARGS="-PversionName=${{ steps.version.outputs.versionName }} -PversionCode=${{ steps.version.outputs.versionCode }}"
           if [ "${{ steps.keystore.outputs.signed }}" == "true" ]; then
             ./gradlew :app:assembleRelease $ARGS --stacktrace
@@ -120,7 +121,6 @@ jobs:
             ./gradlew :app:assembleDebug $ARGS --stacktrace
             cp app/build/outputs/apk/debug/app-debug.apk "apk/Eilaji-${{ steps.version.outputs.versionName }}.apk"
           fi
-          mkdir -p apk
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v4
