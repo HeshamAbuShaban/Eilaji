@@ -61,8 +61,14 @@ object AppConfig {
     val databasePoolSize: Int = int("DATABASE_POOL_SIZE", "database.poolSize", 10)
 
     val seedOnStartup: Boolean = bool("SEED_ON_STARTUP", "database.seed-on-startup", false)
-    /** Demo accounts (patient@eilaji.com / password123) are only seeded when explicitly enabled. */
-    val seedDemoCredentials: Boolean = bool("SEED_DEMO_CREDENTIALS", "database.seed-demo-credentials", false)
+
+    /**
+     * Demo accounts (patient@eilaji.com / password123) are a development convenience.
+     * They are the default for dev and test, and always disabled under APP_PROFILE=prod,
+     * where every seeded account gets a random password that is printed once.
+     */
+    val seedDemoCredentials: Boolean =
+        if (isProduction) false else bool("SEED_DEMO_CREDENTIALS", "database.seed-demo-credentials", true)
 
     // ---- Redis -----------------------------------------------------------------------
 

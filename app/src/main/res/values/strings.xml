@@ -319,4 +319,13 @@
     <string name="reset_code_sent_hint">If that email has an account, a reset code was sent.</string>
     <string name="reset_code_display">Your reset code: %1$s. Use it within the time shown by support.</string>
     <string name="reset_request_failed">Could not start a password reset. Please try again.</string>
+    <string name="channel_reminders_name">Medication reminders</string>
+    <string name="channel_reminders_description">Alarms for your medicine doses</string>
+    <string name="reminder_reliability_title">Reminders may not ring</string>
+    <string name="reminder_reliability_body">Allow notifications and exact alarms so a dose reminder always reaches you on time.</string>
+    <string name="reminder_reliability_fix">Fix</string>
+    <string name="channel_updates_name">Updates</string>
+    <string name="channel_updates_description">Order, prescription and chat updates</string>
+    <string name="push_service_title">Eilaji is connected</string>
+    <string name="push_service_body">Getting your order and chat updates</string>
 </resources>

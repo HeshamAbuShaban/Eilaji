@@ -77,8 +77,15 @@ class MainViewModel : ViewModel() {
     }
 
     fun logout() {
+        try { appContext()?.let { dev.anonymous.eilaji.utils.PushService.stop(it) } } catch (_: Exception) {}
         sharedPreferences.clearAll()
         _userData.value = null
+    }
+
+    private fun appContext(): android.content.Context? = try {
+        dev.anonymous.eilaji.utils.AppController.getInstance()
+    } catch (_: Exception) {
+        null
     }
 }
 

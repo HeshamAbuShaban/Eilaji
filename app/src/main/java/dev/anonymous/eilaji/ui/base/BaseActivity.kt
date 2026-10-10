@@ -16,6 +16,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.data.repository.CartRepository
+import dev.anonymous.eilaji.reminder_system.ReminderReliability
 import dev.anonymous.eilaji.databinding.ActivityBaseBinding
 import dev.anonymous.eilaji.storage.enums.FragmentsKeys
 import dev.anonymous.eilaji.ui.other.base.AlternativesActivity
@@ -39,11 +40,41 @@ class BaseActivity : AppCompatActivity() {
         setupActionBarWithNavController()
         setupBottomNavigationView()
         setupFab()
+        setupReminderReliability()
     }
 
     override fun onResume() {
         super.onResume()
         refreshCartBadge()
+        updateReminderReliability()
+        // Push must survive a process kill: restart the socket whenever we have a session.
+        try { dev.anonymous.eilaji.utils.PushService.start(this) } catch (_: Exception) {}
+    }
+
+    /**
+     * A dose reminder that never rings is the worst failure this app can have. Show a small
+     * banner whenever notifications, exact alarms or battery exemption are missing, and send the
+     * user straight to the setting that is wrong.
+     */
+    private fun setupReminderReliability() {
+        binding.cardReminderReliability?.setOnClickListener { openReliabilityFix() }
+        binding.buFixReminderReliability?.setOnClickListener { openReliabilityFix() }
+    }
+
+    private fun updateReminderReliability() {
+        val card = binding.cardReminderReliability ?: return
+        val status = ReminderReliability.check(this)
+        card.visibility = if (status.isReady) android.view.View.GONE else android.view.View.VISIBLE
+    }
+
+    private fun openReliabilityFix() {
+        val status = ReminderReliability.check(this)
+        val intent = when {
+            !status.notificationsAllowed -> ReminderReliability.notificationSettingsIntent(this)
+            !status.canScheduleExact -> ReminderReliability.exactAlarmSettingsIntent(this)
+            else -> ReminderReliability.batteryOptimisationIntent(this)
+        } ?: ReminderReliability.notificationSettingsIntent(this)
+        try { startActivity(intent) } catch (_: Exception) { }
     }
 
     private fun setupVMWNavController() {

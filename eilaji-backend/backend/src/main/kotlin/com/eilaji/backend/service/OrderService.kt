@@ -12,7 +12,7 @@ import java.time.Instant
 import java.util.UUID
 import kotlinx.serialization.Serializable
 
-class OrderService {
+class OrderService(private val pushService: PushService? = null) {
 
     @Serializable
     data class OrderItemRequest(

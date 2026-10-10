@@ -23,6 +23,12 @@ interface ApiService {
     @POST("auth/reset-password")
     fun resetPassword(@Body request: ResetPasswordRequest): Call<ApiResponse<Unit>>
 
+    @PUT("notifications/token")
+    fun registerPushToken(@Body request: RegisterPushTokenRequest): Call<ApiResponse<Any>>
+
+    @GET("notifications/pending")
+    fun getPendingNotifications(): Call<ApiResponse<List<PendingNotificationDto>>>
+
     @POST("auth/logout")
     fun logout(): Call<ApiResponse<Any>>
 
@@ -174,6 +180,19 @@ data class RegisterRequest(
 data class LoginRequest(
     @SerializedName("email") val email: String,
     @SerializedName("password") val password: String
+)
+
+data class RegisterPushTokenRequest(
+    @SerializedName("token") val token: String,
+    @SerializedName("platform") val platform: String = "android"
+)
+
+data class PendingNotificationDto(
+    @SerializedName("id") val id: String,
+    @SerializedName("title") val title: String,
+    @SerializedName("body") val body: String,
+    @SerializedName("route") val route: String? = null,
+    @SerializedName("createdAt") val createdAt: String? = null
 )
 
 data class ResetPasswordRequest(

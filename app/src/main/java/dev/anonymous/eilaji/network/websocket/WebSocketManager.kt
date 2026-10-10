@@ -19,7 +19,15 @@ data class WebSocketMessage(
     @SerializedName("content") val content: String? = null,
     @SerializedName("message") val message: MessageDto? = null,
     @SerializedName("isOnline") val isOnline: Boolean? = null,
-    @SerializedName("timestamp") val timestamp: String? = null
+    @SerializedName("timestamp") val timestamp: String? = null,
+    @SerializedName("push") val push: PushPayload? = null
+)
+
+data class PushPayload(
+    @SerializedName("id") val id: String,
+    @SerializedName("title") val title: String,
+    @SerializedName("body") val body: String,
+    @SerializedName("route") val route: String? = null
 )
 
 class WebSocketManager @JvmOverloads constructor(
@@ -40,6 +48,8 @@ class WebSocketManager @JvmOverloads constructor(
     var onPong: Runnable? = null
     var onConnected: Runnable? = null
     var onError: java.util.function.Consumer<String>? = null
+    /** Server-initiated notifications delivered over the live socket. */
+    var onPush: java.util.function.Consumer<PushPayload>? = null
     @Volatile var isConnected: Boolean = false
         private set
 
@@ -102,6 +112,7 @@ class WebSocketManager @JvmOverloads constructor(
                     onMessage?.accept(dto)
                 }
                 "MESSAGE_SENT" -> msg.message?.let { onMessage?.accept(it) }
+                "PUSH" -> msg.push?.let { onPush?.accept(it) }
                 "ERROR" -> msg.content?.let { onError?.accept(it) }
                 "READ" -> msg.chatId?.let { onRead?.accept(it) }
                 "PRESENCE" -> if (msg.userId != null && msg.isOnline != null) onPresence?.accept(msg.userId, msg.isOnline)

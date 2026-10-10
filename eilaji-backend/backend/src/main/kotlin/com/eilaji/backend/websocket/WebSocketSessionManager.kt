@@ -3,6 +3,7 @@ package com.eilaji.backend.websocket
 import com.eilaji.backend.dto.MessageDto
 import com.eilaji.backend.dto.WebSocketMessage
 import com.eilaji.backend.service.ChatService
+import com.eilaji.backend.service.PushService
 import com.eilaji.backend.service.MessageService
 import com.eilaji.backend.service.RedisService
 import io.ktor.server.auth.*
@@ -20,6 +21,8 @@ class WebSocketSessionManager(
     private val chatService: ChatService,
     private val redisService: RedisService
 ) {
+    /** Set after construction to avoid a cycle with PushService. */
+    var pushService: PushService? = null
     companion object {
         private val logger = LoggerFactory.getLogger(WebSocketSessionManager::class.java)
     }
@@ -101,6 +104,31 @@ class WebSocketSessionManager(
 
             broadcastToChat(chatId, wsMessage)
 
+            // Push only to chat participants who are not currently connected.
+            try {
+                val chat = chatService.getChatById(chatId, userId)
+                if (chat != null) {
+                    val peerIds = listOfNotNull(
+                        chat.userId.takeIf { it != userId },
+                        chat.pharmacyId?.takeIf { it.isNotBlank() && it != userId }
+                    )
+                    peerIds.forEach { peer ->
+                        if (userSessions[peer].isNullOrEmpty()) {
+                            pushService?.send(
+                                PushService.Payload(
+                                    title = "New message",
+                                    body = content.take(120),
+                                    route = "chat",
+                                    targetUserId = peer
+                                )
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                logger.warn("Could not push chat notification: ${e.message}")
+            }
+
             message
         } catch (e: Exception) {
             logger.error("Error sending message: ${e.message}", e)
@@ -132,6 +160,28 @@ class WebSocketSessionManager(
         }
     }
     
+    /**
+     * Sends a frame straight to every live socket of one user. Returns true when the device was
+     * reachable, false when the message must be queued for later delivery.
+     */
+    suspend fun sendToUser(userId: String, message: WebSocketMessage): Boolean {
+        return try {
+            val sessions = userSessions[userId]
+            if (sessions.isNullOrEmpty()) return false
+            val frame = Frame.Text(Json.encodeToString(WebSocketMessage.serializer(), message))
+            var delivered = false
+            sessions.toList().forEach { session ->
+                try { session.send(frame); delivered = true } catch (e: Exception) {
+                    logger.warn("Could not deliver to a session of $userId: ${e.message}")
+                }
+            }
+            delivered
+        } catch (e: Exception) {
+            logger.error("sendToUser failed for $userId: ${e.message}")
+            false
+        }
+    }
+
     private suspend fun broadcastToChat(chatId: UUID, message: WebSocketMessage) {
         sessionMutex.withLock {
             val subscribers = chatSubscribers[chatId] ?: return

@@ -14,6 +14,8 @@ class PrescriptionService(
     private val minioService: MinioService,
     private val eilajiDoctorService: EilajiPlusService? = null,
 ) {
+    var pushService: PushService? = null
+
     companion object {
         private val REVIEW_STATUSES = setOf(
             "PENDING", "SENT_TO_PHARMACY", "RECEIVED_QUOTE",
@@ -134,8 +136,21 @@ class PrescriptionService(
                 it[Prescriptions.updatedAt] = Instant.now()
             }
 
-            getPrescriptionDtoById(prescriptionId)
+            val updated = getPrescriptionDtoById(prescriptionId)
                 ?: throw ApiException(HttpStatusCode.NotFound, "Prescription not found")
+            pushService?.let { ps ->
+                try {
+                    ps.send(
+                        PushService.Payload(
+                            title = "Prescription ${next.lowercase().replaceFirstChar { it.uppercase() }}",
+                            body = "Your prescription is now $next",
+                            route = "prescriptions",
+                            targetUserId = updated.userId
+                        )
+                    )
+                } catch (_: Exception) { }
+            }
+            updated
         }
     }
 

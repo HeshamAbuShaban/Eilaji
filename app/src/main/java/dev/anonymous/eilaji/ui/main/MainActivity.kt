@@ -17,6 +17,8 @@ import dev.anonymous.eilaji.ui.base.BaseActivity
 class MainActivity : AppCompatActivity() {
     private lateinit var mainViewModel: MainViewModel
     private var isFirstTime: Boolean = true
+    private val notificationPermissionLauncher =
+        registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { }
 //    private late-init var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,6 +44,16 @@ class MainActivity : AppCompatActivity() {
             }
         } catch (_: Exception) {}
         setContentView(R.layout.activity_main)
+        // Medication reminders must be able to ring. Ask once at first launch, not only on the
+        // reminder screen, so the alarm is never silently blocked.
+        try {
+            dev.anonymous.eilaji.reminder_system.ReminderReliability.ensureChannel(this)
+            if (savedInstanceState == null &&
+                !dev.anonymous.eilaji.reminder_system.ReminderReliability.hasNotificationPermission(this)
+            ) {
+                notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+        } catch (_: Exception) {}
         // bring the isFirstTime value from the shared
         isFirstTime = AppSharedPreferences.getInstance(this).isHeFirstTime
 

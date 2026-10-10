@@ -7,6 +7,55 @@
     android:layout_height="match_parent"
     tools:context=".ui.base.BaseActivity">
 
+    <!-- Reminder reliability: reminders must be allowed to ring. Hidden when everything is on. -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardReminderReliability"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:layout_margin="12dp"
+        android:visibility="gone"
+        app:cardBackgroundColor="?attr/colorSecondaryContainer"
+        app:cardCornerRadius="14dp"
+        app:cardElevation="6dp"
+        app:layout_behavior="com.google.android.material.behavior.HideBottomViewOnScrollBehavior"
+        tools:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <TextView
+                android:id="@+id/tvReminderReliabilityTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/reminder_reliability_title"
+                android:textColor="?attr/colorOnSecondaryContainer"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvReminderReliabilityBody"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/reminder_reliability_body"
+                android:textColor="?attr/colorOnSecondaryContainer"
+                android:textSize="13sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buFixReminderReliability"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:minHeight="48dp"
+                android:text="@string/reminder_reliability_fix" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
     <fragment
         android:id="@+id/nav_host_fragment_activity_base"
         android:name="androidx.navigation.fragment.NavHostFragment"

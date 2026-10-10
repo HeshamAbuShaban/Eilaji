@@ -15,6 +15,7 @@ public class AppController extends Application {
         super.onCreate();
         Instance = this;
         applySavedTheme();
+        try { dev.anonymous.eilaji.reminder_system.ReminderReliability.INSTANCE.ensureChannel(this); } catch (Exception e) {}
     }
 
     private void applySavedTheme() {
