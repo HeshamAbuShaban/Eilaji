@@ -105,6 +105,7 @@ class MedicinesAdapter(
                 ivMedicine.setOnClickListener { onItemClick?.invoke(model, ivMedicine) }
                 buAddToCart.setOnClickListener {
                     pop(it)
+                    try { it.performHapticFeedback(android.view.HapticFeedbackConstants.CONFIRM) } catch (_: Exception) {}
                     val ctx = it.context
                     try {
                         dev.anonymous.eilaji.data.repository.CartRepository.getInstance(ctx).addItem(
@@ -115,8 +116,10 @@ class MedicinesAdapter(
                 }
                 buAddMedicineToFavorite.setOnClickListener {
                     val ctx = it.context
-                    // Single source of truth: local DB, not the recycled view-model flag
-                    val wasFav = try { FavoriteSyncRepository(ctx).isFavoriteLocal(model.id, null) } catch (_: Exception) { model.isFavorite }
+                    try { it.performHapticFeedback(android.view.HapticFeedbackConstants.CONFIRM) } catch (_: Exception) {}
+                    // Reads the favourite set loaded for this list, not the database, and not a
+                    // recycled row's flag.
+                    val wasFav = isFavorite(model.id)
                     try {
                         val repo = FavoriteSyncRepository(ctx)
                         if (wasFav) repo.syncDeleteByMedicine(model.id, null)
