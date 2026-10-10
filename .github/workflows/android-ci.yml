@@ -83,19 +83,29 @@ jobs:
           echo "Release ${NAME} (versionCode ${CODE})"
 
       # The release is signed only when the keystore secrets are configured.
-      # Without them the build falls back to the debug artifact so CI never breaks.
+      # Without them the build falls back to the debug artifact, so CI never breaks.
+      # (The secrets context is not readable in an `if:` condition, so the shell decides.)
       - name: Decode release keystore
         id: keystore
-        if: ${{ secrets.RELEASE_KEYSTORE_BASE64 != '' }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
-          echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.jks"
-          cat > keystore.properties <<EOF
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            cat > keystore.properties <<EOF
           storeFile=$RUNNER_TEMP/release.jks
-          storePassword=${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
-          keyAlias=${{ secrets.RELEASE_KEY_ALIAS }}
-          keyPassword=${{ secrets.RELEASE_KEY_PASSWORD }}
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
           EOF
-          echo "signed=true" >> "$GITHUB_OUTPUT"
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No release keystore configured; publishing the debug artifact instead."
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Build Signed Release APK
         env:
