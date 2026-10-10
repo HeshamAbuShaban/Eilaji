@@ -16,6 +16,7 @@ import androidx.core.app.NotificationCompat
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import dev.anonymous.eilaji.R
+import dev.anonymous.eilaji.reminder_system.ReminderReliability
 import dev.anonymous.eilaji.ui.main.MainActivity
 
 class ReminderWorker(private val context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
@@ -29,17 +30,27 @@ class ReminderWorker(private val context: Context, workerParams: WorkerParameter
     override fun onStopped() { super.onStopped() }
     private fun sendDefault() { sendNotification(context.getString(R.string.reminder_notification), "1") }
     private fun sendNotification(text: String, nid: String) {
-        val nm = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val intent = Intent(applicationContext, MainActivity::class.java).apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK; putExtra(NOTIFICATION_ID, nid) }
-        val bitmap = applicationContext.vectorToBitmap(R.drawable.ic_medication)
-        val pi = PendingIntent.getActivity(applicationContext, nid.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-        val builder = NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL).setLargeIcon(bitmap).setSmallIcon(R.drawable.ic_notifications).setContentTitle(applicationContext.getString(R.string.title_reminder_notification)).setContentText(text).setDefaults(NotificationCompat.DEFAULT_ALL).setContentIntent(pi).setAutoCancel(true).setPriority(NotificationCompat.PRIORITY_MAX)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val audio = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
-            val ch = NotificationChannel(NOTIFICATION_CHANNEL, NOTIFICATION_NAME, NotificationManager.IMPORTANCE_HIGH).apply { enableLights(true); lightColor = Color.RED; enableVibration(true); vibrationPattern = longArrayOf(100,200,300,400,500,400,300,200,400); setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION), audio); description = "Medication reminders"; name = "Reminders Channel" }
-            nm.createNotificationChannel(ch)
+        val app = applicationContext
+        ReminderReliability.ensureChannel(app)
+        val nm = app.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val intent = Intent(app, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra(NOTIFICATION_ID, nid)
         }
-        nm.notify(nid.hashCode(), builder.build())
+        val pi = PendingIntent.getActivity(app, nid.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        val builder = NotificationCompat.Builder(app, ReminderReliability.CHANNEL_ID)
+            .setLargeIcon(app.vectorToBitmap(R.drawable.ic_medication))
+            .setSmallIcon(R.drawable.ic_notifications)
+            .setContentTitle(app.getString(R.string.title_reminder_notification))
+            .setContentText(text)
+            .setContentIntent(pi)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+        try { nm.notify(nid.hashCode(), builder.build()) } catch (e: Exception) {
+            android.util.Log.e("ReminderWorker", "Could not post reminder", e)
+        }
     }
     private fun Context.vectorToBitmap(id: Int): Bitmap? {
         val d = AppCompatResources.getDrawable(this, id) ?: return null

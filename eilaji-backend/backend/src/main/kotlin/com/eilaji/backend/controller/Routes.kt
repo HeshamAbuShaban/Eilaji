@@ -51,7 +51,11 @@ fun Route.apiRoutes(
     val prescriptionService = PrescriptionService(minioService, eilajiPlusService)
     val chatService = ChatService()
     val messageService = MessageService()
-    val orderService = OrderService()
+    val sessionManager = WebSocketSessionManager(messageService, chatService, redisService)
+    val pushService = PushService(redisService, sessionManager)
+    sessionManager.pushService = pushService
+    val orderService = OrderService(pushService)
+    prescriptionService.pushService = pushService
 
     fun validateUuid(uuid: String): Boolean {
         return SecurityUtils.isValidUuid(uuid)
@@ -848,6 +852,34 @@ fun Route.apiRoutes(
                 }
             }
 
+            route("/notifications") {
+                /** Registers this device so order/chat/prescription updates can reach it. */
+                put("/token") {
+                    val caller = call.callerOr401() ?: return@put
+                    try {
+                        val request = Json { ignoreUnknownKeys = true }.decodeFromString<RegisterPushTokenRequest>(call.receiveText())
+                        val stored = pushService.registerToken(caller.userId, request.token)
+                        if (stored) {
+                            call.respond(ApiResponse<Unit>(success = true, message = "Token registered"))
+                        } else {
+                            call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(success = false, error = "Invalid token"))
+                        }
+                    } catch (e: Exception) {
+                        call.apiError(e)
+                    }
+                }
+
+                /** Offline fallback: drains everything that was parked while the socket was down. */
+                get("/pending") {
+                    val caller = call.callerOr401() ?: return@get
+                    try {
+                        call.respond(ApiResponse(success = true, data = pushService.drain(caller.userId)))
+                    } catch (e: Exception) {
+                        call.apiError(e)
+                    }
+                }
+            }
+
             route("/presence") {
                 get("/online") {
                     try {
@@ -935,7 +967,6 @@ fun Route.apiRoutes(
                     val userId = decodedJWT.getClaim("user_id").asString()
 
                     if (userId.isNotBlank()) {
-                        val sessionManager = WebSocketSessionManager(messageService, chatService, redisService)
                         val webSocketController = WebSocketController(sessionManager, redisService, messageService, chatService)
                         webSocketController.handleWebSocketSession(this, userId)
                     } else {

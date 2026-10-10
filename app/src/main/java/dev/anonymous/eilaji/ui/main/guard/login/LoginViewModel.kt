@@ -50,6 +50,8 @@ class LoginViewModel : ViewModel() {
                                 repo.syncPending()
                             } catch (_: Exception) {}
                         }
+                        // Self-hosted push: start holding the socket once there is a session.
+                        try { appContext?.let { dev.anonymous.eilaji.utils.PushService.start(it) } } catch (_: Exception) {}
                         _loginResult.value = LoginResult.Success(loginResponse.user.fullName, loginResponse.user.imageUrl ?: "")
                     } else {
                         _loginResult.value = LoginResult.Error("Invalid response from server")

@@ -306,6 +306,30 @@ data class CreateRatingRequest(
 )
 
 @Serializable
+data class PushPayloadDto(
+    val id: String,
+    val title: String,
+    val body: String,
+    /** Route the app opens when the notification is tapped. */
+    val route: String? = null
+)
+
+@Serializable
+data class RegisterPushTokenRequest(
+    val token: String,
+    val platform: String = "android"
+)
+
+@Serializable
+data class PendingNotificationDto(
+    val id: String,
+    val title: String,
+    val body: String,
+    val route: String? = null,
+    val createdAt: String
+)
+
+@Serializable
 data class WebSocketMessage(
     val type: String,
     val chatId: String? = null,
@@ -313,7 +337,9 @@ data class WebSocketMessage(
     val message: MessageDto? = null,
     val timestamp: String? = null,
     val isOnline: Boolean? = null,
-    val content: String? = null
+    val content: String? = null,
+    /** Push payload (type PUSH): notification id, title, body, target route. */
+    val push: PushPayloadDto? = null
 )
 
 @Serializable

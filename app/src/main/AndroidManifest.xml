@@ -21,6 +21,9 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
 
     <application
@@ -68,6 +71,13 @@
             android:name=".reminder_system.receiver.AlarmReceiver"
             android:enabled="true"
             android:exported="false" />
+
+        <!-- Self-hosted push: keeps the socket open so order, chat and prescription
+             updates reach the phone without any third-party service. -->
+        <service
+            android:name=".utils.PushService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
         <activity
             android:name=".reminder_system.alarm.AlarmActivity"

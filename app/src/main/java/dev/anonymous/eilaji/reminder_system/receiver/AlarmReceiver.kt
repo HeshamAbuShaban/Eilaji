@@ -10,6 +10,7 @@ import android.media.AudioAttributes
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import dev.anonymous.eilaji.R
+import dev.anonymous.eilaji.reminder_system.ReminderReliability
 import dev.anonymous.eilaji.reminder_system.util.ReminderTimeUtils
 import dev.anonymous.eilaji.reminder_system.worker.ReminderScheduler
 import dev.anonymous.eilaji.ui.main.MainActivity
@@ -76,26 +77,29 @@ class AlarmReceiver : BroadcastReceiver() {
     }
     private fun showNotification(c: Context, text: String, nid: Int, fullScreen: PendingIntent?) {
         val nm = c.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val ch = "eilaji_channel_01"
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val chObj = NotificationChannel(ch, "Reminders", NotificationManager.IMPORTANCE_HIGH).apply {
-                enableLights(true); enableVibration(true); vibrationPattern = longArrayOf(100,200,300,400,500,400,300,200,400)
-                val aa = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
-                setSound(android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION), aa)
-                description = "Medication reminders"
-            }
-            nm.createNotificationChannel(chObj)
+        ReminderReliability.ensureChannel(c)
+
+        val intent = Intent(c, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-        val intent = Intent(c, MainActivity::class.java).apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK }
         val pi = PendingIntent.getActivity(c, nid, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-        val builder = NotificationCompat.Builder(c, ch).setSmallIcon(R.drawable.ic_notifications).setContentTitle(c.getString(R.string.title_reminder_notification)).setContentText(text).setAutoCancel(true).setPriority(NotificationCompat.PRIORITY_MAX).setCategory(NotificationCompat.CATEGORY_ALARM).setVisibility(NotificationCompat.VISIBILITY_PUBLIC).setContentIntent(pi)
+        val builder = NotificationCompat.Builder(c, ReminderReliability.CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notifications)
+            .setContentTitle(c.getString(R.string.title_reminder_notification))
+            .setContentText(text)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setContentIntent(pi)
         if (fullScreen != null) builder.setFullScreenIntent(fullScreen, true)
-        if (androidx.core.app.NotificationManagerCompat.from(c).areNotificationsEnabled()) {
-            nm.notify(nid, builder.build())
-        } else {
-            // Without POST_NOTIFICATIONS the lock-screen alarm would be silent.
-            android.util.Log.w("AlarmReceiver", "Notifications disabled; alarm $nid cannot be shown")
+
+        // Always post: the full-screen alarm is the point of the feature. If notifications are
+        // blocked the alarm activity still opens, and the reliability banner in the app explains
+        // how to turn them back on.
+        try { nm.notify(nid, builder.build()) } catch (e: Exception) {
+            android.util.Log.e("AlarmReceiver", "Could not post reminder notification", e)
         }
-        // No custom music: system default tone via channel + vibration pattern + full-screen UI.
+        // Sound and vibration come from the shared channel: system alarm tone, no custom music.
     }
 }
