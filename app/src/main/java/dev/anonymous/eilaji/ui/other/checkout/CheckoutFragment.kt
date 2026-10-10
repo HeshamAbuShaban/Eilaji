@@ -20,6 +20,7 @@ import dev.anonymous.eilaji.network.MedicineDto
 import dev.anonymous.eilaji.network.NetworkModule
 import dev.anonymous.eilaji.network.PharmacyDto
 import dev.anonymous.eilaji.storage.AppSharedPreferences
+import dev.anonymous.eilaji.utils.Money
 import dev.anonymous.eilaji.ui.base.BaseActivity
 import retrofit2.Call
 import retrofit2.Callback
@@ -188,7 +189,7 @@ class CheckoutFragment : Fragment() {
     private fun updateTotal(subtotal: Double) {
         currentSubtotal = subtotal
         val total = subtotal + currentFee
-        try { binding.tvTotalAmount.text = String.format("%.2f $", total) } catch (_: Exception) {}
+        try { binding.tvTotalAmount.text = Money.format(total, requireContext()) } catch (_: Exception) {}
         bindTotalsIsland()
         composeSubtotal.value = subtotal
         composeFee.value = currentFee
@@ -313,7 +314,7 @@ class CheckoutFragment : Fragment() {
         }
         currentMinOrder?.let { min ->
             if (currentSubtotal < min) {
-                Snackbar.make(binding.root, "Minimum order is ${String.format("%.2f $", min)}", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(binding.root, getString(R.string.minimum_order_amount, Money.format(min, requireContext())), Snackbar.LENGTH_LONG).show()
                 return
             }
         }
@@ -351,7 +352,7 @@ class CheckoutFragment : Fragment() {
 
     private fun celebrate(orderShortId: String?, orderId: String? = null) {
         try {
-            if (!orderShortId.isNullOrBlank()) binding.tvOrderId.text = "Order #${orderShortId.uppercase()}"
+            if (!orderShortId.isNullOrBlank()) binding.tvOrderId.text = getString(R.string.order_number, orderShortId.uppercase())
             binding.successOverlay.visibility = View.VISIBLE
             binding.successOverlay.alpha = 0f
             binding.successOverlay.scaleX = 0.85f
@@ -433,9 +434,9 @@ class CheckoutAdapter(
         fun bind(i: CheckoutItem) {
             current = i
             b.tvMedicineName.text = i.title
-            b.tvMedicinePrice.text = String.format("%.2f $", i.price)
-            b.tvQty.text = "x${i.qty}"
-            b.tvLineTotal.text = String.format("%.2f $", i.price * i.qty)
+            b.tvMedicinePrice.text = Money.format(i.price, b.root.context)
+            b.tvQty.text = b.root.context.getString(R.string.quantity_short, i.qty)
+            b.tvLineTotal.text = Money.format(i.price * i.qty, b.root.context)
             if (!i.imageUrl.isNullOrBlank()) {
                 try { dev.anonymous.eilaji.utils.GeneralUtils.getInstance().loadImage(i.imageUrl).into(b.ivMedicine) } catch (_: Exception) {}
             } else {

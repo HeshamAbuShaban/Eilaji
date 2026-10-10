@@ -29,7 +29,7 @@ class RemindersAdapter(
         fun bind(r: Reminder) {
             with(b) {
                 reminderType.setImageResource(if ((r.frequency ?: "DAILY") == "DAILY") R.drawable.ic_repeat else R.drawable.ic_one)
-                reminderName.text = r.medicineName ?: r.text ?: "Medicine"
+                reminderName.text = r.medicineName ?: r.text ?: b.root.context.getString(R.string.medicine_word)
                 val dosage = r.dosage?.takeIf { it.isNotBlank() }?.let { "$it • " } ?: ""
                 val freq = r.frequency ?: "DAILY"
                 val days = if (freq == "CUSTOM") r.getCustomDaysList().joinToString(",") else ""
@@ -54,7 +54,8 @@ class RemindersAdapter(
                 cardReminder.alpha = if (r.isActive()) 1f else 0.7f
                 try {
                     val mins = nextInMinutes(r)
-                    tvNextIn.text = if (!r.isActive()) "" else if (mins < 0) "" else "Next in ${mins / 60}h ${mins % 60}m"
+                    tvNextIn.text = if (!r.isActive()) "" else if (mins < 0) "" else
+                        b.root.context.getString(R.string.next_in_hours_minutes, mins / 60, mins % 60)
                     tvNextIn.visibility = if (!r.isActive() || mins < 0) android.view.View.GONE else android.view.View.VISIBLE
                 } catch (_: Exception) {}
             }

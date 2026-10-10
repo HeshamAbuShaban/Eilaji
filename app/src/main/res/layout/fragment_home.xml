@@ -115,6 +115,7 @@
                 android:layout_height="16dp"
                 android:layout_marginTop="8dp"
                 android:background="@android:color/transparent"
+                android:contentDescription="@string/ads_page_indicator"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/adsContainer"
@@ -303,7 +304,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Quick Actions"
+                    android:text="@string/quick_actions"
                     android:textSize="@dimen/_13sdp" />
 
                 <Space
@@ -329,6 +330,9 @@
                     android:id="@+id/cardUploadPrescription"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     android:layout_rowWeight="1"
                     android:layout_columnWeight="1"
                     android:layout_margin="@dimen/_6sdp"
@@ -353,7 +357,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/_6sdp"
-                            android:text="Upload Prescription"
+                            android:text="@string/upload_prescription"
                             android:textSize="@dimen/_11ssp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -363,6 +367,9 @@
                     android:id="@+id/cardFindPharmacy"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     android:layout_rowWeight="1"
                     android:layout_columnWeight="1"
                     android:layout_margin="@dimen/_6sdp"
@@ -387,7 +394,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/_6sdp"
-                            android:text="Find Pharmacy"
+                            android:text="@string/find_pharmacy"
                             android:textSize="@dimen/_11ssp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -397,6 +404,9 @@
                     android:id="@+id/cardChat"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     android:layout_rowWeight="1"
                     android:layout_columnWeight="1"
                     android:layout_margin="@dimen/_6sdp"
@@ -421,7 +431,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/_6sdp"
-                            android:text="Chat"
+                            android:text="@string/chat"
                             android:textSize="@dimen/_11ssp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -431,6 +441,9 @@
                     android:id="@+id/cardReminders"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     android:layout_rowWeight="1"
                     android:layout_columnWeight="1"
                     android:layout_margin="@dimen/_6sdp"
@@ -455,7 +468,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/_6sdp"
-                            android:text="Reminders"
+                            android:text="@string/reminders"
                             android:textSize="@dimen/_11ssp"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -467,6 +480,9 @@
                 android:id="@+id/cardRemindersTeaser"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
                 android:layout_marginHorizontal="@dimen/_15sdp"
                 android:layout_marginTop="@dimen/_12sdp"
                 app:cardCornerRadius="@dimen/_10sdp"
@@ -497,7 +513,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Reminders"
+                            android:text="@string/reminders"
                             android:textSize="@dimen/_12ssp"
                             android:textStyle="bold" />
 
@@ -506,7 +522,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/_2sdp"
-                            android:text="2 reminders today"
+                            tools:text="@string/reminders_count_placeholder"
                             android:textColor="@color/gray_dark"
                             android:textSize="@dimen/_11ssp" />
                     </LinearLayout>
@@ -538,7 +554,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Nearby Pharmacies"
+                    android:text="@string/nearby_pharmacies"
                     android:textSize="@dimen/_13sdp" />
 
                 <Space
@@ -601,7 +617,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:padding="@dimen/_12sdp"
-                    android:text="No nearby pharmacies"
+                    android:text="@string/no_nearby_pharmacies"
                     android:textColor="@color/gray_dark"
                     android:visibility="gone" />
             </LinearLayout>

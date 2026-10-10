@@ -8,6 +8,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import dev.anonymous.eilaji.R
+import dev.anonymous.eilaji.network.SessionEvents
 import dev.anonymous.eilaji.storage.AppSharedPreferences
 import dev.anonymous.eilaji.storage.enums.FragmentsKeys
 import dev.anonymous.eilaji.ui.base.BaseActivity
@@ -46,6 +47,22 @@ class MainActivity : AppCompatActivity() {
 
         //Setup the NavHost for the main into the viewModel
         setupVMWNavController()
+
+        // The token refresh already failed; the authenticator cleared the session.
+        SessionEvents.expired.observe(this) { expired ->
+            if (expired == true) {
+                SessionEvents.expired.value = false
+                AppSharedPreferences.getInstance(this).clearAll()
+                try {
+                    val intent = Intent(this, dev.anonymous.eilaji.ui.main.MainActivity::class.java)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                    intent.putExtra("logoutTrigger", dev.anonymous.eilaji.storage.enums.FragmentsKeys.logout.name)
+                    startActivity(intent)
+                    finish()
+                } catch (_: Exception) {
+                }
+            }
+        }
         // check if the onBoarding has shown or not
         shouldShowOnBoarding()
 

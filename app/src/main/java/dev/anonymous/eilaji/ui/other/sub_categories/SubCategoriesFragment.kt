@@ -108,10 +108,11 @@ class SubCategoriesFragment : Fragment() {
     private fun setupMedicinesAdapter(medicinesList: ArrayList<Medicine>) {
         val b = bindingOrNull ?: return
         if (!isAdded) return
+        // Load which rows are favourites once, in the background, instead of per bind.
         with(b.recSubCategoriesMedicines) {
             setHasFixedSize(false)
             try { layoutManager = androidx.recyclerview.widget.GridLayoutManager(activity, 2) } catch (_: Exception) {}
-            adapter = MedicinesAdapter(medicinesList, onItemClick = { med, sharedView ->
+            val medicinesAdapter = MedicinesAdapter(medicinesList, onItemClick = { med, sharedView ->
                 try {
                     val intent = android.content.Intent(requireContext(), dev.anonymous.eilaji.ui.other.base.AlternativesActivity::class.java)
                     intent.putExtra("fragmentType", dev.anonymous.eilaji.storage.enums.FragmentsKeys.medicine.name)
@@ -125,6 +126,8 @@ class SubCategoriesFragment : Fragment() {
                     } catch (_: Exception) { startActivity(intent) }
                 } catch (_: Exception) {}
             })
+            adapter = medicinesAdapter
+            try { medicinesAdapter.loadFavorites(requireContext().applicationContext) } catch (_: Exception) {}
         }
     }
 

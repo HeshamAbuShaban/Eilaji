@@ -36,6 +36,8 @@ public class UtilsNotifications {
             Bitmap bigPicture
     ) {
         String NOT_CHANNEL_NAME = "notification messaging";
+        // One channel id for every notification; the lookup below matches the id it creates.
+        String NOT_CHANNEL_ID = "eilaji_notifications";
         long[] NOT_VIBRATION_PATTERN = {0, 120, 70, 150, 70, 600};
 
         NotificationCompat.Builder notBuilder =
@@ -64,9 +66,9 @@ public class UtilsNotifications {
         NotificationManagerCompat notManager = NotificationManagerCompat.from(context);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (notManager.getNotificationChannel(NOT_CHANNEL_NAME) == null) {
+            if (notManager.getNotificationChannel(NOT_CHANNEL_ID) == null) {
                 NotificationChannel notChannel = new NotificationChannel(
-                        String.valueOf(notificationId),
+                        NOT_CHANNEL_ID,
                         NOT_CHANNEL_NAME,
                         NotificationManager.IMPORTANCE_HIGH);
 

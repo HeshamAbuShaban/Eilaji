@@ -22,7 +22,6 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
 
     <application
         android:enableOnBackInvokedCallback="true"
@@ -58,19 +57,12 @@
             </intent-filter>
         </activity>
 
+        <!-- Value comes from local.properties / CI secrets through the MAPS_API_KEY
+             manifest placeholder. It must never be committed. See docs/SECURITY.md. -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCsXYZw3o-s2V3dVrdzFBF_7gM1rJzEoi4" />
+            android:value="${MAPS_API_KEY}" />
 
-        <service
-            android:name=".firebase.services.FirebaseInstanceIDService"
-            android:exported="false"
-            android:permission="com.google.android.c2dm.permission.SEND">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-            </intent-filter>
-        </service>
 
         <receiver
             android:name=".reminder_system.receiver.AlarmReceiver"
@@ -89,7 +81,7 @@
         <receiver
             android:name=".reminder_system.receiver.BootReceiver"
             android:enabled="true"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />

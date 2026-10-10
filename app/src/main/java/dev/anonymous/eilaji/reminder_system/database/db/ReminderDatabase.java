@@ -35,9 +35,13 @@ public abstract class ReminderDatabase extends RoomDatabase {
         return instance;
     }
 
+    /**
+     * A schema bump must never wipe a patient's medication reminders: they are health data and
+     * they are not stored on the server. Add a Migration for every version change instead of a
+     * destructive fallback, and keep the backups the app writes when reminders change.
+     */
     private static ReminderDatabase buildDatabase(Context context) {
         return Room.databaseBuilder(context, ReminderDatabase.class, "reminder.db")
-                .fallbackToDestructiveMigration()
                 .build();
     }
 }

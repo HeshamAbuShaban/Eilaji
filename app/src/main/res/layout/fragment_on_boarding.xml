@@ -65,7 +65,7 @@
                 android:layout_height="@dimen/_18sdp"
                 android:layout_gravity="center"
                 android:layout_margin="@dimen/_14sdp"
-                android:contentDescription="@null"
+                android:contentDescription="@string/next"
                 android:src="@drawable/ic_arrow_forward"
                 app:tint="@color/white_fixed" />
 

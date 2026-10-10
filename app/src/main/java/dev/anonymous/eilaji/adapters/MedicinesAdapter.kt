@@ -9,6 +9,10 @@ import dev.anonymous.eilaji.databinding.ItemMedicineBinding
 import dev.anonymous.eilaji.favorite_system.repository.FavoriteSyncRepository
 import dev.anonymous.eilaji.models.server.Medicine
 import dev.anonymous.eilaji.utils.GeneralUtils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MedicinesAdapter(
     private var medicineModels: ArrayList<Medicine>,
@@ -18,9 +22,12 @@ class MedicinesAdapter(
     private val onItemClick: ((Medicine, android.view.View) -> Unit)? = null
 ) : RecyclerView.Adapter<MedicinesAdapter.MedicinesViewHolder>() {
 
+    /** Favourite medicine ids for the current list, loaded once in the background. */
+    private val favoriteMedicineIds = mutableSetOf<String>()
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MedicinesViewHolder {
         val binding = ItemMedicineBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return MedicinesViewHolder(binding, onFavClick, onItemClick)
+        return MedicinesViewHolder(binding, ::isFavorite, onFavClick, onItemClick)
     }
 
     override fun onBindViewHolder(holder: MedicinesViewHolder, position: Int) {
@@ -31,6 +38,27 @@ class MedicinesAdapter(
         medicineModels = ArrayList(newList)
         notifyDataSetChanged()
     }
+
+    /**
+     * Loads which of these medicines are favourites, off the main thread, once per list.
+     * Reading Room inside onBindViewHolder used to block the frame.
+     */
+    fun loadFavorites(context: android.content.Context) {
+        val ids = medicineModels.map { it.id }
+        if (ids.isEmpty()) return
+        CoroutineScope(Dispatchers.IO).launch {
+            val repo = FavoriteSyncRepository(context.applicationContext)
+            val favorites = ids.filter { repo.isFavoriteLocal(it, null) }.toSet()
+            withContext(Dispatchers.Main) {
+                favoriteMedicineIds.clear()
+                favoriteMedicineIds.addAll(favorites)
+                medicineModels.forEach { it.isFavorite = it.id in favoriteMedicineIds }
+                notifyDataSetChanged()
+            }
+        }
+    }
+
+    fun isFavorite(medicineId: String): Boolean = medicineId in favoriteMedicineIds
 
     fun currentList(): List<Medicine> = medicineModels.toList()
 
@@ -54,20 +82,23 @@ class MedicinesAdapter(
 
     override fun getItemCount(): Int = medicineModels.size
 
-    class MedicinesViewHolder(private var binding: ItemMedicineBinding, private val onFavClick: ((Medicine) -> Unit)?, private val onItemClick: ((Medicine, android.view.View) -> Unit)?) : RecyclerView.ViewHolder(binding.root) {
+    class MedicinesViewHolder(
+        private var binding: ItemMedicineBinding,
+        private val isFavorite: (String) -> Boolean,
+        private val onFavClick: ((Medicine) -> Unit)?,
+        private val onItemClick: ((Medicine, android.view.View) -> Unit)?
+    ) : RecyclerView.ViewHolder(binding.root) {
         @SuppressLint("SetTextI18n")
         fun bind(model: Medicine, isGridLayout: Boolean, halfScreenWidth: Int, position: Int) {
             if (isGridLayout) {
                 binding.root.layoutParams.width = halfScreenWidth
                 if (position == 0 || position == 1) binding.root.setPadding(0, 60, 0, 0)
             }
-            try {
-                model.isFavorite = FavoriteSyncRepository(binding.root.context).isFavoriteLocal(model.id, null)
-            } catch (_: Exception) {}
+            model.isFavorite = isFavorite(model.id)
             binding.apply {
                 GeneralUtils.getInstance().loadImage(model.imageUrl).into(ivMedicine)
                 tvMedicineName.text = model.title
-                tvMedicineSalary.text = "${model.price} $"
+                tvMedicineSalary.text = dev.anonymous.eilaji.utils.Money.format(model.price, binding.root.context)
                 setUpFavoriteIcon(model)
                 try { ivMedicine.transitionName = "medicine_image_${model.id}" } catch (_: Exception) {}
                 root.setOnClickListener { onItemClick?.invoke(model, ivMedicine) }

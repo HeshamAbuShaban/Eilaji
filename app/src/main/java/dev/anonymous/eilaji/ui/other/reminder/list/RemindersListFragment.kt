@@ -110,10 +110,10 @@ class RemindersListFragment : Fragment(), RemindersAdapter.RemindersListCallback
                 return
             }
             binding.cardTodaySummary.visibility = View.VISIBLE
-            binding.tvTodayCount.text = if (active.size == 1) "1 dose today" else "${active.size} doses today"
+            binding.tvTodayCount.text = resources.getQuantityString(R.plurals.doses_today, active.size, active.size)
             val next = active.minByOrNull { nextIn(it) }
             binding.tvNextDoseSummary.text = next?.let {
-                "Next: ${it.medicineName ?: it.text} at ${it.scheduleTime?.substring(0, 5)}"
+                getString(R.string.next_dose_summary, it.medicineName ?: it.text, it.scheduleTime?.substring(0, 5) ?: "")
             } ?: ""
         } catch (_: Exception) {}
     }

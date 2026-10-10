@@ -139,7 +139,7 @@
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="4dp"
                     android:text="@string/simulated_courier"
-                    android:textColor="@color/white_fixed"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     android:textSize="11sp" />
 
             </LinearLayout>

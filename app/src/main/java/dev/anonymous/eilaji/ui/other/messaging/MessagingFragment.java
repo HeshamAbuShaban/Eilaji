@@ -20,6 +20,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import dev.anonymous.eilaji.R;
 import dev.anonymous.eilaji.adapters.MessagesAdapter;
 import dev.anonymous.eilaji.databinding.FragmentMessagingBinding;
 import dev.anonymous.eilaji.models.ChatModel;
@@ -117,7 +118,7 @@ public class MessagingFragment extends Fragment {
         if (webSocketManager != null && chatId != null) {
             if (!webSocketManager.isConnected()) {
                 reconnectWebSocket();
-                com.google.android.material.snackbar.Snackbar.make(binding.getRoot(), "Reconnecting… send again in a moment", com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show();
+                com.google.android.material.snackbar.Snackbar.make(binding.getRoot(), getString(R.string.reconnecting_send_again), com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show();
             }
             webSocketManager.sendMessage(chatId, message);
             MessageModel local = getMessageModel(message, null);
@@ -161,6 +162,7 @@ public class MessagingFragment extends Fragment {
         binding.progressMessaging.setVisibility(View.VISIBLE);
         apiService.createChat(req).enqueue(new Callback<ApiResponse<ChatDto>>() {
             @Override public void onResponse(@NonNull Call<ApiResponse<ChatDto>> call, @NonNull Response<ApiResponse<ChatDto>> response) {
+                if (binding == null) return;
                 binding.progressMessaging.setVisibility(View.GONE);
                 if (response.isSuccessful() && response.body() != null && response.body().getSuccess() && response.body().getData() != null) {
                     chatId = response.body().getData().getId();
@@ -168,11 +170,14 @@ public class MessagingFragment extends Fragment {
                     connectWebSocket();
                     if (message != null) sendMessage(message);
                     if (uri != null) sendImage(uri);
-                } else Toast.makeText(getActivity(), "Failed to create chat", Toast.LENGTH_SHORT).show();
+                } else {
+                    if (getActivity() != null) Toast.makeText(getActivity(), "Failed to create chat", Toast.LENGTH_SHORT).show();
+                }
             }
             @Override public void onFailure(@NonNull Call<ApiResponse<ChatDto>> call, @NonNull Throwable t) {
+                if (binding == null) return;
                 binding.progressMessaging.setVisibility(View.GONE);
-                Toast.makeText(getActivity(), "Failed to create chat: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                if (getActivity() != null) Toast.makeText(getActivity(), "Failed to create chat", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -189,6 +194,7 @@ public class MessagingFragment extends Fragment {
         binding.progressMessaging.setVisibility(View.VISIBLE);
         apiService.getMessages(chatId, 0, 50).enqueue(new Callback<ApiResponse<PaginatedResult<MessageDto>>>() {
             @Override public void onResponse(@NonNull Call<ApiResponse<PaginatedResult<MessageDto>>> call, @NonNull Response<ApiResponse<PaginatedResult<MessageDto>>> response) {
+                if (binding == null) return;
                 binding.progressMessaging.setVisibility(View.GONE);
                 if (response.isSuccessful() && response.body() != null && response.body().getSuccess() && response.body().getData() != null) {
                     List<MessageDto> dtos = response.body().getData().getItems();
@@ -199,7 +205,15 @@ public class MessagingFragment extends Fragment {
                     markAsRead();
                 }
             }
-            @Override public void onFailure(@NonNull Call<ApiResponse<PaginatedResult<MessageDto>>> call, @NonNull Throwable t) { binding.progressMessaging.setVisibility(View.GONE); }
+            @Override public void onFailure(@NonNull Call<ApiResponse<PaginatedResult<MessageDto>>> call, @NonNull Throwable t) {
+                if (binding == null) return;
+                binding.progressMessaging.setVisibility(View.GONE);
+                try {
+                    com.google.android.material.snackbar.Snackbar.make(binding.getRoot(), getString(R.string.network_error), com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
+                            .setAction(getString(R.string.retry), v -> loadMessages())
+                            .show();
+                } catch (Exception ignored) { }
+            }
         });
     }
 
@@ -234,15 +248,16 @@ public class MessagingFragment extends Fragment {
     private void connectWebSocket() {
         if (webSocketManager == null || chatId == null) return;
         webSocketManager.setOnMessage(dto -> {
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    if (dto.getChatId() == null || dto.getChatId().equals(chatId)) {
-                        messagesAdapter.addMessage(mapToUi(dto));
-                        binding.recyclerMessaging.scrollToPosition(messagesAdapter.getItemCount() - 1);
-                        markAsRead();
-                    }
-                });
-            }
+            if (getActivity() == null) return;
+            getActivity().runOnUiThread(() -> {
+                // The view can be destroyed between the socket frame and this runnable.
+                if (binding == null || messagesAdapter == null) return;
+                if (dto.getChatId() == null || dto.getChatId().equals(chatId)) {
+                    messagesAdapter.addMessage(mapToUi(dto));
+                    binding.recyclerMessaging.scrollToPosition(messagesAdapter.getItemCount() - 1);
+                    markAsRead();
+                }
+            });
         });
         webSocketManager.setOnRead(readChatId -> {
             if (getActivity() != null) getActivity().runOnUiThread(() -> {});
@@ -268,11 +283,12 @@ public class MessagingFragment extends Fragment {
     }
 
     private void reconnectWebSocket() {
-        if (wsReconnectAttempts >= 3 || webSocketManager == null || chatId == null) return;
+        if (webSocketManager == null || chatId == null) return;
         wsReconnectAttempts++;
         webSocketManager.disconnect();
+        if (binding == null) return;
         binding.getRoot().postDelayed(() -> {
-            if (isAdded() && webSocketManager != null) webSocketManager.connect();
+            if (isAdded() && webSocketManager != null && binding != null) webSocketManager.connect();
         }, 2000);
     }
 
@@ -288,6 +304,21 @@ public class MessagingFragment extends Fragment {
     @Override public void onResume() {
         super.onResume();
         if (receiverUid != null) prefs.putCurrentUserChattingUID(receiverUid);
+    }
+
+    @Override public void onDestroyView() {
+        // Socket callbacks keep firing after the view is gone; detach them first.
+        if (webSocketManager != null) {
+            try { webSocketManager.disconnect(); } catch (Exception ignored) { }
+            webSocketManager.setOnMessage(null);
+            webSocketManager.setOnConnected(null);
+            webSocketManager.setOnError(null);
+            webSocketManager.setOnRead(null);
+            webSocketManager.setOnPresence(null);
+            webSocketManager.setOnPong(null);
+        }
+        binding = null;
+        super.onDestroyView();
     }
 
     @Override public void onPause() {

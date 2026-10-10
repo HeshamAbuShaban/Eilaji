@@ -1,5 +1,7 @@
 package dev.anonymous.eilaji.ui.base.user_interface.send_prescription
 
+import dev.anonymous.eilaji.R
+
 import android.Manifest
 import android.content.Context
 import android.content.Intent
@@ -108,7 +110,7 @@ class SendPrescriptionFragment : Fragment(), ImagePickerListener,
                 val text: String =
                     sendPrescriptionViewModel.prescriptionAdditionalText.value.toString()
                 if (uri == null || text.isEmpty()) {
-                    Snackbar.make(root, "Please Enter a Prescription Detail", Snackbar.LENGTH_LONG)
+                    Snackbar.make(root, getString(R.string.please_enter_prescription_detail), Snackbar.LENGTH_LONG)
                         .show()
                 } else {
                     Toast.makeText(
@@ -243,7 +245,7 @@ class SendPrescriptionFragment : Fragment(), ImagePickerListener,
 
     override fun onImageSelectionCancelled() {
         // show a proper message for user why there is no image
-        Toast.makeText(requireContext(), "Something Went Wrong !", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), getString(R.string.something_went_wrong_short), Toast.LENGTH_SHORT).show()
     }
 
     // Other helper methods ============================

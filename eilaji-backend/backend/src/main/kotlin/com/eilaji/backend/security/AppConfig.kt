@@ -46,6 +46,9 @@ object AppConfig {
 
     val isProduction: Boolean = profile.equals("prod", ignoreCase = true)
 
+    /** "test" behaves like dev: tables are created at boot, nothing is seeded. */
+    val isStrict: Boolean = isProduction
+
     /** Boot-time table creation with SchemaUtils is a development convenience. */
     val createMissingTables: Boolean = bool("CREATE_MISSING_TABLES", "database.createMissingTables", !isProduction)
 

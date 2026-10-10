@@ -1,5 +1,7 @@
 package dev.anonymous.eilaji.ui.other.orders
 
+import dev.anonymous.eilaji.R
+
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
@@ -256,16 +258,16 @@ class OrderTrackingFragment : Fragment(), OnMapReadyCallback {
     private fun renderMotion(remainKm: Double, eta: Int) {
         try {
             _binding ?: return
-            binding.tvTrackingEta.text = "~$eta min"
+            binding.tvTrackingEta.text = getString(R.string.eta_minutes, eta)
             binding.progressRoute.progress = (progress.coerceIn(0f, 1f) * 100).toInt()
             binding.tvTrackingStatus.text = when (status) {
-                "PENDING" -> "Confirming with pharmacy"
-                "CONFIRMED" -> "Preparing your order"
-                "PREPARING" -> "Packing your medicines"
-                "SHIPPED" -> "Courier on the way"
-                "DELIVERED" -> "Delivered"
-                "CANCELLED" -> "Cancelled"
-                else -> "On the way"
+                "PENDING" -> getString(R.string.status_pending)
+                "CONFIRMED" -> getString(R.string.status_confirmed)
+                "PREPARING" -> getString(R.string.status_preparing)
+                "SHIPPED" -> getString(R.string.status_shipped)
+                "DELIVERED" -> getString(R.string.status_delivered)
+                "CANCELLED" -> getString(R.string.status_cancelled)
+                else -> getString(R.string.status_on_the_way)
             }
             if (!composeBound) bindComposeIsland()
             composeStatus.value = status
@@ -276,9 +278,9 @@ class OrderTrackingFragment : Fragment(), OnMapReadyCallback {
     private fun renderSheet(o: OrderDto) {
         try {
             _binding ?: return
-            binding.tvTrackingFrom.text = o.pharmacyName ?: "Pharmacy"
-            binding.tvTrackingTo.text = o.deliveryAddress ?: "Your address"
-            binding.tvHandoffCode.text = if (!o.handoffCode.isNullOrBlank()) "Handoff code: ${o.handoffCode}" else "Handoff code appears here"
+            binding.tvTrackingFrom.text = o.pharmacyName ?: getString(R.string.pharmacy_fallback)
+            binding.tvTrackingTo.text = o.deliveryAddress ?: getString(R.string.your_address)
+            binding.tvHandoffCode.text = if (!o.handoffCode.isNullOrBlank()) getString(R.string.handoff_code_format, o.handoffCode) else getString(R.string.handoff_code_placeholder)
             if (progress < 0f) {
                 binding.progressRoute.progress = when (status) {
                     "PENDING" -> 8; "CONFIRMED" -> 25; "PREPARING" -> 45
@@ -291,7 +293,7 @@ class OrderTrackingFragment : Fragment(), OnMapReadyCallback {
 
     private fun finishTrip() {
         try {
-            binding.tvTrackingEta.text = "Arriving"
+            binding.tvTrackingEta.text = getString(R.string.arriving)
             binding.progressRoute.progress = 100
         } catch (_: Exception) {}
     }

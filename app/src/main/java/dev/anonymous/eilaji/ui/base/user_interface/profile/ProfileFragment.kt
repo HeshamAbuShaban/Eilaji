@@ -10,7 +10,6 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import dev.anonymous.eilaji.R
 import dev.anonymous.eilaji.databinding.FragmentProfileBinding
-import dev.anonymous.eilaji.firebase.FirebaseController
 import dev.anonymous.eilaji.network.ApiResponse
 import dev.anonymous.eilaji.network.NetworkModule
 import dev.anonymous.eilaji.storage.AppSharedPreferences
@@ -134,7 +133,7 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
             buConnectWithUs.setOnClickListener {
                 val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
                     data = Uri.parse("mailto:eilaji.health@gmail.com")
-                    putExtra(Intent.EXTRA_SUBJECT, "Connect with us")
+                    putExtra(Intent.EXTRA_SUBJECT, getString(R.string.connect_with_us))
                 }
                 startActivity(emailIntent)
             }
@@ -155,13 +154,13 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
                     type = "text/plain"
                     putExtra(Intent.EXTRA_TEXT, "https://play.google.com/store/apps/details?id=${requireContext().packageName}")
                 }
-                startActivity(Intent.createChooser(share, "Share App"))
+                startActivity(Intent.createChooser(share, getString(R.string.share_app_title)))
             }
             buPrivacyPolicy.setOnClickListener {
                 try {
                     startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://eilaji.health/privacy")))
                 } catch (_: Exception) {
-                    Toast.makeText(requireContext(), "Privacy Policy coming soon", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), getString(R.string.privacy_policy_coming_soon), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -171,7 +170,7 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
         val ctx = try { requireContext() } catch (_: Exception) { return }
         val prefs = AppSharedPreferences.getInstance(ctx)
         if (prefs.getToken().isNullOrBlank()) {
-            Toast.makeText(ctx, "Sign in to edit your profile", Toast.LENGTH_SHORT).show()
+            Toast.makeText(ctx, getString(R.string.sign_in_to_edit_profile), Toast.LENGTH_SHORT).show()
             return
         }
         val container = android.widget.LinearLayout(ctx).apply {
@@ -198,7 +197,7 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
                 val name = nameInput.text.toString().trim()
                 val phone = phoneInput.text.toString().trim()
                 if (name.isEmpty()) {
-                    Toast.makeText(ctx, "Name can't be empty", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(ctx, getString(R.string.name_cant_be_empty), Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
                 saveProfile(name, phone.ifBlank { null })
@@ -220,14 +219,14 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
                     prefs.putFullName(user.fullName)
                     if (user.phone != null) prefs.putPhone(user.phone)
                     bindIdentity()
-                    Toast.makeText(ctx, "Profile updated", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(ctx, getString(R.string.profile_updated), Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(ctx, response.body()?.error ?: "Update failed", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(ctx, response.body()?.error ?: getString(R.string.update_failed), Toast.LENGTH_SHORT).show()
                 }
             }
             override fun onFailure(call: Call<ApiResponse<dev.anonymous.eilaji.network.UserDto>>, t: Throwable) {
                 if (!isAdded || call.isCanceled) return
-                Toast.makeText(ctx, "Network error — retry", Toast.LENGTH_SHORT).show()
+                Toast.makeText(ctx, getString(R.string.network_error), Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -238,12 +237,10 @@ class ProfileFragment : Fragment(), LogoutDialogListener {
         api.logout().enqueue(object : Callback<ApiResponse<Any>> {
             override fun onResponse(call: Call<ApiResponse<Any>>, response: Response<ApiResponse<Any>>) {
                 prefs.clearAll()
-                try { FirebaseController.getInstance().signOut(requireContext()) } catch (_: Exception) {}
                 navigateToLogin()
             }
             override fun onFailure(call: Call<ApiResponse<Any>>, t: Throwable) {
                 prefs.clearAll()
-                try { FirebaseController.getInstance().signOut(requireContext()) } catch (_: Exception) {}
                 navigateToLogin()
             }
         })

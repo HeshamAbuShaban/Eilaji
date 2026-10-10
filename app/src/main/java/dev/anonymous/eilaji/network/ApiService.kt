@@ -17,6 +17,12 @@ interface ApiService {
     @POST("auth/refresh")
     fun refreshToken(@Body request: RefreshTokenRequest): Call<ApiResponse<LoginResponse>>
 
+    @POST("auth/forgot-password")
+    fun forgotPassword(@Body request: Map<String, String>): Call<ApiResponse<Map<String, String>>>
+
+    @POST("auth/reset-password")
+    fun resetPassword(@Body request: ResetPasswordRequest): Call<ApiResponse<Unit>>
+
     @POST("auth/logout")
     fun logout(): Call<ApiResponse<Any>>
 
@@ -168,6 +174,11 @@ data class RegisterRequest(
 data class LoginRequest(
     @SerializedName("email") val email: String,
     @SerializedName("password") val password: String
+)
+
+data class ResetPasswordRequest(
+    @SerializedName("token") val token: String,
+    @SerializedName("newPassword") val newPassword: String
 )
 
 data class RefreshTokenRequest(

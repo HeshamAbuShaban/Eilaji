@@ -24,7 +24,9 @@ The API will be available at `http://localhost:8080`.
 |--------|----------|-------------|
 | POST | `/api/v1/auth/register` | Register new user |
 | POST | `/api/v1/auth/login` | Login user |
-| POST | `/api/v1/auth/refresh` | Refresh JWT token |
+| POST | `/api/v1/auth/refresh` | Exchange a refresh token for a new pair (rotated on use) |
+| POST | `/api/v1/auth/forgot-password` | Start a password reset |
+| POST | `/api/v1/auth/reset-password` | Finish a password reset with the code |
 
 ### Medicines (Public)
 | Method | Endpoint | Description |
@@ -55,6 +57,7 @@ The API will be available at `http://localhost:8080`.
 | GET | `/api/v1/orders` | List user orders (pharmacists see only owned stores) |
 | GET | `/api/v1/orders/{id}` | Get order details |
 | PUT | `/api/v1/orders/{id}/status` | Update status `PENDING→CONFIRMED→PREPARING→SHIPPED→DELIVERED` (PHARMACIST/ADMIN only, terminal states locked) |
+| PUT | `/api/v1/orders/{id}/cancel` | Cancel an order: patient cancels their own, pharmacy/admin their store |
 | PUT | `/api/v1/orders/{id}/courier` | Update live courier position `{lat, lng, etaMinutes}` or `{clear: true}` (PHARMACIST/ADMIN only) |
 
 ### Stock (read public, write PHARMACIST/ADMIN)
@@ -94,11 +97,10 @@ ws.send(JSON.stringify({ type: 'MESSAGE', content: 'Hello!' }));
 | GET | `/api/v1/admin/prescriptions` | List all prescriptions |
 | GET | `/api/v1/admin/analytics` | Get platform statistics |
 
-### Health & Metrics
+### Health
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/health` | Service health check |
-| GET | `/metrics` | Prometheus metrics |
+| GET | `/health` | Liveness + Postgres and Redis checks (`UP` or `DEGRADED`) |
 
 ## Ops Dashboard (dev)
 
@@ -114,36 +116,64 @@ Visual tester for pharmacy flows at `http://localhost:8080/dashboard` — sign i
 
 ## Environment Variables
 
-Create a `.env` file in the `eilaji-backend` directory:
+Defaults live in `backend/src/main/resources/application.conf`.
+Every value has an environment override. Production uses `docker-compose.prod.yml`.
 
 ```env
-# Database
-DB_URL=jdbc:postgresql://localhost:5432/eilaji
-DB_USER=eilaji_user
-DB_PASSWORD=your_secure_password
-DB_DRIVER=org.postgresql.Driver
+# Profile: dev | test | prod. prod runs migrations only and refuses to seed.
+APP_PROFILE=dev
 
-# Redis
+# Database
+DATABASE_URL=jdbc:postgresql://localhost:5432/eilaji_db
+DATABASE_USER=eilaji
+DATABASE_PASSWORD=change_me
+
+# Redis (credentials supported: redis://:password@host:port)
 REDIS_URL=redis://localhost:6379
 
 # MinIO
 MINIO_ENDPOINT=http://localhost:9000
-MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=minioadminpassword
-MINIO_REGION=us-east-1
+MINIO_ACCESS_KEY=eilaji_minio_admin
+MINIO_SECRET_KEY=change_me
 
-# JWT
-JWT_SECRET=your_super_secret_jwt_key_min_32_chars
+# JWT — required in production, 32+ characters, never committed
+JWT_SECRET=replace_with_a_long_random_string
 JWT_ISSUER=eilaji-backend
-JWT_AUDIENCE=eilaji-users
+JWT_AUDIENCE=eilaji-client
+JWT_EXPIRES_IN=3600000
+JWT_REFRESH_EXPIRES_IN=2592000000
+
+# Browser origins allowed with credentials, comma separated
+CORS_ALLOWED_HOSTS=
+
+# Seeding (development only; keep both false in production)
+SEED_ON_STARTUP=false
+SEED_DEMO_CREDENTIALS=false
+
+# Limits
+MAX_UPLOAD_BYTES=8388608
+MAX_WS_FRAME_BYTES=1048576
+SEARCH_MAX_RADIUS_KM=50
+BCRYPT_COST=12
+
+# Rate limiting
+RATE_LIMIT_PER_MINUTE=100
+RATE_LIMIT_LOGIN=5
+RATE_LIMIT_REGISTER=3
+RATE_LIMIT_REFRESH=10
+RATE_LIMIT_FAIL_CLOSED=true
 
 # Eilaji-Plus (optional)
 EILAJI_PLUS_BASE_URL=https://plus.eilaji.com/api
 EILAJI_PLUS_API_KEY=your_api_key
-
-# Server
-SERVER_PORT=8080
+EILAJI_PLUS_WEBHOOK_SECRET=shared_webhook_signing_secret
 ```
+
+Rules for secrets:
+
+1. `JWT_SECRET` has no default. `APP_PROFILE=prod` without it is a startup failure.
+2. Nothing secret belongs in `application.conf`.
+3. Seeding never runs in production, and demo accounts are opt-in.
 
 ## Testing
 
@@ -160,12 +190,13 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
 ### Monitoring
-- **Health**: `GET /health` returns DB, Redis, MinIO status
-- **Metrics**: `GET /metrics` exposes Prometheus-compatible metrics
-- **Logging**: JSON structured logs (ELK-compatible)
+- **Health**: `GET /health` reports `UP` only when Postgres and Redis answer
+- **Logging**: JSON structured logs (ELK-compatible), request path without token query strings
 
-### Rate Limiting
-Default: 100 requests per minute per IP. Configurable in `Application.kt`.
+### Rate limiting
+100 requests per minute per IP by default, with strict buckets on the auth routes
+(5 logins/min, 3 registrations/hour). When Redis is unreachable, the strict buckets answer 429
+instead of silently dropping all limits.
 
 ## Project Structure
 
@@ -179,11 +210,12 @@ backend/src/main/kotlin/com/eilaji/backend/
 │   ├── Routes.kt           # incl. courier + stock routes
 │   ├── AdminController.kt
 │   └── AuthController.kt
-├── data/                   # Database tables
-│   └── Tables.kt
+├── data/                   # Database tables + migrations
+│   ├── Tables.kt
+│   └── Migrations.kt        # named, idempotent schema changes
 ├── dto/                    # Data transfer objects
 ├── initialization/         # DatabaseSeeder (v2 taxonomy)
-├── security/               # JWT & auth
+├── security/               # JWT, AppConfig (env), auth helpers, audit
 ├── service/                # Business logic
 │   ├── OrderService.kt     # state machine + courier updates
 │   ├── PrescriptionService.kt

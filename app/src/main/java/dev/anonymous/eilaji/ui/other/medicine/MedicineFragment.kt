@@ -19,6 +19,7 @@ import dev.anonymous.eilaji.network.MedicineDto
 import dev.anonymous.eilaji.network.NetworkModule
 import dev.anonymous.eilaji.ui.base.BaseActivity
 import dev.anonymous.eilaji.utils.GeneralUtils
+import dev.anonymous.eilaji.utils.Money
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -61,7 +62,7 @@ class MedicineFragment : Fragment() {
         try { medicineViewModel.init(requireContext()) } catch (_: Exception) { return }
         if (medicineId != null) loadDetails(medicineId!!)
         else {
-            try { binding.toolbarMedicine?.title = "Medicines" } catch (_: Exception) {}
+            try { binding.toolbarMedicine?.title = getString(R.string.medicines_title) } catch (_: Exception) {}
             medicineViewModel.loadMedicines()
             medicineViewModel.medicines.observe(viewLifecycleOwner) { list ->
                 if (!isAdded || _binding == null) return@observe
@@ -93,9 +94,10 @@ class MedicineFragment : Fragment() {
         val dto = currentDto ?: return
         if (!isAdded) return
         try {
-            val text = "${dto.titleEn.ifBlank { dto.titleAr }} — ${dto.price ?: 0.0}$" +
+            val priceLabel = Money.format(dto.price ?: 0.0, requireContext())
+            val text = getString(R.string.share_medicine_text, dto.titleEn.ifBlank { dto.titleAr }, priceLabel) +
                 (if (!dto.descriptionEn.isNullOrBlank()) "\n${dto.descriptionEn}" else "") +
-                "\nvia Eilaji"
+                "\n" + getString(R.string.via_eilaji)
             val share = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
                 type = "text/plain"
                 putExtra(android.content.Intent.EXTRA_SUBJECT, dto.titleEn.ifBlank { dto.titleAr })
@@ -190,11 +192,11 @@ class MedicineFragment : Fragment() {
                 return
             }
             binding.tvAvailabilityCount?.visibility = View.VISIBLE
-            binding.tvAvailabilityCount?.text = "${top.size} nearby"
+            binding.tvAvailabilityCount?.text = getString(R.string.n_nearby, top.size)
             try {
                 val best = top.maxByOrNull { it.ratingAvg }
                 bindingOrNull?.tvPharmacyRatingAvg?.text = if (best != null && best.totalRatings > 0) {
-                    String.format("%.1f ★ (%d)", best.ratingAvg, best.totalRatings)
+                    getString(R.string.rating_count_format, best.ratingAvg, best.totalRatings)
                 } else ""
             } catch (_: Exception) {}
             val ui = ArrayList(top.map { dto ->
@@ -230,7 +232,7 @@ class MedicineFragment : Fragment() {
                                 if (!isAdded || _binding == null || call.isCanceled) return
                                 val first = response.body()?.data?.firstOrNull()
                                 if (first == null) {
-                                    try { Toast.makeText(ctx, "No pharmacy nearby to rate", Toast.LENGTH_SHORT).show() } catch (_: Exception) {}
+                                    try { Toast.makeText(ctx, getString(R.string.no_pharmacy_nearby), Toast.LENGTH_SHORT).show() } catch (_: Exception) {}
                                     return
                                 }
                                 try {
@@ -242,18 +244,18 @@ class MedicineFragment : Fragment() {
                                                 if (r2.isSuccessful && r2.body()?.success == true) {
                                                     try { bindingOrNull?.let { Snackbar.make(it.root, getString(R.string.thanks_for_rating), Snackbar.LENGTH_SHORT).show() } } catch (_: Exception) {}
                                                     setupAvailability()
-                                                } else try { Toast.makeText(ctx, r2.body()?.error ?: "Rating failed — login required", Toast.LENGTH_SHORT).show() } catch (_: Exception) {}
+                                                } else try { Toast.makeText(ctx, r2.body()?.error ?: getString(R.string.rating_failed_login), Toast.LENGTH_SHORT).show() } catch (_: Exception) {}
                                             }
                                             override fun onFailure(call: Call<ApiResponse<dev.anonymous.eilaji.network.RatingDto>>, t: Throwable) {
                                                 if (!isAdded || _binding == null || call.isCanceled) return
-                                                try { Toast.makeText(ctx, "Network error", Toast.LENGTH_SHORT).show() } catch (_: Exception) {}
+                                                try { Toast.makeText(ctx, getString(R.string.network_error), Toast.LENGTH_SHORT).show() } catch (_: Exception) {}
                                             }
                                         })
                                 } catch (_: Exception) {}
                             }
                             override fun onFailure(call: Call<ApiResponse<List<dev.anonymous.eilaji.network.PharmacyDto>>>, t: Throwable) {
                                 if (!isAdded || _binding == null || call.isCanceled) return
-                                try { Toast.makeText(ctx, "Network error", Toast.LENGTH_SHORT).show() } catch (_: Exception) {}
+                                try { Toast.makeText(ctx, getString(R.string.network_error), Toast.LENGTH_SHORT).show() } catch (_: Exception) {}
                             }
                         })
                 } catch (_: Exception) {}
@@ -272,14 +274,24 @@ class MedicineFragment : Fragment() {
                 if (response.isSuccessful && response.body()?.success == true && response.body()?.data != null) {
                     try { bindDetails(response.body()!!.data!!) } catch (_: Exception) {}
                 } else {
-                    try { Toast.makeText(requireContext(), response.body()?.error ?: "Failed to load", Toast.LENGTH_SHORT).show() } catch (_: Exception) {}
+                    showErrorWithRetry(response.body()?.error ?: getString(R.string.failed_to_load))
                 }
             }
             override fun onFailure(call: Call<ApiResponse<MedicineDto>>, t: Throwable) {
                 if (!isAdded || _binding == null || call.isCanceled) return
-                try { Toast.makeText(requireContext(), "Network error: ${t.message}", Toast.LENGTH_SHORT).show() } catch (_: Exception) {}
+                showErrorWithRetry(getString(R.string.network_error))
             }
         })
+    }
+
+    private fun showErrorWithRetry(message: String) {
+        if (!isAdded || _binding == null) return
+        try {
+            val id = medicineId ?: currentDto?.id
+            Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                .setAction(getString(R.string.retry)) { if (id != null) loadDetails(id) }
+                .show()
+        } catch (_: Exception) {}
     }
 
     private fun bindDetails(dto: MedicineDto) {
@@ -328,10 +340,10 @@ class MedicineFragment : Fragment() {
             } catch (_: Exception) {}
         }
         try {
-            bindFact(bindingOrNull?.tvFactDosage, "Dosage:", dto.dosage)
-            bindFact(bindingOrNull?.tvFactWarnings, "Warnings:", dto.warnings)
-            bindFact(bindingOrNull?.tvFactSideEffects, "Side effects:", dto.sideEffects)
-            bindFact(bindingOrNull?.tvFactStorage, "Storage:", dto.storageInfo)
+            bindFact(bindingOrNull?.tvFactDosage, getString(R.string.label_dosage), dto.dosage)
+            bindFact(bindingOrNull?.tvFactWarnings, getString(R.string.label_warnings), dto.warnings)
+            bindFact(bindingOrNull?.tvFactSideEffects, getString(R.string.label_side_effects), dto.sideEffects)
+            bindFact(bindingOrNull?.tvFactStorage, getString(R.string.label_storage), dto.storageInfo)
             bindingOrNull?.cardMedicineFacts?.visibility = if (any) View.VISIBLE else View.GONE
         } catch (_: Exception) {}
     }
@@ -349,11 +361,11 @@ class MedicineFragment : Fragment() {
                     if (ent != null) repo.syncDelete(ent.id) else repo.syncDelete(dto.id)
                 } catch (_: Exception) {}
                 try { bindingOrNull?.fabAddToFavorite?.setImageResource(R.drawable.ic_favorite_border) } catch (_: Exception) {}
-                try { Toast.makeText(ctx, "Removed from favorites", Toast.LENGTH_SHORT).show() } catch (_: Exception) {}
+                try { Toast.makeText(ctx, getString(R.string.removed_from_favorites), Toast.LENGTH_SHORT).show() } catch (_: Exception) {}
             } else {
                 try { repo.syncCreateLocalFirst(dto.id, null) } catch (_: Exception) {}
                 try { bindingOrNull?.fabAddToFavorite?.setImageResource(R.drawable.ic_favorite) } catch (_: Exception) {}
-                try { Toast.makeText(ctx, "Added to favorites", Toast.LENGTH_SHORT).show() } catch (_: Exception) {}
+                try { Toast.makeText(ctx, getString(R.string.added_to_favorites), Toast.LENGTH_SHORT).show() } catch (_: Exception) {}
             }
         } } catch (_: Exception) {}
     }
@@ -378,8 +390,8 @@ class MedicineFragment : Fragment() {
         if (!isAdded || _binding == null) return
         try {
             val price = currentDto?.price ?: 0.0
-            bindingOrNull?.textView?.text = String.format("%.2f $", price)
-            bindingOrNull?.tvBottomTotal?.text = String.format("%.2f $", price * qty)
+            bindingOrNull?.textView?.text = Money.format(price, requireContext())
+            bindingOrNull?.tvBottomTotal?.text = Money.format(price * qty, requireContext())
         } catch (_: Exception) {}
     }
 
@@ -391,7 +403,7 @@ class MedicineFragment : Fragment() {
         try { (activity as? BaseActivity)?.refreshCartBadge() } catch (_: Exception) {}
         try {
             val b = bindingOrNull ?: return
-            Snackbar.make(b.root, "Added to cart", Snackbar.LENGTH_LONG).setAction("Checkout") { goCheckout() }.show()
+            Snackbar.make(b.root, getString(R.string.added_to_cart), Snackbar.LENGTH_LONG).setAction(getString(R.string.checkout)) { goCheckout() }.show()
         } catch (_: Exception) {}
     }
 
@@ -399,8 +411,8 @@ class MedicineFragment : Fragment() {
         val dto = currentDto
         if (dto?.requiresPrescription == true) {
             val b = bindingOrNull ?: return
-            Snackbar.make(b.root, "Prescription required — upload it and the pharmacy will confirm", Snackbar.LENGTH_LONG)
-                .setAction("Upload") {
+            Snackbar.make(b.root, getString(R.string.prescription_required_message), Snackbar.LENGTH_LONG)
+                .setAction(getString(R.string.upload_prescription)) {
                     try {
                         val intent = android.content.Intent(requireContext(), dev.anonymous.eilaji.ui.other.base.AlternativesActivity::class.java)
                         intent.putExtra("fragmentType", dev.anonymous.eilaji.storage.enums.FragmentsKeys.sendToPharmacy.name)

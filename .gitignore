@@ -30,3 +30,9 @@ Thumbs.db
 *~
 .openclaude-profile.json
 eilaji-backend/backend/build.bak_root/
+
+# Local build configuration and secrets
+local.properties
+keystore.properties
+*.jks
+*.keystore

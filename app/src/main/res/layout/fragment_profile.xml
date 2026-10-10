@@ -71,7 +71,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:text="@string/login_subtitle"
-                            android:textColor="#EFFFFFFF"
+                            android:alpha="0.9"
+                            android:textColor="@color/white_fixed"
                             android:textSize="@dimen/_12ssp" />
 
                     </LinearLayout>

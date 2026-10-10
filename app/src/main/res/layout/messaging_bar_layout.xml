@@ -17,7 +17,7 @@
             android:id="@+id/ivUserReceiverMessaging"
             android:layout_width="@dimen/_30sdp"
             android:layout_height="@dimen/_30sdp"
-            android:contentDescription="@null"
+            android:contentDescription="@string/receiver_photo"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_default_user" />
 

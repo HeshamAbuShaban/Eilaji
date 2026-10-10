@@ -14,6 +14,10 @@ import java.security.GeneralSecurityException;
 
 
 public class AppSharedPreferences {
+    /** Plaintext preferences are only used as a last resort; see the constructor. */
+    private static final String PLAINTEXT_FILE = "app_prefs";
+    private static final String SECURE_FILE = "secure_app_prefs";
+    private static boolean secureStorageAvailable = true;
     private enum SharedPreferencesKeys {
         onBoardingDone, isFirstTime, token, refreshToken, fcmToken, fullName, imageUrl, currentUserChattingUid, userId, phone, role, isVerified, isActive, theme
     }
@@ -27,27 +31,46 @@ public class AppSharedPreferences {
     private SharedPreferences.Editor editor;
 
     private AppSharedPreferences(Context context) {
+        // The application context is stored, never an Activity, so a leaked instance cannot
+        // keep a screen (and its view tree) alive.
+        Context appContext = context.getApplicationContext();
         SharedPreferences tmp = null;
         try {
-            MasterKey masterKey = new MasterKey.Builder(context)
+            MasterKey masterKey = new MasterKey.Builder(appContext)
                 .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
                 .build();
             tmp = EncryptedSharedPreferences.create(
-                context,
-                "secure_app_prefs",
+                appContext,
+                SECURE_FILE,
                 masterKey,
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             );
+            secureStorageAvailable = true;
         } catch (GeneralSecurityException | IOException e) {
-            tmp = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+            // The keystore refused (corrupted key, OEM problem, restored backup).
+            // Never keep a stale plaintext file from an older build: wipe it and start empty.
+            appContext.getSharedPreferences(PLAINTEXT_FILE, Context.MODE_PRIVATE).edit().clear().apply();
+            tmp = appContext.getSharedPreferences(PLAINTEXT_FILE, Context.MODE_PRIVATE);
+            secureStorageAvailable = false;
+            android.util.Log.e("AppSharedPreferences",
+                "Encrypted storage unavailable; the session will not survive a backup restore.", e);
         }
         sharedPreferences = tmp;
     }
 
+    /** False when the keystore could not be used and tokens are stored unencrypted. */
+    public static boolean isSecureStorageAvailable() {
+        return secureStorageAvailable;
+    }
+
     public static AppSharedPreferences getInstance(Context context) {
         if (Instance == null) {
-            Instance = new AppSharedPreferences(context);
+            synchronized (AppSharedPreferences.class) {
+                if (Instance == null) {
+                    Instance = new AppSharedPreferences(context);
+                }
+            }
         }
         return Instance;
     }

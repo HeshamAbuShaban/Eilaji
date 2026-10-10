@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/navigation_search"
         android:name="dev.anonymous.eilaji.ui.other.search.SearchFragment"
-        android:label="fragment_search"
+        android:label="@string/nav_search"
         tools:layout="@layout/fragment_search" >
         <action
             android:id="@+id/action_navigation_search_to_navigation_messaging"
@@ -32,32 +32,32 @@
     <fragment
         android:id="@+id/navigation_medicine"
         android:name="dev.anonymous.eilaji.ui.other.medicine.MedicineFragment"
-        android:label="fragment_medicine"
+        android:label="@string/nav_medicine_details"
         tools:layout="@layout/fragment_medicine">
         <argument android:name="medicineId" app:argType="string" app:nullable="true" android:defaultValue="@null" />
     </fragment>
     <fragment
         android:id="@+id/navigation_favorites"
         android:name="dev.anonymous.eilaji.ui.other.favorite.FavoritesFragment"
-        android:label="fragment_favorite"
+        android:label="@string/nav_favorites"
         tools:layout="@layout/fragment_favorites" />
 
     <fragment
         android:id="@+id/navigation_add_address"
         android:name="dev.anonymous.eilaji.ui.other.add_address.AddAddressFragment"
-        android:label="fragment_add_address"
+        android:label="@string/nav_add_address"
         tools:layout="@layout/fragment_add_address" />
 
     <fragment
         android:id="@+id/navigation_add_reminder"
         android:name="dev.anonymous.eilaji.ui.other.reminder.ReminderFragment"
-        android:label="fragment_reminder"
+        android:label="@string/nav_add_reminder"
         tools:layout="@layout/fragment_reminder" />
 
     <fragment
         android:id="@+id/navigation_reminders_list"
         android:name="dev.anonymous.eilaji.ui.other.reminder.list.RemindersListFragment"
-        android:label="fragment_reminders_list"
+        android:label="@string/nav_reminders"
         tools:layout="@layout/fragment_reminders_list">
         <action
             android:id="@+id/action_navigation_reminders_list_to_navigation_add_reminder"
@@ -71,7 +71,7 @@
     <fragment
         android:id="@+id/navigation_messaging"
         android:name="dev.anonymous.eilaji.ui.other.messaging.MessagingFragment"
-        android:label="fragment_messaging"
+        android:label="@string/nav_chatting"
         tools:layout="@layout/fragment_messaging">
         <argument
             android:name="chatId"
@@ -113,7 +113,7 @@
     <fragment
         android:id="@+id/navigation_sub_categories_fragment"
         android:name="dev.anonymous.eilaji.ui.other.sub_categories.SubCategoriesFragment"
-        android:label="fragment_sub_categories"
+        android:label="@string/nav_sub_categories"
         tools:layout="@layout/fragment_sub_categories" >
         <argument
             android:name="categoryId"
@@ -129,7 +129,7 @@
     <fragment
         android:id="@+id/navigation_send_to_pharmacy_fragment"
         android:name="dev.anonymous.eilaji.ui.other.send_to_pharmacy.SendToPharmacyFragment"
-        android:label="fragment_send_to_pharmacy"
+        android:label="@string/nav_send_to_pharmacy"
         tools:layout="@layout/fragment_send_to_pharmacy" >
         <argument
             android:name="lat"
@@ -157,13 +157,13 @@
     <fragment
         android:id="@+id/navigation_orders"
         android:name="dev.anonymous.eilaji.ui.other.orders.OrdersFragment"
-        android:label="fragment_orders"
+        android:label="@string/nav_orders"
         tools:layout="@layout/fragment_orders" />
 
     <fragment
         android:id="@+id/navigation_order_tracking"
         android:name="dev.anonymous.eilaji.ui.other.orders.OrderTrackingFragment"
-        android:label="fragment_order_tracking"
+        android:label="@string/nav_order_tracking"
         tools:layout="@layout/fragment_order_tracking">
         <argument android:name="orderId" app:argType="string" app:nullable="true" android:defaultValue="@null" />
     </fragment>
@@ -171,7 +171,7 @@
     <fragment
         android:id="@+id/navigation_checkout"
         android:name="dev.anonymous.eilaji.ui.other.checkout.CheckoutFragment"
-        android:label="fragment_checkout"
+        android:label="@string/nav_checkout"
         tools:layout="@layout/fragment_checkout">
         <argument android:name="medicineId" app:argType="string" app:nullable="true" android:defaultValue="@null" />
         <argument android:name="quantity" app:argType="integer" android:defaultValue="1" />

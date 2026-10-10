@@ -5,7 +5,8 @@
     <color name="gray">#1E1E1E</color>
     <color name="gray_light">#1E1E1E</color>
     <color name="gray_light_for_night">#1E1E1E</color>
-    <color name="gray_dark">#9E9E9E</color>
+    <color name="gray_dark">#B0B0B0</color>
+    <color name="darkGray">#BDBDBD</color>
     <color name="primary_color">#BA324F</color>
     <color name="ic_launcher_background">#121212</color>
     <color name="night_window_background_color">#121212</color>
