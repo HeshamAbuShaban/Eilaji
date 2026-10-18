@@ -193,8 +193,7 @@ vulnerability reporting, or contact the maintainer directly.
 ## Maintenance and upgrades
 
 Step-by-step procedures for a backend upgrade, a schema change and a release live in
-[docs/UPGRADING.md](docs/UPGRADING.md). Agent and contributor conventions live in
-[AGENTS.md](AGENTS.md). The changelog is [CHANGELOG.md](CHANGELOG.md).
+[docs/UPGRADING.md](docs/UPGRADING.md). The changelog is [CHANGELOG.md](CHANGELOG.md).
 
 ## CI & releases
 
@@ -216,7 +215,6 @@ Step-by-step procedures for a backend upgrade, a schema change and a release liv
 
 | Document | Contents |
 |---|---|
-| [AGENTS.md](AGENTS.md) | How to work in this repository: commands, conventions, review rules |
 | [docs/SECURITY.md](docs/SECURITY.md) | Secret handling, threat model, rotated credentials, reporting |
 | [docs/UPGRADING.md](docs/UPGRADING.md) | Backend upgrade, migrations, release runbook |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
